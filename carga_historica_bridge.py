@@ -1,0 +1,300 @@
+"""
+Módulo de Sincronización Incremental (Bridge).
+Se encarga de descargar la cotización histórica diaria de los activos desde
+distintas fuentes (como Google Finance o DolarAPI) y anexar solo los días
+faltantes en la hoja HISTORICO_VALORES.
+"""
+import requests  
+import gspread
+import pandas as pd
+import time
+import auth_google
+import config
+import procesamiento
+from datetime import datetime, timedelta
+
+# --- CONFIGURACIÓN LOCAL ---
+PROCESO_ID = "CARGA_DATOS_BRIDGE"
+ETIQUETA_FUENTE = "GF_BRIDGE"
+
+
+def marcar_maestro_actualizado(ws_maestro, ticker_id):
+    """
+    Registra la fecha y hora de la última actualización exitosa para un ticker específico.
+    
+    Actualiza la columna 'ULTIMA_ACTUALIZ' en la hoja MAESTRO_ACTIVOS para el activo 
+    procesado, permitiendo llevar un control de cuándo fue la última carga de datos.
+    
+    Argumentos:
+        ws_maestro (Worksheet): Objeto de la hoja MAESTRO_ACTIVOS.
+        ticker_id (str): El identificador único del activo (ej. 'AAPL', 'USDARS').
+    """
+    ahora_completo = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        data = ws_maestro.get_all_records()
+        df_m = pd.DataFrame(data)
+        df_m.columns = [str(c).strip().upper() for c in df_m.columns]
+        
+        # Encontrar la fila del ticker
+        idx = df_m[df_m['TICKER_ID'] == ticker_id].index
+        if not idx.empty:
+            # +2 porque el DF empieza en 0 y Sheets tiene encabezado en 1
+            col_idx = list(df_m.columns).index('ULTIMA_ACTUALIZ') + 1
+            ws_maestro.update_cell(idx[0] + 2, col_idx, ahora_completo)
+    except Exception as e:
+        print(f"Error marcando maestro para {ticker_id}: {e}")
+
+def ejecutar_carga_bridge():
+    """
+    Orquesta la sincronización incremental de datos históricos en paralelo.
+    
+    Esta función se encarga de:
+    1. Leer los activos configurados para carga vía "GF_BRIDGE" en el maestro.
+    2. Determinar la última fecha en que se obtuvieron datos para cada activo.
+    3. Agrupar las consultas y escribir todas las fórmulas =GOOGLEFINANCE en paralelo
+       horizontalmente en la hoja temporal WS_DOWNLOAD_BUFFER.
+    4. Realizar una única espera de 20 segundos para que se resuelvan todas en paralelo.
+    5. Descargar todo el buffer en bloque, parsear y guardar en HISTORICO_VALORES.
+    """
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Sincronización Bridge...")
+    t_inicio = time.time()
+    
+    sh = auth_google.conectar()
+    ws_maestro = sh.worksheet(config.WS_MAESTRO_ACTIVOS)
+    ws_historico = sh.worksheet(config.WS_HISTORICO_VALORES)
+    ws_buffer = sh.worksheet(config.WS_DOWNLOAD_BUFFER)
+    ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
+    ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
+
+    procesamiento.registrar_log(ws_log, "INFO", "INICIO: Sincronización Bridge", config.ORIGEN_LOG_CARGA)
+    
+    # Limpieza preventiva: Mantenemos la base liviana antes de buscar nuevos datos
+    procesamiento.limpiar_historico_valores(sh)
+
+    procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Buscando nuevos registros...")
+
+    todas_las_filas_nuevas = []
+    ahora = datetime.now()
+    estado_final = "OK"
+    detalle_final = ""
+    
+    try:
+        # 1. Obtener Tickers Activos de esta fuente
+        df_maestro = pd.DataFrame(ws_maestro.get_all_records(value_render_option='UNFORMATTED_VALUE'))
+        df_maestro.columns = [str(c).strip().upper() for c in df_maestro.columns]
+        mask = (df_maestro['ESTADO'] == 'ACTIVO') & (df_maestro['FUENTE_DATA'] == ETIQUETA_FUENTE)
+        tickers = df_maestro[mask]['TICKER_ID'].unique().tolist()
+
+        # 2. Cargar históricos actuales para saber desde dónde arrancar
+        df_hist = pd.DataFrame(ws_historico.get_all_records(value_render_option='UNFORMATTED_VALUE'))
+        
+        if not df_hist.empty:
+            df_hist.columns = [str(c).strip().upper() for c in df_hist.columns]
+            
+            if 'FECHA' in df_hist.columns:
+                def parse_fecha_bridge(v):
+                    if isinstance(v, (int, float)):
+                        return pd.to_datetime(v, unit='D', origin='1899-12-30').floor('D')
+                    return pd.to_datetime(str(v), errors='coerce')
+                
+                df_hist['FECHA_DT'] = df_hist['FECHA'].apply(parse_fecha_bridge)
+        else:
+            # Si está vacío, inicializamos estructura mínima para evitar KeyErrors
+            df_hist = pd.DataFrame(columns=['TICKER_ID', 'FECHA', 'FECHA_DT', 'PRECIO_CIERRE'])
+
+        # Limpiar buffer temporal al inicio
+        ws_buffer.clear()
+        
+        # Guardaremos la lista de tickers que procesaremos vía Google Finance
+        gf_jobs = []
+        
+        for t in tickers:
+            t_clean = str(t).strip().upper()
+            
+            # 2.1 Obtener configuración de días desde el maestro con Piso de Seguridad
+            row_maestro = df_maestro[df_maestro['TICKER_ID'] == t_clean]
+            dias_base = config.MIN_DIAS_HISTORIAL + 60 # Margen extra
+            
+            if not row_maestro.empty:
+                try:
+                    val_maestro = int(row_maestro['DIAS_KEEP_HIST'].iloc[0])
+                    dias_a_pedir = max(val_maestro, dias_base)
+                except:
+                    dias_a_pedir = dias_base
+            else:
+                dias_a_pedir = dias_base
+
+            # 2.2 Determinar fecha de inicio (última fecha en base + 1 día o carga inicial completa)
+            df_t_actual = df_hist[df_hist['TICKER_ID'] == t_clean]
+            conteo_actual = df_t_actual['FECHA_DT'].nunique() if not df_t_actual.empty else 0
+            ultima_f = df_t_actual['FECHA_DT'].max() if not df_t_actual.empty else None
+            
+            # --- DETECCIÓN DE CORRUPCIÓN DE ESCALA (Mejorada) ---
+            if not df_t_actual.empty and t_clean not in ['BTC', 'ETH', 'USDARS']:
+                p_numeric = pd.to_numeric(df_t_actual['PRECIO_CIERRE'], errors='coerce')
+                p_min, p_max = p_numeric.min(), p_numeric.max()
+                if p_min > 0 and (p_max / p_min > 10):
+                    print(f"    [!] {t_clean}: Corrupción de escala detectada (Ratio {round(p_max/p_min,1)}x). Purgando historial...")
+                    conteo_actual = 0 # Fuerza la recarga completa
+                    ultima_f = None
+            
+            # Guardamos las fechas que YA existen para no duplicar si forzamos recarga
+            fechas_existentes = set()
+            if not df_t_actual.empty:
+                fechas_existentes = {d.strftime('%Y-%m-%d') for d in df_t_actual['FECHA_DT'] if pd.notnull(d)}
+
+            # Si tenemos menos de lo necesario para el análisis técnico, forzamos carga desde el pasado
+            if conteo_actual < config.MIN_DIAS_HISTORIAL:
+                start_dt = ahora - timedelta(days=int(dias_a_pedir * 2.0))
+                print(f"    [*] {t_clean}: Historial insuficiente ({conteo_actual}/{config.MIN_DIAS_HISTORIAL}). Forzando recarga desde {start_dt.date()}...")
+            else:
+                start_dt = (ultima_f + timedelta(days=1)) if pd.notnull(ultima_f) else (ahora - timedelta(days=int(dias_a_pedir * 1.5)))
+
+            if start_dt.date() >= ahora.date():
+                continue
+
+            f_ini = start_dt.strftime('%Y-%m-%d')
+            f_fin = ahora.strftime('%Y-%m-%d')
+
+            # --- CASO ESPECIAL: USDARS (Dólar API) ---
+            if t_clean == "USDARS":
+                try:
+                    res = requests.get("https://dolarapi.com/v1/dolares/oficial")
+                    precio_val = float(res.json()['venta'])
+                    
+                    temp_date = start_dt.date()
+                    hoy_date = ahora.date()
+                    
+                    while temp_date <= hoy_date:
+                        f_iso = temp_date.strftime('%Y-%m-%d')
+                        if f_iso not in fechas_existentes:
+                            todas_las_filas_nuevas.append([
+                                t_clean, f_iso,
+                                precio_val, 0, precio_val, precio_val
+                            ])
+                        temp_date += timedelta(days=1)
+                    marcar_maestro_actualizado(ws_maestro, t_clean)
+                except Exception as e:
+                    procesamiento.registrar_log(ws_log, "ERROR", f"Error USDARS: {e}", config.ORIGEN_LOG_CARGA)
+
+            # --- CASO GENERAL: Google Finance ---
+            else:
+                formula = f'=GOOGLEFINANCE("{t_clean}"; "all"; "{f_ini}"; "{f_fin}")'
+                gf_jobs.append({
+                    'ticker': t_clean,
+                    'formula': formula,
+                    'fechas_existentes': fechas_existentes
+                })
+
+        # 3. Descargar fórmulas de Google Finance en paralelo
+        if gf_jobs:
+            print(f"    [*] Preparando descarga en paralelo para {len(gf_jobs)} tickers...")
+            
+            # Construir fila horizontal de fórmulas espaciadas por 7 columnas
+            row_formulas = []
+            for job in gf_jobs:
+                row_formulas.append(job['formula'])
+                row_formulas.extend(["", "", "", "", "", ""]) # Spacing de 6 celdas vacías
+            
+            ws_buffer.update(range_name='A1', values=[row_formulas], raw=False)
+            
+            print(f"    [*] Esperando 20 segundos a que Google Finance resuelva las peticiones...")
+            time.sleep(20)
+            
+            # Leer bloque completo de datos con un renderizado limpio
+            data_buffer = ws_buffer.get_all_values(value_render_option='UNFORMATTED_VALUE')
+            
+            for idx, job in enumerate(gf_jobs):
+                t_clean = job['ticker']
+                fechas_existentes = job['fechas_existentes']
+                col_start = idx * 7
+                
+                if len(data_buffer) > 0:
+                    header_row = data_buffer[0]
+                    # Verificar cobertura de columnas
+                    if len(header_row) > col_start:
+                        first_header_cell = str(header_row[col_start]).strip().upper()
+                        
+                        # Validar si devolvió la tabla o dio error (#N/A)
+                        if first_header_cell == "DATE":
+                            conteo_ticker = 0
+                            for row in data_buffer[1:]:
+                                if len(row) > col_start + 5:
+                                    val_fecha = row[col_start]
+                                    if val_fecha == "" or val_fecha is None or str(val_fecha).startswith("#"):
+                                        continue
+                                    
+                                    try:
+                                        # Parsear fecha
+                                        if str(val_fecha).replace('.', '').isdigit():
+                                            dt_obj = datetime(1899, 12, 30) + timedelta(days=float(val_fecha))
+                                        else:
+                                            raw_fecha = str(val_fecha).split()[0]
+                                            try:
+                                                dt_obj = pd.to_datetime(raw_fecha, format='%Y-%m-%d')
+                                            except:
+                                                dt_obj = pd.to_datetime(raw_fecha, dayfirst=True)
+                                        
+                                        f_nivelada = dt_obj.strftime('%Y-%m-%d')
+                                        
+                                        if f_nivelada in fechas_existentes:
+                                            continue
+
+                                        close = row[col_start + 4]
+                                        high = row[col_start + 2]
+                                        low = row[col_start + 3]
+                                        vol = row[col_start + 5] if row[col_start + 5] != "" else 0
+
+                                        # Casteo seguro
+                                        if not all(isinstance(x, (int, float)) for x in [close, high, low, vol]):
+                                            try:
+                                                close = float(close)
+                                                high = float(high)
+                                                low = float(low)
+                                                vol = int(float(vol))
+                                            except:
+                                                continue
+
+                                        todas_las_filas_nuevas.append([
+                                            t_clean, f_nivelada, 
+                                            float(close), 
+                                            int(vol),
+                                            float(high), 
+                                            float(low)
+                                        ])
+                                        conteo_ticker += 1
+                                    except:
+                                        continue
+                            
+                            print(f"        [OK] {t_clean}: {conteo_ticker} filas nuevas preparadas.")
+                            marcar_maestro_actualizado(ws_maestro, t_clean)
+                        else:
+                            # Puede ser que retorne un error general como #N/A en la celda del buffer
+                            err_cell = str(data_buffer[0][col_start])
+                            print(f"        [!] {t_clean}: No se obtuvieron datos (Celda de error: '{err_cell}')")
+
+        if todas_las_filas_nuevas:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Grabando {len(todas_las_filas_nuevas)} registros en HISTORICO_VALORES...")
+            ws_historico.append_rows(todas_las_filas_nuevas, value_input_option='USER_ENTERED')
+            registros_totales = len(todas_las_filas_nuevas)
+        else:
+            registros_totales = 0
+
+        detalle_final = f"Sincronizados {registros_totales} registros totales."
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        estado_final = "ERROR"
+        detalle_final = f"Falla: {str(e)[:50]}"
+        procesamiento.registrar_log(ws_log, "CRITICAL", f"Error Bridge: {str(e)}", config.ORIGEN_LOG_CARGA)
+    
+    finally:
+        duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
+        procesamiento.actualizar_estado_proceso(ws_status, estado_final, detalle_final, tiempo_ejecucion=duracion)
+        procesamiento.registrar_log(ws_log, "INFO", f"FIN: {detalle_final}", config.ORIGEN_LOG_CARGA)
+        print(f">>> {detalle_final}")
+        return estado_final == "OK"
+
+if __name__ == "__main__":
+    ejecutar_carga_bridge()

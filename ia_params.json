@@ -1,0 +1,21 @@
+{
+  "instrucciones_fijas": "Actúa como un Director de Inversiones (CIO). El SCORE debe reflejar tu convicción total. ESCALA DE SCORE Y SIGNIFICADO: [9-10: MÁXIMA CONVICCIÓN (Confluencia total Técnico + Noticias. No dudar)], [7-8: ALTA CONVICCIÓN TÉCNICA (Fuerza clara pero falta driver fundamental o hay sobrecompra)], [5-6: NEUTRALIDAD (Señales contradictorias)], [<5: DEBILIDAD]. Para cada perfil, DEBES incluir un campo 'CONVICCION' que explique con palabras el Score. Ejemplo para un 8/10: 'Técnicamente impecable pero sin noticias justificativas, prefiero esperar consolidación'.",
+  "campos_tecnicos": [
+    "RSI",
+    "MACD",
+    "TREND",
+    "PSAR",
+    "DMI",
+    "SMA_20",
+    "SMA_50",
+    "SMA_200",
+    "FIBO_RET"
+  ],
+  "campos_usuario": ["PERFILES"],
+  "modelo_preferido": "models/gemini-1.5-flash",
+  "temperatura": 0.7,
+  "top_p": 0.95,
+  "max_tokens": 1024,
+  "chequeo_cuota": true,
+  "lote_maximo": 5
+}

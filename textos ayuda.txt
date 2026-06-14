@@ -1,0 +1,61 @@
+-- no borrar Luis
+luisprograma1964@gmail.com
+vicky8575
+-- no borrar
+faltaria...agregar si conviene en analistecnico el ultimo valore y la fecha del tickete
+
+¿Cómo puedo optimizar el Paso 2 (Bridge) para que procese varios activos en paralelo y no tarde tanto?
+Rate Limiting: Ten cuidado con la API de Gemini o la de noticias. Si lanzas 20 hilos a la vez, podrías recibir un error 429 (Too Many Requests). Te sugiero empezar con max_workers=3 y subir gradualmente.
+Asyncio: Si en el futuro escalas a cientos de activos, valdría la pena migrar a asyncio con aiohttp, pero para un set moderado de activos, los hilos (ThreadPools) son más fáciles de implementar en tu estructura actual.
+
+
+¿Qué métricas de calidad de la IA podemos empezar a guardar para saber si los veredictos son consistentes?
+Métricas de Calidad de la IA para Veredictos Consistentes
+Para saber si tu sistema es confiable a largo plazo, no basta con leer el veredicto; necesitas metadatos de calidad. Te sugiero guardar un log (puede ser un JSON o una tabla en base de datos) con las siguientes métricas por cada consulta:
+
+Índice de Alucinación (Grounding Check):
+
+Cómo medirlo: Al recibir la respuesta de la IA, haz una búsqueda de texto simple: ¿Aparecen los números clave (precio de cierre, RSI) que le pasaste originalmente en el prompt?
+Métrica: bool (¿El precio en el veredicto coincide con el precio de entrada?).
+Confianza del Veredicto (Self-Score):
+
+Cómo medirlo: Pedirle a la propia IA en el prompt: "Puntúa del 1 al 10 qué tan segura estás de este análisis basado en la calidad de los datos recibidos".
+Métrica: int (1-10).
+Estabilidad de Sentimiento (Sentiment Variance):
+
+Cómo medirlo: Si el activo no ha cambiado de precio drásticamente, pero el veredicto pasó de "Compra Fuerte" a "Venta" en 10 minutos, hay un problema de consistencia.
+Métrica: Comparación con el último veredicto (distancia_sentimiento).
+Latencia y Tokens:
+
+Métrica: Tiempo de respuesta y costo en tokens. 
+Esto te ayudará a ver si un modelo más barato (como Gemini Flash) rinde igual que uno caro (Pro)
+ para esta tarea específica.
+Ejemplo de estructura de log sugerida:
+{
+  "timestamp": "2024-05-29T10:30:00",
+  "ticker": "AL30",
+  "input_price": 54.20,
+  "veredicto": "Mantener",
+  "metricas_calidad": {
+    "grounding_ok": true,
+    "confianza_ia": 8,
+    "latencia_ms": 1450,
+    "modelo": "gemini-1.5-flash"
+  }
+}
+Revisión de Código y Sugerencias
+
+¿ ---
+agregar limpieza de noticias y noticias rechazas y sinonimos sugeridos
+    agregar en analis tecnico la fecha del precio actual
+hacer un proceso extra...super decisiones, ya teniendo encuenta mis tenencias y disponibles
+como ves la idea de hacer algo que dado la matriz, dado las tenencias y dado
+el dinero disponible, diga en un informe claro sugiro comprar, con tu dinero para corto, mediano o largo plazo
+sugiero vender de tus tenencias
+demas que analice las noticias, noticias rechazadas y sugerencias de sinonimos
+, para ver como mejorar cada vez el proceso
+
+para recomendar nuevo ticket que no este en el maestro, nuevos sinonimos 
+o nuevas fuentes de noticias, ojo que hay que ver como se maneja el campo 
+por ejemplo parece raro que para algun ticket con una decision importe y fuerte 
+de compra o venta, no encontrara noticia alguno.

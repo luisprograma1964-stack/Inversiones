@@ -1,0 +1,348 @@
+"""
+Motor de Inteligencia Artificial para veredictos de inversión.
+Combina el análisis técnico con perfiles de usuario para generar recomendaciones
+personalizadas utilizando el modelo de Google Gemini/Gemma.
+"""
+import gspread
+import pandas as pd
+from google import genai
+from datetime import datetime
+import time
+import sys
+import procesamiento
+import json
+import config
+from pathlib import Path
+import ia_utils
+import auth_google
+
+# --- CONFIGURACIÓN ---
+try:
+    sh = auth_google.conectar()
+    if not sh:
+        sys.exit()
+    with open(config.API_KEY_FILE, 'r') as f:
+        key = f.read().strip()
+    client = genai.Client(api_key=key)
+except Exception as e:
+    print(f"!!! ERROR INICIAL: {e}")
+    sys.exit()
+
+def limpiar_logs_antiguos(dias=10):
+    """Borra archivos en la carpeta IA_LOGS con más de 'dias' de antigüedad."""
+    log_dir = Path("IA_LOGS")
+    if not log_dir.exists():
+        return
+    
+    ahora = time.time()
+    limite = ahora - (dias * 86400) # 86400 segundos = 1 día
+    
+    borrados = 0
+    try:
+        for archivo in log_dir.glob("req_*.json"):
+            if archivo.is_file():
+                # Verificamos la fecha de modificación del sistema de archivos
+                if archivo.stat().st_mtime < limite:
+                    archivo.unlink()
+                    borrados += 1
+        
+        if borrados > 0:
+            print(f"[*] Mantenimiento: Se eliminaron {borrados} logs antiguos (> {dias} días).")
+    except Exception as e:
+        print(f"    [!] Error al limpiar logs antiguos: {e}")
+
+def ejecutar_decisor():
+    print("\n" + "="*60)
+    print(f"MOTOR IA - ANÁLISIS TÉCNICO PROFESIONAL | {datetime.now().strftime('%H:%M:%S')}")
+    print("="*60)
+    t_inicio = time.time()
+    
+    activos_procesados = 0
+    errores = 0
+
+    # Ejecutar limpieza de historial antes de empezar el análisis
+    limpiar_logs_antiguos(dias=10)
+    procesamiento.limpiar_reporte_ia(sh)
+
+    try:
+        # 1. MAPEO DE USUARIOS
+        usuarios_raw = sh.worksheet(config.WS_CONFIG_IA_USUARIO).get_all_records()
+        # Normalizamos tanto la clave como el valor (Usuario_ID) para evitar descalces
+        mapa_usuarios = {str(u['Perfil_Riesgo']).strip(): str(u['Usuario_ID']).strip() for u in usuarios_raw if u['Perfil_Riesgo']}
+        perfiles_lista = list(mapa_usuarios.keys())
+
+        # 2. DATOS TÉCNICOS
+        ws_analisis = sh.worksheet(config.WS_ANALISIS_TECNICO)
+        # Usamos UNFORMATTED_VALUE para leer el número real de la celda y evitar confusiones con puntos de miles
+        df_tecnico = pd.DataFrame(ws_analisis.get_all_records(value_render_option='UNFORMATTED_VALUE'))
+        df_tecnico.columns = [c.strip().upper() for c in df_tecnico.columns]
+        
+        df_tecnico['ESTADO'] = df_tecnico['ESTADO'].astype(str).str.strip().str.replace('.', '', regex=False).str.upper()
+        pendientes = df_tecnico[df_tecnico['ESTADO'] == 'PENDIENTE'].copy()
+
+
+        if pendientes.empty:
+            print(">>> No hay activos pendientes.")
+            duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
+            procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "OK", "Sin activos pendientes", tiempo_ejecucion=duracion)
+            return
+
+        gen_data = sh.worksheet(config.WS_CONFIG_IA_GENERAL).get_all_records()[0]
+        ws_gen = {k.strip(): v for k, v in gen_data.items()}
+        ws_reporte = sh.worksheet(config.WS_REPORTE_IA)
+        ws_matriz = sh.worksheet(config.WS_MATRIZ_RECOMENDACIONES)
+        
+        # 3. CARGA DE MATRIZ (Normalizada para evitar duplicados)
+        raw_values = ws_matriz.get_all_values()
+        if raw_values:
+            columnas_matriz = [c.strip().upper() for c in raw_values[0]]
+            df_matriz = pd.DataFrame(raw_values[1:], columns=columnas_matriz)
+            # Normalizamos Ticker y Perfil para que la limpieza sea infalible
+            df_matriz['TICKER'] = df_matriz['TICKER'].astype(str).str.strip().str.upper()
+            df_matriz['PERFIL'] = df_matriz['PERFIL'].astype(str).str.strip().str.upper()
+        else:
+            columnas_matriz = ["FECHA", "TICKER", "PERFIL", "SENTIMIENTO", "VEREDICTO_IA"]
+            df_matriz = pd.DataFrame(columns=columnas_matriz)
+        matriz_modificada = False
+
+        reporte_acumulado = []
+
+        modelos = ia_utils.obtener_modelos_activos()
+        quota_error = False  # flag to stop processing when cuota/servicio falla
+        for index, row in pendientes.iterrows():
+            if quota_error:
+                break
+            ticker = row['TICKER_ID']
+            print(f"[*] Analizando confluencia en {ticker}...")
+
+            # --- GUARDIA DE DATOS (Check de Cordura) ---
+            apto, motivo = ia_utils.validar_datos_tecnicos(row)
+            if not apto:
+                print(f"    [!] DESCARTADO: Datos técnicos corruptos para {ticker}: {motivo}")
+                continue
+
+            # --- ARMADO DEL PROMPT Y VERIFICACIÓN DE DATOS ---
+            instrucciones_excel = ws_gen.get('Instrucciones_Fijas', '')
+            
+            # Debug: Verificar que los campos técnicos tengan datos
+            missing = [c for c in ia_utils.CAMPO_TECNICO if c not in row or not str(row[c]).strip()]
+            if missing:
+                print(f"    [!] Advertencia: Faltan datos para {missing}. Verificando JSON...")
+            else:
+                print(f"    [OK] Datos técnicos cargados: {len(ia_utils.CAMPO_TECNICO)} indicadores.")
+
+            # --- INTEGRACIÓN DE NOTICIAS ---
+            # Buscamos las noticias recientes del activo y el contexto macro (9999_AR/US)
+            noticias_ctx = ia_utils.obtener_noticias_recientes(sh, ticker)
+
+            cuerpo_prompt = ia_utils.crear_prompt(row, perfiles_lista, instrucciones_excel, noticias_contexto=noticias_ctx)
+            
+            logro_procesar = False
+            config_ia = ia_utils.obtener_config_generacion()
+            
+            for mod_id in list(modelos): # Copia de la lista para poder modificarla
+                if logro_procesar: break
+                print(f"    - Probando modelo: {mod_id}...", end=" ", flush=True)
+                
+                # --- AUDITORÍA Y LIMPIEZA DE PROMPT ---
+                try:
+                    payload = json.loads(cuerpo_prompt)
+                    # Extraemos la metadata de origen (lo que no va a las tablas)
+                    metadata_audit = payload.pop("_ORIGEN_DE_DATOS", {})
+                    metadata_audit["modelo_seleccionado"] = mod_id
+                    metadata_audit["timestamp_envio"] = datetime.now().isoformat()
+
+                    # --- ROTACIÓN DE LOGS (Historial por Ticker) ---
+                    audit_log = {
+                        "auditoria_fuentes": metadata_audit,
+                        "prompt_final_enviado": payload
+                    }
+                    
+                    log_dir = Path("IA_LOGS")
+                    log_dir.mkdir(exist_ok=True) # Crea la carpeta si no existe
+                    ts_f = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    path_log = log_dir / f"req_{ticker}_{ts_f}.json"
+
+                    with open(path_log, "w", encoding="utf-8") as f:
+                        json.dump(audit_log, f, indent=4, ensure_ascii=False)
+                    
+                    # El prompt que realmente viaja a la IA (sin rastro de las tablas/fuentes)
+                    cuerpo_enviar = json.dumps(payload, ensure_ascii=False)
+                except Exception as e:
+                    print(f"\n    [!] Error al procesar JSON de auditoría: {e}")
+                    cuerpo_enviar = cuerpo_prompt
+
+                try:
+                    response = client.models.generate_content(
+                        model=mod_id, 
+                        contents=cuerpo_enviar,
+                        config=config_ia
+                    )
+                    if not response or not response.text:
+                        print("FALLIDO: Respuesta vacía.")
+                        continue
+
+                    bloques = [b.strip() for b in response.text.split('===') if b.strip()]
+                    if len(bloques) < len(perfiles_lista):
+                        # Split resiliente: ignora preámbulo y divide por la etiqueta PERFIL:
+                        partes_raw = response.text.split('PERFIL:')
+                        bloques = ["PERFIL:" + b.strip() for b in partes_raw if b.strip() and '|' in b]
+                    
+                    if not bloques:
+                        print("RECHAZADO: Formato irreconocible (sin bloques '===' o 'PERFIL:').")
+                        continue
+
+                    perfiles_hallados = []
+                    filas_grabar = []
+                    ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                    for bloque in bloques:
+                        # Intentar extraer campos clave del bloque
+                        partes = {}
+                        for p in bloque.split('|'):
+                            if ':' in p:
+                                k, v = p.split(':', 1)
+                                partes[k.strip().upper()] = v.strip()
+                        
+                        nombre_ia = partes.get('PERFIL', '')
+                        usuario_final = "Desconocido"
+                        sentimiento = partes.get('SENTIMIENTO', 'Neutral').upper()
+
+                        # Validar si el perfil devuelto coincide con nuestros usuarios
+                        for p_riesgo, u_id in mapa_usuarios.items():
+                            if p_riesgo.lower() in nombre_ia.lower() or p_riesgo.lower() in bloque.lower():
+                                usuario_final = u_id
+                                break
+                        
+                        if usuario_final == "Desconocido":
+                            print(f"\n    [!] Bloque ignorado: Perfil '{nombre_ia}' no reconocido en configuración.")
+                            continue
+
+                        # Limpieza de Score y extracción de metadatos
+                        score_raw = str(partes.get('SCORE', 'N/A'))
+                        score = score_raw.split('/')[0].strip() if "/" in score_raw else score_raw
+                        
+                        horiz = partes.get('HORIZONTE', 'CORTO PLAZO')
+                        riesgo = partes.get('RIESGO', 'N/A')
+                        conflu = partes.get('CONFLUENCIA', 'Sin datos de contexto')
+                        conviccion = partes.get('CONVICCION', 'Basada en indicadores técnicos')
+                        detalle = partes.get('VEREDICTO_IA', 'Sin detalle técnico')
+
+                        # Unificamos el formato: siempre mostramos la confluencia de noticias
+                        prefix = "⚠️ CONTRADICCIÓN TÉCNICA: " if "CONTRADICCION" in sentimiento else ""
+                        veredicto_final = (
+                            f"🎯 HORIZONTE: {horiz.upper()}\n"
+                            f"🧠 CONVICCIÓN: {conviccion}\n"
+                            f"📊 SCORE: {score}/10\n"
+                            f"⚠️ RIESGO: {riesgo.upper()}\n"
+                            f"📰 CONFLUENCIA NOTICIAS: {conflu}\n"
+                            f"📝 ANÁLISIS: {prefix}{detalle}"
+                        )
+                        
+                        if "CONTRADICCION" in sentimiento:
+                            print(f"    [!] Contradicción registrada para {usuario_final}")
+
+                        filas_grabar.append([
+                            ahora_str, ticker.upper(), usuario_final,
+                            sentimiento,
+                            veredicto_final
+                        ])
+                        perfiles_hallados.append(usuario_final)
+
+                    # Validación de integridad: si el modelo no generó todos los perfiles, pasamos al siguiente
+                    if len(filas_grabar) < len(perfiles_lista):
+                        print(f"FALLIDO: El modelo solo generó {len(filas_grabar)} de {len(perfiles_lista)} perfiles.")
+                        continue
+
+                    if filas_grabar:
+                        # 1. Actualizar Matriz: Borrado total de seguridad para este Ticker
+                        if not df_matriz.empty:
+                            df_matriz = df_matriz[df_matriz['TICKER'] != ticker.upper()].copy()
+
+                        # Construir registros mapeando columnas por nombre para evitar desalineación
+                        nuevos_datos = []
+                        for f in filas_grabar:
+                            nuevos_datos.append({
+                                "FECHA": f[0], "TICKER": f[1], "PERFIL": f[2],
+                                "SENTIMIENTO": f[3], "VEREDICTO_IA": f[4]
+                            })
+                        
+                        df_nuevas = pd.DataFrame(nuevos_datos)
+                        df_matriz = pd.concat([df_matriz, df_nuevas], ignore_index=True)
+                        
+                        # 2. Acumular Reporte (Copia exacta de los datos de la matriz para historial)
+                        reporte_acumulado.extend(filas_grabar)
+                        df_tecnico.at[index, 'ESTADO'] = "PROCESADO"
+                        matriz_modificada = True
+                        print(f"ACEPTADO: {len(perfiles_hallados)}/{len(perfiles_lista)} perfiles generados.")
+                    
+                    # Si el modelo respondió (aunque sea con contradicciones), lo damos por procesado
+                    if len(bloques) > 0:
+                        logro_procesar = True 
+                        activos_procesados += 1
+                        break
+                    else:
+                        print("RECHAZADO: El modelo respondió pero no se identificaron perfiles válidos.")
+
+                except Exception as e:
+                    err_msg = str(e)
+                    # Detect quota or service unavailable errors
+                    if "RESOURCE_EXHAUSTED" in err_msg or "UNAVAILABLE" in err_msg:
+                        print(f"ERROR: Cuota agotada o servicio no disponible en {mod_id}.")
+                        quota_error = True
+                    elif "404" in err_msg or "not found" in err_msg.lower():
+                        print(f"DESCARTADO: El modelo '{mod_id}' no existe o no está disponible.")
+                        if mod_id in modelos:
+                            modelos.remove(mod_id)
+                    else:
+                        print(f"ERROR TÉCNICO en {mod_id}: {err_msg[:50]}...")
+                time.sleep(2)
+
+            if not logro_procesar:
+                errores += 1
+                print("    [!] No se pudo procesar este activo con ninguno de los modelos candidatos.")
+                time.sleep(10)
+            else:
+                print("    [*] Esperando 6 segundos para cuidar cuota (RPM)...")
+                time.sleep(6)
+
+        # Guardar cambios
+        print("\n[*] Sincronizando resultados con Google Sheets...")
+        ws_analisis.update([df_tecnico.columns.values.tolist()] + df_tecnico.values.tolist())
+        
+        if reporte_acumulado:
+            ws_reporte.append_rows(reporte_acumulado)
+            
+        if matriz_modificada:
+            # Reordenar columnas para asegurar consistencia con el encabezado antes de grabar
+            orden_columnas = ["FECHA", "TICKER", "PERFIL", "SENTIMIENTO", "VEREDICTO_IA"]
+            # Aseguramos que todas las columnas existan antes de reordenar
+            df_matriz = df_matriz.reindex(columns=orden_columnas)
+            # Limpieza final de duplicados accidentales
+            df_matriz = df_matriz.drop_duplicates(subset=['TICKER', 'PERFIL'], keep='last')
+            
+            ws_matriz.clear()
+            ws_matriz.update([orden_columnas] + df_matriz.values.tolist())
+
+        resumen = f"Motor completado. Activos: {len(df_tecnico)}. Procesados: {activos_procesados}."
+        print(f"\n{resumen}")
+        procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "INFO", resumen)
+        duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
+        
+        if activos_procesados == 0 and len(pendientes) > 0:
+            procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "ERROR", "No se pudo procesar ningún activo por cuota", tiempo_ejecucion=duracion)
+            return False
+            
+        procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "OK", f"Recs: {activos_procesados}", tiempo_ejecucion=duracion)
+        print(f"[*] Tiempo total de ejecución: {duracion}")
+        return True
+
+    except Exception as e:
+        msg = f"ERROR CRÍTICO MOTOR IA: {e}"
+        print(f"\n{msg}")
+        procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "CRITICAL", msg)
+        procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "ERROR", "Falla global")
+        return False
+
+if __name__ == "__main__":
+    ejecutar_decisor()

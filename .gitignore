@@ -1,0 +1,13 @@
+# Ignorar carpeta de logs de la IA
+IA_LOGS/
+backup/
+BUP/
+creds/
+__pycache__/
+.venv/
+.env
+*.pyc
+# Archivos temporales y de depuración
+debug_ia_request.json
+integrity_manifest.json
+*.zip

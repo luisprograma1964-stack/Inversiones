@@ -1,0 +1,21 @@
+{
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/.venv/**": true,
+        "**/IA_LOGS/**": true,
+        "**/BUP/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/.venv": true,
+        "**/IA_LOGS": true,
+        "**/BUP": true
+    },
+    "python.analysis.exclude": [
+        "IA_LOGS",
+        "BUP"
+    ]
+}
