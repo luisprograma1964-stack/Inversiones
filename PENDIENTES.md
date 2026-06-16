@@ -8,21 +8,15 @@ Fecha de revisión: 2026-06-16
 - Falta un documento único de seguimiento de tareas y mejoras; este archivo cubre esa necesidad.
 
 ## 2. Problemas graves detectados
-- `config.py` define credenciales sensibles directamente (`TELEGRAM_API_HASH`, `API_KEY_FILE`, `JSON_FILE`).
-  - Recomendación: mover credenciales a variables de entorno o a un archivo `.env` seguro fuera del repo.
-- `config.py` tiene `ORIGEN_LOG_TECNICO` definido dos veces. Esto genera confusión y riesgo de comportamiento inesperado.
-- `decisor_con_ia.py` hace la conexión e inicialización de cliente en el nivel de importación.
-  - Si `ensamblador.py` importa el módulo y falta configuración, el proceso puede terminar antes de iniciar correctamente.
-  - Recomendación: mover la inicialización de `gspread` y `genai.Client` dentro de `ejecutar_decisor()`.
-- `README.md` indica la rama `master`, pero el repo actual usa `main`.
-  - Recomendación: actualizar el README para evitar confusiones.
+ - [x] `config.py` define credenciales sensibles directamente: Movido a `os.getenv` con soporte `.env`.
+ - [x] `config.py` duplicación: Se eliminó la doble definición de `ORIGEN_LOG_TECNICO`.
+ - [x] `decisor_con_ia.py` inicialización: Movida dentro de `ejecutar_decisor()` para evitar fallos en importación.
+ - [x] `README.md` rama: Actualizado a `main`.
 - El sistema no tiene un registro único de pendientes ni un plan de continuidad; por eso es fácil olvidarlo.
 
 ## 3. Problemas importantes / riesgos críticos
-- `captura_noticias.py` usa `sys.exit(1)` cuando una hoja de Google Sheets no se encuentra.
-  - Esto corta el pipeline de forma abrupta y puede ser difícil de recuperar.
-- `decisor_con_ia.py` usa `sh.worksheet("ESTADO_PROCESOS")` con cadena literal en vez de `config.WS_ESTADO_PROCESOS`.
-  - Recomendación: usar constantes de `config.py` en todas las hojas del sistema.
+ - [x] `captura_noticias.py` salida abrupta: Reemplazado `sys.exit(1)` por excepciones controladas.
+ - [x] `decisor_con_ia.py` hardcoding: Ahora usa `config.WS_ESTADO_PROCESOS`.
 - `carga_historica_bridge.py` descarga datos en un buffer de Sheets y depende de `GOOGLEFINANCE(...)` con espera fija de 20 segundos.
   - Esto es frágil si Google Sheets responde lento o la fórmula no se resuelve.
   - Recomendación: agregar reintentos y validación de que el buffer se cargó correctamente antes de parsearlo.
@@ -46,10 +40,10 @@ Fecha de revisión: 2026-06-16
 - Crear pruebas de integración mínima para que una ejecución de pipeline no rompa por cambios inesperados.
 
 ## 6. Acciones inmediatas sugeridas
-1. Corregir `config.py`: eliminar la duplicación de `ORIGEN_LOG_TECNICO`.
-2. Refactorizar `decisor_con_ia.py` para inicializar `client` dentro de la función principal.
-3. Actualizar `README.md` para reflejar la rama `main`.
-4. Añadir validación explícita de hojas en `captura_noticias.py` sin usar `sys.exit()`.
+ 1. [x] Corregir `config.py` (Duplicación).
+ 2. [x] Refactorizar `decisor_con_ia.py` (Init segura).
+ 3. [x] Actualizar `README.md` (Rama main).
+ 4. [x] Validación de hojas en `captura_noticias.py` (Sin sys.exit).
 5. Empezar a usar `PENDIENTES.md` como fuente única del estado del proyecto.
 
 ## 7. Cómo seguir
