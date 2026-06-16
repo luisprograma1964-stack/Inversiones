@@ -40,7 +40,7 @@ python -m pip freeze > requirements.txt
 Este proyecto ya está inicializado con Git y vinculado al remoto:
 
 - Remoto: `https://github.com/luisprograma1964-stack/Inversiones.git`
-- Branch actual: `master`
+- Branch actual: `main`
 
 ### ¿Main vs Master?
 
@@ -49,7 +49,7 @@ Este proyecto ya está inicializado con Git y vinculado al remoto:
 - `master` es el nombre tradicional que usaban repositorios antiguos.
 - `main` es el nombre moderno que GitHub usa por defecto hoy en día.
 
-En este proyecto estamos usando `master`, y funciona perfectamente. Si prefieres cambiarlo a `main`, se puede hacer más adelante sin problema.
+En este proyecto estamos usando `main`.
 
 ## Aclaraciones de seguridad
 
@@ -60,4 +60,4 @@ En este proyecto estamos usando `master`, y funciona perfectamente. Si prefieres
 ## Cómo avanzar
 
 - Ejecuta los scripts `main.py` o `main_tecnico.py` según lo que necesites correr.
-- Si quieres, puedo ayudarte a agregar un `README` más detallado de uso paso a paso y a renombrar la rama a `main`.
+- Si quieres, puedo ayudarte a agregar un `README` más detallado de uso paso a paso.
