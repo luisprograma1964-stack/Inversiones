@@ -73,12 +73,13 @@ def ejecutar_decisor():
     # Ejecutar limpieza de historial antes de empezar el análisis
     limpiar_logs_antiguos(dias=10)
 
+    sh = None  # Inicializar como None para verificar luego
     try:
         sh, client = inicializar_motor_ia()
     except Exception as e:
         msg = f"ERROR CRÍTICO MOTOR IA: {e}"
-        logger.critical(msg)
-        procesamiento.registrar_log(None, "CRITICAL", msg)
+        logger.critical(msg)  # ✅ Siempre se registra en terminal
+        # No intentamos registrar en Sheets porque la conexión falló
         return False
 
     procesamiento.limpiar_reporte_ia(sh)
@@ -358,9 +359,17 @@ def ejecutar_decisor():
 
     except Exception as e:
         msg = f"ERROR CRÍTICO MOTOR IA: {e}"
-        logger.critical(msg)
-        procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "CRITICAL", msg)
-        procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "ERROR", "Falla global")
+        logger.critical(msg)  # ✅ Siempre se registra en terminal
+        
+        # Solo intenta registrar en Google Sheets si la conexión existe
+        if sh is not None:
+            try:
+                procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "CRITICAL", msg)
+                procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "ERROR", "Falla global")
+            except Exception as sheet_error:
+                logger.critical(f"No se pudo registrar en Google Sheets: {sheet_error}")
+                return False  # ❌ Termina el proceso si Sheets falla
+        
         return False
 
 if __name__ == "__main__":
