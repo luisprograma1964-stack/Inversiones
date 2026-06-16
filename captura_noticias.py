@@ -48,40 +48,92 @@ def inicializar_motor_noticias():
 
 
 def acceder_hoja(sh, nombre):
+    """Accede a una hoja de Google Sheets con validación robusta."""
     try:
         return sh.worksheet(nombre)
-    except Exception:
+    except Exception as e:
         hojas_detectadas = [w.title for w in sh.worksheets()]
-        msg = f"ERROR CRÍTICO: No se encontró la pestaña '{nombre}'."
-        raise RuntimeError(
-            f"{msg}\nHojas encontradas: {hojas_detectadas}\nVerifica si hay espacios extras o errores de escritura en el nombre."
-        )
+        msg = f"ERROR: No se encontró la pestaña '{nombre}'. Hojas disponibles: {hojas_detectadas}"
+        logger.error(msg)
+        raise RuntimeError(msg)
+
+
+def validar_hojas_requeridas(sh):
+    """Valida que todas las hojas requeridas existan antes de iniciar el proceso."""
+    hojas_requeridas = [
+        config.WS_LOG_SISTEMA,
+        config.WS_ESTADO_PROCESOS,
+        config.WS_MAESTRO_ACTIVOS,
+        config.WS_NOTICIAS_SISTEMA,
+        config.WS_NOTICIAS_DESCARTADAS,
+        config.WS_CONFIG_IA_GENERAL,
+        config.WS_CONFIG_SINONIMOS,
+        config.WS_SUGERENCIAS_SINONIMOS,
+        config.WS_CONFIG_TELEGRAM_CHANNELS
+    ]
+    
+    hojas_disponibles = [w.title for w in sh.worksheets()]
+    faltantes = [h for h in hojas_requeridas if h not in hojas_disponibles]
+    
+    if faltantes:
+        msg = f"ERROR CRÍTICO: Faltan las siguientes pestañas en Google Sheets: {faltantes}"
+        logger.critical(msg)
+        return False, msg
+    
+    return True, "Todas las hojas requeridas están presentes."
 
 
 def ejecutar_captura_noticias():
     t_inicio = time.time()
     logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando Captura de Noticias...")
 
+    sh = None
+    ws_log = None
+    ws_status = None
+
     try:
         sh, client = inicializar_motor_noticias()
     except Exception as e:
-        logger.exception(f"[!!!] {e}")
-        return
+        msg = f"ERROR CRÍTICO CAPTURA NOTICIAS: {e}"
+        logger.critical(msg)  # ✅ Siempre se registra en terminal
+        return False
+
+    # Validar que todas las hojas requeridas existan ANTES de empezar
+    try:
+        hojas_ok, msg_hojas = validar_hojas_requeridas(sh)
+        if not hojas_ok:
+            logger.critical(msg_hojas)
+            return False
+    except Exception as e:
+        msg = f"ERROR al validar hojas requeridas: {e}"
+        logger.critical(msg)
+        return False
 
     # Mantenimiento preventivo de tablas de noticias antes de comenzar
     procesamiento.limpiar_noticias_descartadas(sh)
     procesamiento.limpiar_sugerencias_sinonimos(sh)
 
-    # Carga de hojas principales
-    ws_log = acceder_hoja(sh, config.WS_LOG_SISTEMA)
-    ws_status = acceder_hoja(sh, config.WS_ESTADO_PROCESOS)
-    ws_maestro = acceder_hoja(sh, config.WS_MAESTRO_ACTIVOS)
-    ws_noticias = acceder_hoja(sh, config.WS_NOTICIAS_SISTEMA)
-    ws_descartadas = acceder_hoja(sh, config.WS_NOTICIAS_DESCARTADAS)
-    ws_config_ia = acceder_hoja(sh, config.WS_CONFIG_IA_GENERAL)
-    ws_sinonimos = acceder_hoja(sh, config.WS_CONFIG_SINONIMOS)
-    ws_sugerencias = acceder_hoja(sh, config.WS_SUGERENCIAS_SINONIMOS)
-    ws_canales = acceder_hoja(sh, config.WS_CONFIG_TELEGRAM_CHANNELS)
+    # Carga de hojas principales (ahora sabemos que todas existen)
+    try:
+        ws_log = acceder_hoja(sh, config.WS_LOG_SISTEMA)
+        ws_status = acceder_hoja(sh, config.WS_ESTADO_PROCESOS)
+        ws_maestro = acceder_hoja(sh, config.WS_MAESTRO_ACTIVOS)
+        ws_noticias = acceder_hoja(sh, config.WS_NOTICIAS_SISTEMA)
+        ws_descartadas = acceder_hoja(sh, config.WS_NOTICIAS_DESCARTADAS)
+        ws_config_ia = acceder_hoja(sh, config.WS_CONFIG_IA_GENERAL)
+        ws_sinonimos = acceder_hoja(sh, config.WS_CONFIG_SINONIMOS)
+        ws_sugerencias = acceder_hoja(sh, config.WS_SUGERENCIAS_SINONIMOS)
+        ws_canales = acceder_hoja(sh, config.WS_CONFIG_TELEGRAM_CHANNELS)
+    except Exception as e:
+        msg = f"ERROR CRÍTICO al cargar hojas de Google Sheets: {e}"
+        logger.critical(msg)
+        if ws_log and ws_status:
+            try:
+                procesamiento.registrar_log(ws_log, "CRITICAL", msg)
+                procesamiento.actualizar_estado_proceso(ws_status, "ERROR", "Fallo al cargar hojas requeridas")
+            except Exception as sheet_error:
+                logger.critical(f"No se pudo registrar en Google Sheets: {sheet_error}")
+        return False
 
     procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Capturando fuentes...")
 
@@ -181,7 +233,7 @@ def ejecutar_captura_noticias():
 
         if not todas_las_noticias:
             procesamiento.actualizar_estado_proceso(ws_status, "OK", "No se hallaron noticias", tiempo_ejecucion="0.00 min")
-            return
+            return True
 
         # 3. Deduplicación (No procesar lo que ya tenemos o ya descartamos)
         # Leemos URL de noticias existentes y Titulares de descartadas
@@ -326,11 +378,16 @@ def ejecutar_captura_noticias():
 
     except Exception as e:
         msg_err = f"Error crítico en captura_noticias: {e}"
-        logger.exception(msg_err)
-        try:
-            procesamiento.registrar_log(ws_log, "ERROR", msg_err)
-            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50])
-        except: pass
+        logger.critical(msg_err)  # ✅ Siempre se registra en terminal
+        
+        # Solo intenta registrar en Google Sheets si las conexiones están disponibles
+        if ws_log is not None and ws_status is not None:
+            try:
+                procesamiento.registrar_log(ws_log, "CRITICAL", msg_err)
+                procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50])
+            except Exception as sheet_error:
+                logger.critical(f"No se pudo registrar el error en Google Sheets: {sheet_error}")
+        
         return False
 
 if __name__ == "__main__":
