@@ -9,6 +9,9 @@ import auth_google
 import procesamiento
 from datetime import datetime
 import requests
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 # Diccionario de nombres reales para los activos solicitados
 INFO_NUEVOS = {
@@ -47,7 +50,7 @@ def ejecutar_actualizacion_maestro():
     """
     Inserta nuevos tickers y ordena la tabla MAESTRO_ACTIVOS.
     """
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Mantenimiento de Maestro...")
+    logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Mantenimiento de Maestro...")
     
     ahora_ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     sh = auth_google.conectar()
@@ -74,7 +77,7 @@ def ejecutar_actualizacion_maestro():
         ]
 
         if not all_values or len(all_values) == 0:
-            print("    [!] La hoja está vacía. Reconstruyendo estructura base y títulos...")
+            logger.warning("La hoja está vacía. Reconstruyendo estructura base y títulos...")
             columnas_originales = columnas_base
             df_maestro = pd.DataFrame(columns=columnas_originales)
         else:
@@ -102,7 +105,7 @@ def ejecutar_actualizacion_maestro():
         for t, nombre in INFO_NUEVOS.items():
             t_upper = t.strip().upper()
             if t_upper not in existentes:
-                print(f"    [*] Validando {t_upper} en Yahoo Finance...")
+                logger.info(f"Validando {t_upper} en Yahoo Finance...")
                 
                 # Solo asignamos Bridge si existe en Yahoo, sino queda vacío
                 fuente = "GF_BRIDGE" if verificar_yahoo(t_upper) else ""
@@ -122,9 +125,9 @@ def ejecutar_actualizacion_maestro():
         if filas_nuevas:
             df_nuevos = pd.DataFrame(filas_nuevas)
             df_maestro = pd.concat([df_maestro, df_nuevos], ignore_index=True)
-            print(f"    [+] Se identificaron {agregados} tickers nuevos para agregar.")
+            logger.info(f"Se identificaron {agregados} tickers nuevos para agregar.")
         else:
-            print("    [!] Todos los tickers ya existen en el maestro.")
+            logger.info("Todos los tickers ya existen en el maestro.")
 
         # 3. Ordenar por TICKER_ID
         df_maestro = df_maestro.sort_values(by="TICKER_ID")
@@ -137,11 +140,11 @@ def ejecutar_actualizacion_maestro():
         resumen = f"Maestro actualizado. Agregados: {agregados}. Total: {len(df_maestro)}."
         procesamiento.registrar_log(ws_log, "INFO", resumen)
         procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] {resumen}")
+        logger.info(f"{resumen}")
 
     except Exception as e:
         error_msg = f"Error en mantenimiento maestro: {e}"
-        print(f"!!! {error_msg}")
+        logger.exception(error_msg)
         procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "ERROR", error_msg)
 
 if __name__ == "__main__":

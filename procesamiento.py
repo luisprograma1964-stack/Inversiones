@@ -13,6 +13,9 @@ import os
 import inspect
 import numpy as np
 import pandas as pd
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 def limpiar_serie_numerica(serie):
     """
@@ -76,8 +79,8 @@ def registrar_log(ws_log, nivel, mensaje, origen=None):
     try:
         ws_log.append_row([ahora, nivel, origen, mensaje])
     except Exception as e:
-        # Si falla el Sheets, al menos lo vemos en la consola
-        print(f"CRITICAL: Fallo físico en LOG_SISTEMA: {e}")
+        # Si falla el Sheets, al menos lo registramos localmente
+        logger.critical(f"Fallo físico en LOG_SISTEMA: {e}")
 
 def filtrar_anomalias(nombre_dato, lista_valores, ws_log):
     """
@@ -230,7 +233,7 @@ def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, t
         if not encontrado:
             ws_status.append_row(nueva_fila)
     except Exception as e:
-        print(f"!!! Error actualizando ESTADO_PROCESOS: {e}")
+        logger.error(f"!!! Error actualizando ESTADO_PROCESOS: {e}")
 
 def validar_datos_tecnicos(row_dict):
     """
@@ -298,13 +301,13 @@ def limpiar_historico_valores(sh, dias_a_mantener=None):
     ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
 
     if ya_ejecutado_hoy(ws_status, "limpieza_historico"):
-        print("    [-] Saltando limpieza inteligente de HISTORICO_VALORES (ya ejecutada hoy)")
+        logger.info("    [-] Saltando limpieza inteligente de HISTORICO_VALORES (ya ejecutada hoy)")
         return
 
     t_inicio = time.time()
     
     msg_inicio = "Iniciando limpieza inteligente de HISTORICO_VALORES..."
-    print(f"[*] {msg_inicio}")
+    logger.info(f"[*] {msg_inicio}")
     registrar_log(ws_log, "INFO", msg_inicio, "limpieza_historico")
 
     try:
@@ -326,7 +329,7 @@ def limpiar_historico_valores(sh, dias_a_mantener=None):
         # 2. Procesar Historial
         df_historico = pd.DataFrame(ws_hist.get_all_records(value_render_option='UNFORMATTED_VALUE'))
         if df_historico.empty:
-            print("    [!] HISTORICO_VALORES está vacío. Nada que limpiar.")
+            logger.info("    [!] HISTORICO_VALORES está vacío. Nada que limpiar.")
             return
 
         df_historico.columns = [str(c).strip().rstrip('.').upper() for c in df_historico.columns]
@@ -368,7 +371,7 @@ def limpiar_historico_valores(sh, dias_a_mantener=None):
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
             msg_skip = f"Saltando escritura de HISTORICO_VALORES: solo se identificaron {eliminados} filas viejas para borrar (umbral mínimo: {getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50)})."
-            print(f"    [-] {msg_skip}")
+            logger.info(f"    [-] {msg_skip}")
             registrar_log(ws_log, "INFO", msg_skip, "limpieza_historico")
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
             actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_historico", tiempo_ejecucion=duracion)
@@ -388,7 +391,7 @@ def limpiar_historico_valores(sh, dias_a_mantener=None):
             ws_hist.append_rows(datos_limpios[start_idx:end_idx], value_input_option='USER_ENTERED')
 
         msg_fin = f"Limpieza completada. Se eliminaron {eliminados} filas. Quedan {len(df_limpio)} registros."
-        print(f"[OK] {msg_fin}")
+        logger.info(f"[OK] {msg_fin}")
         registrar_log(ws_log, "INFO", msg_fin, "limpieza_historico")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         actualizar_estado_proceso(ws_status, "OK", msg_fin, "limpieza_historico", tiempo_ejecucion=duracion)
@@ -418,11 +421,11 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
 
         # Solo limpiar si supera el umbral o si es el primer run del día
         if total_actual < config.UMBRAL_FILAS_REPORTE and ya_limpio_hoy:
-            print(f"    [-] Saltando limpieza de reporte (Filas: {total_actual}, ya limpio hoy)")
+            logger.info(f"    [-] Saltando limpieza de reporte (Filas: {total_actual}, ya limpio hoy)")
             return
 
         msg_inicio = f"Iniciando limpieza de {config.WS_REPORTE_IA} ({dias_a_mantener} días)..."
-        print(f"[*] {msg_inicio}")
+        logger.info(f"[*] {msg_inicio}")
         registrar_log(ws_log, "INFO", msg_inicio, "limpieza_ia")
 
         actualizar_estado_proceso(ws_status, "PROCESANDO", "Limpiando reporte IA...", "limpieza_ia")
@@ -448,7 +451,7 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
             msg_skip = f"Saltando escritura de REPORTE_IA: solo se identificaron {eliminados} filas viejas para borrar (umbral mínimo: {getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50)})."
-            print(f"    [-] {msg_skip}")
+            logger.info(f"    [-] {msg_skip}")
             registrar_log(ws_log, "INFO", msg_skip, "limpieza_ia")
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
             actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_ia", tiempo_ejecucion=duracion)
@@ -466,7 +469,7 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
                 ws_reporte.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
 
         msg_fin = f"Limpieza REPORTE_IA completada. Se eliminaron {eliminados} registros."
-        print(f"[OK] {msg_fin}")
+        logger.info(f"[OK] {msg_fin}")
         registrar_log(ws_log, "INFO", msg_fin, "limpieza_ia")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         actualizar_estado_proceso(ws_status, "OK", msg_fin, "limpieza_ia", tiempo_ejecucion=duracion)
@@ -498,10 +501,9 @@ def limpiar_log_sistema(sh, dias_a_mantener=None):
         ya_limpio_hoy = ya_ejecutado_hoy(ws_status, "limpieza_log")
 
         if total_antes < config.UMBRAL_FILAS_LOG and ya_limpio_hoy:
-            print(f"    [-] Saltando mantenimiento de logs (Filas: {total_antes}, ya limpio hoy)")
+            logger.info(f"    [-] Saltando mantenimiento de logs (Filas: {total_antes}, ya limpio hoy)")
             return
-
-        print(f"[*] Realizando mantenimiento de LOG_SISTEMA (Keep: {dias_a_mantener} días)...")
+        logger.info(f"[*] Realizando mantenimiento de LOG_SISTEMA (Keep: {dias_a_mantener} días)...")
         actualizar_estado_proceso(ws_status, "PROCESANDO", "Limpiando logs...", "limpieza_log")
         if 'FECHA' not in df.columns:
             actualizar_estado_proceso(ws_status, "ERROR", "Columna FECHA no hallada", "limpieza_log", tiempo_ejecucion="0.00 min")
@@ -517,7 +519,7 @@ def limpiar_log_sistema(sh, dias_a_mantener=None):
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
             msg_skip = f"Saltando escritura de LOG_SISTEMA: solo se identificaron {eliminados} filas viejas para borrar (umbral mínimo: {getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50)})."
-            print(f"    [-] {msg_skip}")
+            logger.info(f"    [-] {msg_skip}")
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
             actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_log", tiempo_ejecucion=duracion)
             return
@@ -535,12 +537,12 @@ def limpiar_log_sistema(sh, dias_a_mantener=None):
 
         # Registramos la acción de limpieza como el primer log de la nueva etapa
         registrar_log(ws_log_sheet, "INFO", f"Mantenimiento: Se eliminaron {eliminados} logs antiguos (> {dias_a_mantener} días).", "limpieza_log")
-        print(f"[OK] Mantenimiento de logs finalizado. {eliminados} filas removidas.")
+        logger.info(f"[OK] Mantenimiento de logs finalizado. {eliminados} filas removidas.")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         actualizar_estado_proceso(ws_status, "OK", f"Eliminados: {eliminados}", "limpieza_log", tiempo_ejecucion=duracion)
     except Exception as e:
         actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_log", tiempo_ejecucion="0.00 min")
-        print(f"Error técnico en limpieza_log: {e}")
+        logger.exception(f"Error técnico en limpieza_log: {e}")
 
 def verificar_locale_compatible(sh):
     """
@@ -563,7 +565,7 @@ def verificar_locale_compatible(sh):
         else:
             return False, locale
     except Exception as e:
-        print(f"!!! No se pudo verificar el locale: {e}")
+        logger.exception(f"!!! No se pudo verificar el locale: {e}")
         return None, "error"
 
 
@@ -582,7 +584,7 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
         t_inicio = time.time()
         # Verificar si ya se limpió hoy
         if ya_ejecutado_hoy(ws_status, "limpieza_noticias_descartadas"):
-            print("    [-] Saltando limpieza de NOTICIAS_DESCARTADAS (ya ejecutada hoy)")
+            logger.info("    [-] Saltando limpieza de NOTICIAS_DESCARTADAS (ya ejecutada hoy)")
             return
 
         data = ws_noticias.get_all_records()
@@ -590,10 +592,10 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
         
         # Solo limpiar si supera el umbral de filas
         if total_actual < getattr(config, 'UMBRAL_FILAS_NOTICIAS_DESCARTADAS', 500):
-            print(f"    [-] Saltando limpieza de noticias descartadas (Filas: {total_actual} < {getattr(config, 'UMBRAL_FILAS_NOTICIAS_DESCARTADAS', 500)})")
+            logger.info(f"    [-] Saltando limpieza de noticias descartadas (Filas: {total_actual} < {getattr(config, 'UMBRAL_FILAS_NOTICIAS_DESCARTADAS', 500)})")
             return
 
-        print(f"[*] Iniciando limpieza de {config.WS_NOTICIAS_DESCARTADAS} ({dias_a_mantener} días)...")
+        logger.info(f"[*] Iniciando limpieza de {config.WS_NOTICIAS_DESCARTADAS} ({dias_a_mantener} días)...")
         actualizar_estado_proceso(ws_status, "PROCESANDO", "Limpiando descartes...", "limpieza_noticias_descartadas")
         
         if not data:
@@ -617,7 +619,7 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
             msg_skip = f"Saltando escritura de NOTICIAS_DESCARTADAS: solo se identificaron {eliminados} filas viejas para borrar."
-            print(f"    [-] {msg_skip}")
+            logger.info(f"    [-] {msg_skip}")
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
             actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_noticias_descartadas", tiempo_ejecucion=duracion)
             return
@@ -634,13 +636,13 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
                 ws_noticias.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
 
         msg_fin = f"Limpieza completada. Se eliminaron {eliminados} descartes viejos."
-        print(f"[OK] {msg_fin}")
+        logger.info(f"[OK] {msg_fin}")
         registrar_log(ws_log, "INFO", msg_fin, "limpieza_noticias_descartadas")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         actualizar_estado_proceso(ws_status, "OK", msg_fin, "limpieza_noticias_descartadas", tiempo_ejecucion=duracion)
     except Exception as e:
         actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_noticias_descartadas", tiempo_ejecucion="0.00 min")
-        print(f"Error técnico en limpieza de descartes: {e}")
+        logger.exception(f"Error técnico en limpieza de descartes: {e}")
 
 
 def limpiar_sugerencias_sinonimos(sh, dias_a_mantener=None):
@@ -658,7 +660,7 @@ def limpiar_sugerencias_sinonimos(sh, dias_a_mantener=None):
         t_inicio = time.time()
         # Verificar si ya se limpió hoy
         if ya_ejecutado_hoy(ws_status, "limpieza_sugerencias_sinonimos"):
-            print("    [-] Saltando limpieza de SUGERENCIAS_SINONIMOS (ya ejecutada hoy)")
+            logger.info("    [-] Saltando limpieza de SUGERENCIAS_SINONIMOS (ya ejecutada hoy)")
             return
 
         data = ws_sugerencias.get_all_records()
@@ -666,10 +668,10 @@ def limpiar_sugerencias_sinonimos(sh, dias_a_mantener=None):
         
         # Solo limpiar si supera el umbral de filas
         if total_actual < getattr(config, 'UMBRAL_FILAS_SUGERENCIAS_SINONIMOS', 100):
-            print(f"    [-] Saltando limpieza de sugerencias sinónimos (Filas: {total_actual} < {getattr(config, 'UMBRAL_FILAS_SUGERENCIAS_SINONIMOS', 100)})")
+            logger.info(f"    [-] Saltando limpieza de sugerencias sinónimos (Filas: {total_actual} < {getattr(config, 'UMBRAL_FILAS_SUGERENCIAS_SINONIMOS', 100)})")
             return
 
-        print(f"[*] Iniciando limpieza de {config.WS_SUGERENCIAS_SINONIMOS} ({dias_a_mantener} días)...")
+        logger.info(f"[*] Iniciando limpieza de {config.WS_SUGERENCIAS_SINONIMOS} ({dias_a_mantener} días)...")
         actualizar_estado_proceso(ws_status, "PROCESANDO", "Limpiando sugerencias...", "limpieza_sugerencias_sinonimos")
         
         if not data:
@@ -693,7 +695,7 @@ def limpiar_sugerencias_sinonimos(sh, dias_a_mantener=None):
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
             msg_skip = f"Saltando escritura de SUGERENCIAS_SINONIMOS: solo se identificaron {eliminados} filas viejas para borrar."
-            print(f"    [-] {msg_skip}")
+            logger.info(f"    [-] {msg_skip}")
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
             actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_sugerencias_sinonimos", tiempo_ejecucion=duracion)
             return
@@ -710,10 +712,10 @@ def limpiar_sugerencias_sinonimos(sh, dias_a_mantener=None):
                 ws_sugerencias.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
 
         msg_fin = f"Limpieza completada. Se eliminaron {eliminados} sugerencias viejas."
-        print(f"[OK] {msg_fin}")
+        logger.info(f"[OK] {msg_fin}")
         registrar_log(ws_log, "INFO", msg_fin, "limpieza_sugerencias_sinonimos")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         actualizar_estado_proceso(ws_status, "OK", msg_fin, "limpieza_sugerencias_sinonimos", tiempo_ejecucion=duracion)
     except Exception as e:
         actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_sugerencias_sinonimos", tiempo_ejecucion="0.00 min")
-        print(f"Error técnico en limpieza de sugerencias: {e}")
+        logger.exception(f"Error técnico en limpieza de sugerencias: {e}")

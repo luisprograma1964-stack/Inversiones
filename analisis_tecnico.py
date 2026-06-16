@@ -10,6 +10,9 @@ import config
 import procesamiento
 import auth_google
 from datetime import datetime
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 def calcular_fibonacci(df_t):
     """
@@ -99,7 +102,7 @@ def procesar_indicadores(df):
         df_t = df[df['TICKER_ID'] == ticker].sort_values('FECHA').copy()
         
         if len(df_t) < config.MIN_DIAS_HISTORIAL:
-            print(f"    [!] {ticker}: Saltado por historial insuficiente ({len(df_t)}/{config.MIN_DIAS_HISTORIAL} días).")
+            logger.info(f"    [!] {ticker}: Saltado por historial insuficiente ({len(df_t)}/{config.MIN_DIAS_HISTORIAL} días).")
             continue
         
         # Indicadores
@@ -122,13 +125,13 @@ def procesar_indicadores(df):
                     # Devolvemos un valor centinela para que main_tecnico aborte
                     final_rsi_val_for_output = -1.0 
                     msg = f"ERROR CRÍTICO: Escala corrupta en {ticker} (Precio: {curr_p} vs Promedio: {avg_p}). Abortando."
-                    print(f"    [!] {msg}")
+                    logger.critical(f"    [!] {msg}")
                     if ws_log: procesamiento.registrar_log(ws_log, "CRITICAL", msg, config.ORIGEN_LOG_TECNICO)
                 else:
                     # Es un activo plano (como USDARS), asignamos RSI neutral
                     final_rsi_val_for_output = 50.0 # Assign neutral for flat assets
                     msg = f"Aviso: {ticker} es un activo plano o sin volatilidad. Usando RSI neutral (50.0)."
-                    print(f"    [*] {msg}")
+                    logger.warning(f"    [*] {msg}")
                     if ws_log: procesamiento.registrar_log(ws_log, "WARNING", msg, config.ORIGEN_LOG_TECNICO)
 
         df_t['SMA_20'] = ta.sma(df_t['PRECIO_CIERRE'], length=20)
@@ -185,7 +188,7 @@ def procesar_indicadores(df):
     return resultados
 
 if __name__ == "__main__":
-    print("---------------------------------------------------------")
-    print("[!] Este archivo es una LIBRERÍA y no se ejecuta solo.")
-    print("[!] Por favor, ejecuta 'python main_tecnico.py'")
-    print("---------------------------------------------------------")
+    logger.info("---------------------------------------------------------")
+    logger.info("[!] Este archivo es una LIBRERÍA y no se ejecuta solo.")
+    logger.info("[!] Por favor, ejecuta 'python main_tecnico.py'")
+    logger.info("---------------------------------------------------------")

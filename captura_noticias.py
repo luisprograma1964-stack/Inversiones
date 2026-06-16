@@ -6,7 +6,6 @@ IA para filtrar y resumir antes de guardar en las tablas finales.
 import json
 import re
 import time
-import sys
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
@@ -16,6 +15,9 @@ import config
 import concurrent.futures
 import procesamiento
 import ia_utils
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 # Importamos los sub-módulos de captura
 import news_rss
@@ -24,39 +26,62 @@ import news_telegram
 import news_google
 import news_api
 
+
+def inicializar_motor_noticias():
+    """Inicializa la conexión a Google Sheets y al cliente de IA para captura de noticias."""
+    sh = auth_google.conectar()
+    if not sh:
+        raise RuntimeError("No se pudo conectar a Google Sheets con las credenciales configuradas.")
+
+    api_key_path = Path(config.API_KEY_FILE)
+    if not api_key_path.exists():
+        raise FileNotFoundError(f"Archivo de API KEY no encontrado: {config.API_KEY_FILE}")
+
+    with open(api_key_path, 'r', encoding='utf-8') as f:
+        key = f.read().strip()
+
+    if not key:
+        raise ValueError(f"El archivo de API KEY está vacío: {config.API_KEY_FILE}")
+
+    client = genai.Client(api_key=key)
+    return sh, client
+
+
+def acceder_hoja(sh, nombre):
+    try:
+        return sh.worksheet(nombre)
+    except Exception:
+        hojas_detectadas = [w.title for w in sh.worksheets()]
+        msg = f"ERROR CRÍTICO: No se encontró la pestaña '{nombre}'."
+        raise RuntimeError(
+            f"{msg}\nHojas encontradas: {hojas_detectadas}\nVerifica si hay espacios extras o errores de escritura en el nombre."
+        )
+
+
 def ejecutar_captura_noticias():
     t_inicio = time.time()
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando Captura de Noticias...")
-    
-    sh = auth_google.conectar()
-    if not sh: return
-    
+    logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando Captura de Noticias...")
+
+    try:
+        sh, client = inicializar_motor_noticias()
+    except Exception as e:
+        logger.exception(f"[!!!] {e}")
+        return
+
     # Mantenimiento preventivo de tablas de noticias antes de comenzar
     procesamiento.limpiar_noticias_descartadas(sh)
     procesamiento.limpiar_sugerencias_sinonimos(sh)
-    
-    # Función auxiliar para acceso seguro con aviso claro y detención
-    def acceder_hoja(nombre):
-        try:
-            return sh.worksheet(nombre)
-        except Exception:
-            hojas_detectadas = [w.title for w in sh.worksheets()]
-            msg = f"ERROR CRÍTICO: No se encontró la pestaña '{nombre}'."
-            print(f"\n[!!!] {msg}")
-            print(f"      Hojas encontradas en tu planilla: {hojas_detectadas}")
-            print(f"      Verifica si hay espacios extras o errores de escritura en el nombre.")
-            sys.exit(1) # Detenemos la ejecución como solicitaste
 
     # Carga de hojas principales
-    ws_log = acceder_hoja(config.WS_LOG_SISTEMA)
-    ws_status = acceder_hoja(config.WS_ESTADO_PROCESOS)
-    ws_maestro = acceder_hoja(config.WS_MAESTRO_ACTIVOS)
-    ws_noticias = acceder_hoja(config.WS_NOTICIAS_SISTEMA)
-    ws_descartadas = acceder_hoja(config.WS_NOTICIAS_DESCARTADAS)
-    ws_config_ia = acceder_hoja(config.WS_CONFIG_IA_GENERAL)
-    ws_sinonimos = acceder_hoja(config.WS_CONFIG_SINONIMOS)
-    ws_sugerencias = acceder_hoja(config.WS_SUGERENCIAS_SINONIMOS)
-    ws_canales = acceder_hoja(config.WS_CONFIG_TELEGRAM_CHANNELS)
+    ws_log = acceder_hoja(sh, config.WS_LOG_SISTEMA)
+    ws_status = acceder_hoja(sh, config.WS_ESTADO_PROCESOS)
+    ws_maestro = acceder_hoja(sh, config.WS_MAESTRO_ACTIVOS)
+    ws_noticias = acceder_hoja(sh, config.WS_NOTICIAS_SISTEMA)
+    ws_descartadas = acceder_hoja(sh, config.WS_NOTICIAS_DESCARTADAS)
+    ws_config_ia = acceder_hoja(sh, config.WS_CONFIG_IA_GENERAL)
+    ws_sinonimos = acceder_hoja(sh, config.WS_CONFIG_SINONIMOS)
+    ws_sugerencias = acceder_hoja(sh, config.WS_SUGERENCIAS_SINONIMOS)
+    ws_canales = acceder_hoja(sh, config.WS_CONFIG_TELEGRAM_CHANNELS)
 
     procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Capturando fuentes...")
 
@@ -69,7 +94,7 @@ def ejecutar_captura_noticias():
         # Agregamos FILTRO_NOTICIAS para el módulo de Google
         activos_maestro = df_maestro[df_maestro['ESTADO'] == 'ACTIVO'][['TICKER_ID', 'NOMBRE_LARGO', 'FILTRO_NOTICIAS']].to_dict('records')
     except Exception as e:
-        print(f"[!] Error cargando maestro para mapeo: {e}")
+        logger.warning(f"[!] Error cargando maestro para mapeo: {e}")
         activos_maestro = []
 
     # 0.1 Cargar Mapa de Sinónimos desde Google Sheets (Tu nueva forma de carga)
@@ -84,9 +109,9 @@ def ejecutar_captura_noticias():
             ticker = str(r_norm.get('TICKER_ASOCIADO', '')).strip().upper()
             if termino and ticker:
                 MAPA_SINONIMOS[termino] = ticker
-        print(f"[*] {len(MAPA_SINONIMOS)} sinónimos cargados desde la planilla.")
+        logger.info(f"[*] {len(MAPA_SINONIMOS)} sinónimos cargados desde la planilla.")
     except Exception as e:
-        print(f"[!] Error cargando tabla de sinónimos: {e}")
+        logger.warning(f"[!] Error cargando tabla de sinónimos: {e}")
         MAPA_SINONIMOS = {}
 
     def identificar_ticker(titular):
@@ -124,9 +149,6 @@ def ejecutar_captura_noticias():
         # Usamos ia_utils para obtener la lista de modelos sanos detectados en el Paso 0
         modelos_candidatos = ia_utils.obtener_modelos_activos()
 
-        with open(config.API_KEY_FILE, 'r') as f:
-            client = genai.Client(api_key=f.read().strip())
-
         # 2. Recolectar noticias de todos los sub-módulos (La "Bolsa") en paralelo
         todas_las_noticias = []
 
@@ -140,7 +162,7 @@ def ejecutar_captura_noticias():
         canales_raw = ws_canales.get_all_records()
         canales_activos = [str(c['CANAL']).strip() for c in canales_raw if str(c.get('ESTADO', '')).upper() == 'ACTIVO']
 
-        print("[*] Iniciando recolección paralela de fuentes...")
+        logger.info("[*] Iniciando recolección paralela de fuentes...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             future_rss = executor.submit(news_rss.capturar_rss)
             future_scraping = executor.submit(news_scraping.capturar_scraping)
@@ -184,9 +206,9 @@ def ejecutar_captura_noticias():
         if len(nuevas) > 25:
             nuevas = nuevas[:25]
         
-        print(f"[*] {len(nuevas)} noticias nuevas para Triage (de {len(todas_las_noticias)} encontradas).")
+        logger.info(f"[*] {len(nuevas)} noticias nuevas para Triage (de {len(todas_las_noticias)} encontradas).")
         if len(nuevas) == 0 and len(todas_las_noticias) > 0:
-            print("    [!] Todas las noticias encontradas ya fueron procesadas y están en tus tablas.")
+            logger.info("    [!] Todas las noticias encontradas ya fueron procesadas y están en tus tablas.")
 
         # 4. Triage con IA (Procesamiento por lotes o individual)
         aprobadas_batch = []
@@ -222,14 +244,14 @@ def ejecutar_captura_noticias():
                 except Exception as e:
                     err_msg = str(e)
                     if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                        print(f"    [!] Cuota agotada en {mod_id}. Rotando a siguiente modelo...")
+                        logger.warning(f"    [!] Cuota agotada en {mod_id}. Rotando a siguiente modelo...")
                         if mod_id in modelos_candidatos: modelos_candidatos.remove(mod_id)
                         if not modelos_candidatos:
                             quota_error = True
-                            print("    [!!!] SIN CUOTA EN NINGÚN MODELO. Deteniendo proceso para no bloquear la API.")
+                            logger.error("    [!!!] SIN CUOTA EN NINGÚN MODELO. Deteniendo proceso para no bloquear la API.")
                             break
                     else:
-                        print(f"    [!] Error en modelo {mod_id}: {err_msg[:50]}")
+                        logger.warning(f"    [!] Error en modelo {mod_id}: {err_msg[:50]}")
                         continue
             
             if not logro_triage: continue
@@ -247,7 +269,7 @@ def ejecutar_captura_noticias():
                         elif "USA" in region_ia or "EEUU" in region_ia:
                             ticker_final = "9999_US"
 
-                    print(f"    [+] APROBADA [{ticker_final}] (Región: {region_ia}): {n['titular'][:50]}...")
+                    logger.info(f"    [+] APROBADA [{ticker_final}] (Región: {region_ia}): {n['titular'][:50]}...")
                     # Orden Columnas NOTICIAS_SISTEMA: 
                     # FECHA, TICKER_ID, TITULAR, FUENTE, SUBMODULO, URL, CANAL_ORIGEN, RESUMEN_IA, SENTIMIENTO
                     aprobadas_batch.append([
@@ -257,7 +279,7 @@ def ejecutar_captura_noticias():
                     ])
                 else:
                     motivo = res_ia.get('motivo_descarte', 'Irrelevante')
-                    print(f"    [-] DESCARTADA [{n['ticker']}] (Región: {region_ia}): {n['titular'][:50]}... -> Motivo: {motivo}")
+                    logger.info(f"    [-] DESCARTADA [{n['ticker']}] (Región: {region_ia}): {n['titular'][:50]}... -> Motivo: {motivo}")
                     # Orden Columnas NOTICIAS_DESCARTADAS: 
                     # FECHA, TICKER_ID, TITULAR, MOTIVO_DESCARTE, SUBMODULO
                     descartadas_batch.append([
@@ -277,20 +299,20 @@ def ejecutar_captura_noticias():
                 time.sleep(6)
                 
             except Exception as e:
-                print(f"    [!] Error en Triage para: {n['titular'][:30]}... -> {e}")
+                logger.exception(f"    [!] Error en Triage para: {n['titular'][:30]}... -> {e}")
 
         # 5. Guardado en Google Sheets
         if aprobadas_batch:
             ws_noticias.append_rows(aprobadas_batch, value_input_option='USER_ENTERED')
-            print(f"    [+] {len(aprobadas_batch)} noticias guardadas en sistema.")
+            logger.info(f"    [+] {len(aprobadas_batch)} noticias guardadas en sistema.")
             
         if descartadas_batch:
             ws_descartadas.append_rows(descartadas_batch, value_input_option='USER_ENTERED')
-            print(f"    [-] {len(descartadas_batch)} noticias enviadas a descartes.")
+            logger.info(f"    [-] {len(descartadas_batch)} noticias enviadas a descartes.")
             
         if sugerencias_batch:
             ws_sugerencias.append_rows(sugerencias_batch, value_input_option='USER_ENTERED')
-            print(f"    [!] {len(sugerencias_batch)} sugerencias de sinónimos detectadas.")
+            logger.info(f"    [!] {len(sugerencias_batch)} sugerencias de sinónimos detectadas.")
 
         # 6. Finalización y Logs
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
@@ -299,12 +321,12 @@ def ejecutar_captura_noticias():
         
         procesamiento.registrar_log(ws_log, "INFO", resumen)
         procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen, tiempo_ejecucion=duracion)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] {resumen} (Tiempo: {duracion})")
+        logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] {resumen} (Tiempo: {duracion})")
         return True
 
     except Exception as e:
         msg_err = f"Error crítico en captura_noticias: {e}"
-        print(f"!!! {msg_err}")
+        logger.exception(msg_err)
         try:
             procesamiento.registrar_log(ws_log, "ERROR", msg_err)
             procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50])

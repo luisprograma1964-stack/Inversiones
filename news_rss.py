@@ -4,6 +4,9 @@ Extrae titulares y enlaces de fuentes financieras estándar.
 """
 import feedparser
 from datetime import datetime
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 # Configuración de fuentes RSS (Podrías mover esto a una tabla luego)
 FUENTES_RSS = {
@@ -34,13 +37,13 @@ def capturar_rss():
                 }
                 noticias_capturadas.append(noticia)
         except Exception as e:
-            print(f"Error capturando RSS de {nombre_fuente}: {e}")
+            logger.exception(f"Error capturando RSS de {nombre_fuente}: {e}")
             
     return noticias_capturadas
 
 if __name__ == "__main__":
     # Test rápido
     resultados = capturar_rss()
-    print(f"Capturadas {len(resultados)} noticias vía RSS.")
+    logger.info(f"Capturadas {len(resultados)} noticias vía RSS.")
     for r in resultados[:3]:
-        print(f"- {r['titular']} ({r['fuente']})")
+        logger.info(f"- {r['titular']} ({r['fuente']})")

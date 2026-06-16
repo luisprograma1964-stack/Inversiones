@@ -5,6 +5,9 @@ Diseñado para descubrir noticias en secciones que no poseen RSS o APIs.
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 # URLs objetivo para "Descubrimiento" (Análisis, Tendencias y Opinión)
 SITIOS_SCRAP = [
@@ -68,14 +71,14 @@ def capturar_scraping():
                         "canal_origen": "N/A"
                     })
         except Exception as e:
-            print(f"Error scrappeando {sitio['nombre']}: {e}")
+            logger.exception(f"Error scrappeando {sitio['nombre']}: {e}")
             
     return noticias_capturadas
 
 if __name__ == "__main__":
     # Test de funcionamiento independiente
-    print("[*] Iniciando prueba de Scraping de Descubrimiento...")
+    logger.info("Iniciando prueba de Scraping de Descubrimiento...")
     res = capturar_scraping()
-    print(f"Capturadas {len(res)} noticias.")
+    logger.info(f"Capturadas {len(res)} noticias.")
     for r in res[:5]:
-        print(f" - [{r['fuente']}] {r['titular']}")
+        logger.info(f" - [{r['fuente']}] {r['titular']}")

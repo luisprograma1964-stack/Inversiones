@@ -8,25 +8,35 @@ import pandas as pd
 from google import genai
 from datetime import datetime
 import time
-import sys
 import procesamiento
 import json
 import config
 from pathlib import Path
 import ia_utils
 import auth_google
+import logging_config
 
-# --- CONFIGURACIÓN ---
-try:
+logger = logging_config.get_logger(__name__)
+
+
+def inicializar_motor_ia():
+    """Inicializa conexión a Google Sheets y cliente de IA en tiempo de ejecución."""
     sh = auth_google.conectar()
     if not sh:
-        sys.exit()
-    with open(config.API_KEY_FILE, 'r') as f:
+        raise RuntimeError("No se pudo conectar a Google Sheets con las credenciales configuradas.")
+
+    api_key_path = Path(config.API_KEY_FILE)
+    if not api_key_path.exists():
+        raise FileNotFoundError(f"Archivo de API KEY no encontrado: {config.API_KEY_FILE}")
+
+    with open(api_key_path, 'r', encoding='utf-8') as f:
         key = f.read().strip()
+
+    if not key:
+        raise ValueError(f"El archivo de API KEY está vacío: {config.API_KEY_FILE}")
+
     client = genai.Client(api_key=key)
-except Exception as e:
-    print(f"!!! ERROR INICIAL: {e}")
-    sys.exit()
+    return sh, client
 
 def limpiar_logs_antiguos(dias=10):
     """Borra archivos en la carpeta IA_LOGS con más de 'dias' de antigüedad."""
@@ -47,14 +57,14 @@ def limpiar_logs_antiguos(dias=10):
                     borrados += 1
         
         if borrados > 0:
-            print(f"[*] Mantenimiento: Se eliminaron {borrados} logs antiguos (> {dias} días).")
+            logger.info(f"[*] Mantenimiento: Se eliminaron {borrados} logs antiguos (> {dias} días).")
     except Exception as e:
-        print(f"    [!] Error al limpiar logs antiguos: {e}")
+        logger.exception(f"Error al limpiar logs antiguos: {e}")
 
 def ejecutar_decisor():
-    print("\n" + "="*60)
-    print(f"MOTOR IA - ANÁLISIS TÉCNICO PROFESIONAL | {datetime.now().strftime('%H:%M:%S')}")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info(f"MOTOR IA - ANÁLISIS TÉCNICO PROFESIONAL | {datetime.now().strftime('%H:%M:%S')}")
+    logger.info("="*60)
     t_inicio = time.time()
     
     activos_procesados = 0
@@ -62,6 +72,15 @@ def ejecutar_decisor():
 
     # Ejecutar limpieza de historial antes de empezar el análisis
     limpiar_logs_antiguos(dias=10)
+
+    try:
+        sh, client = inicializar_motor_ia()
+    except Exception as e:
+        msg = f"ERROR CRÍTICO MOTOR IA: {e}"
+        logger.critical(msg)
+        procesamiento.registrar_log(None, "CRITICAL", msg)
+        return False
+
     procesamiento.limpiar_reporte_ia(sh)
 
     try:
@@ -82,9 +101,9 @@ def ejecutar_decisor():
 
 
         if pendientes.empty:
-            print(">>> No hay activos pendientes.")
+            logger.info(">>> No hay activos pendientes.")
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
-            procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "OK", "Sin activos pendientes", tiempo_ejecucion=duracion)
+            procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "OK", "Sin activos pendientes", tiempo_ejecucion=duracion)
             return
 
         gen_data = sh.worksheet(config.WS_CONFIG_IA_GENERAL).get_all_records()[0]
@@ -113,12 +132,12 @@ def ejecutar_decisor():
             if quota_error:
                 break
             ticker = row['TICKER_ID']
-            print(f"[*] Analizando confluencia en {ticker}...")
+            logger.info(f"[*] Analizando confluencia en {ticker}...")
 
             # --- GUARDIA DE DATOS (Check de Cordura) ---
             apto, motivo = ia_utils.validar_datos_tecnicos(row)
             if not apto:
-                print(f"    [!] DESCARTADO: Datos técnicos corruptos para {ticker}: {motivo}")
+                logger.warning(f"DESCARTADO: Datos técnicos corruptos para {ticker}: {motivo}")
                 continue
 
             # --- ARMADO DEL PROMPT Y VERIFICACIÓN DE DATOS ---
@@ -127,9 +146,9 @@ def ejecutar_decisor():
             # Debug: Verificar que los campos técnicos tengan datos
             missing = [c for c in ia_utils.CAMPO_TECNICO if c not in row or not str(row[c]).strip()]
             if missing:
-                print(f"    [!] Advertencia: Faltan datos para {missing}. Verificando JSON...")
+                logger.warning(f"Advertencia: Faltan datos para {missing}. Verificando JSON...")
             else:
-                print(f"    [OK] Datos técnicos cargados: {len(ia_utils.CAMPO_TECNICO)} indicadores.")
+                logger.info(f"Datos técnicos cargados: {len(ia_utils.CAMPO_TECNICO)} indicadores.")
 
             # --- INTEGRACIÓN DE NOTICIAS ---
             # Buscamos las noticias recientes del activo y el contexto macro (9999_AR/US)
@@ -142,7 +161,7 @@ def ejecutar_decisor():
             
             for mod_id in list(modelos): # Copia de la lista para poder modificarla
                 if logro_procesar: break
-                print(f"    - Probando modelo: {mod_id}...", end=" ", flush=True)
+                logger.info(f"Probando modelo: {mod_id}...")
                 
                 # --- AUDITORÍA Y LIMPIEZA DE PROMPT ---
                 try:
@@ -169,7 +188,7 @@ def ejecutar_decisor():
                     # El prompt que realmente viaja a la IA (sin rastro de las tablas/fuentes)
                     cuerpo_enviar = json.dumps(payload, ensure_ascii=False)
                 except Exception as e:
-                    print(f"\n    [!] Error al procesar JSON de auditoría: {e}")
+                    logger.exception(f"Error al procesar JSON de auditoría: {e}")
                     cuerpo_enviar = cuerpo_prompt
 
                 try:
@@ -179,7 +198,7 @@ def ejecutar_decisor():
                         config=config_ia
                     )
                     if not response or not response.text:
-                        print("FALLIDO: Respuesta vacía.")
+                        logger.warning("FALLIDO: Respuesta vacía.")
                         continue
 
                     bloques = [b.strip() for b in response.text.split('===') if b.strip()]
@@ -189,7 +208,7 @@ def ejecutar_decisor():
                         bloques = ["PERFIL:" + b.strip() for b in partes_raw if b.strip() and '|' in b]
                     
                     if not bloques:
-                        print("RECHAZADO: Formato irreconocible (sin bloques '===' o 'PERFIL:').")
+                        logger.warning("RECHAZADO: Formato irreconocible (sin bloques '===' o 'PERFIL:').")
                         continue
 
                     perfiles_hallados = []
@@ -215,7 +234,7 @@ def ejecutar_decisor():
                                 break
                         
                         if usuario_final == "Desconocido":
-                            print(f"\n    [!] Bloque ignorado: Perfil '{nombre_ia}' no reconocido en configuración.")
+                            logger.warning(f"Bloque ignorado: Perfil '{nombre_ia}' no reconocido en configuración.")
                             continue
 
                         # Limpieza de Score y extracción de metadatos
@@ -240,7 +259,7 @@ def ejecutar_decisor():
                         )
                         
                         if "CONTRADICCION" in sentimiento:
-                            print(f"    [!] Contradicción registrada para {usuario_final}")
+                            logger.warning(f"Contradicción registrada para {usuario_final}")
 
                         filas_grabar.append([
                             ahora_str, ticker.upper(), usuario_final,
@@ -251,7 +270,7 @@ def ejecutar_decisor():
 
                     # Validación de integridad: si el modelo no generó todos los perfiles, pasamos al siguiente
                     if len(filas_grabar) < len(perfiles_lista):
-                        print(f"FALLIDO: El modelo solo generó {len(filas_grabar)} de {len(perfiles_lista)} perfiles.")
+                        logger.warning(f"FALLIDO: El modelo solo generó {len(filas_grabar)} de {len(perfiles_lista)} perfiles.")
                         continue
 
                     if filas_grabar:
@@ -274,7 +293,7 @@ def ejecutar_decisor():
                         reporte_acumulado.extend(filas_grabar)
                         df_tecnico.at[index, 'ESTADO'] = "PROCESADO"
                         matriz_modificada = True
-                        print(f"ACEPTADO: {len(perfiles_hallados)}/{len(perfiles_lista)} perfiles generados.")
+                        logger.info(f"ACEPTADO: {len(perfiles_hallados)}/{len(perfiles_lista)} perfiles generados.")
                     
                     # Si el modelo respondió (aunque sea con contradicciones), lo damos por procesado
                     if len(bloques) > 0:
@@ -282,32 +301,32 @@ def ejecutar_decisor():
                         activos_procesados += 1
                         break
                     else:
-                        print("RECHAZADO: El modelo respondió pero no se identificaron perfiles válidos.")
+                        logger.warning("RECHAZADO: El modelo respondió pero no se identificaron perfiles válidos.")
 
                 except Exception as e:
                     err_msg = str(e)
                     # Detect quota or service unavailable errors
                     if "RESOURCE_EXHAUSTED" in err_msg or "UNAVAILABLE" in err_msg:
-                        print(f"ERROR: Cuota agotada o servicio no disponible en {mod_id}.")
+                        logger.error(f"Cuota agotada o servicio no disponible en {mod_id}.")
                         quota_error = True
                     elif "404" in err_msg or "not found" in err_msg.lower():
-                        print(f"DESCARTADO: El modelo '{mod_id}' no existe o no está disponible.")
+                        logger.warning(f"DESCARTADO: El modelo '{mod_id}' no existe o no está disponible.")
                         if mod_id in modelos:
                             modelos.remove(mod_id)
                     else:
-                        print(f"ERROR TÉCNICO en {mod_id}: {err_msg[:50]}...")
+                        logger.exception(f"ERROR TÉCNICO en {mod_id}: {err_msg[:200]}")
                 time.sleep(2)
 
             if not logro_procesar:
                 errores += 1
-                print("    [!] No se pudo procesar este activo con ninguno de los modelos candidatos.")
+                logger.warning("No se pudo procesar este activo con ninguno de los modelos candidatos.")
                 time.sleep(10)
             else:
-                print("    [*] Esperando 6 segundos para cuidar cuota (RPM)...")
+                logger.info("Esperando 6 segundos para cuidar cuota (RPM)...")
                 time.sleep(6)
 
         # Guardar cambios
-        print("\n[*] Sincronizando resultados con Google Sheets...")
+        logger.info("Sincronizando resultados con Google Sheets...")
         ws_analisis.update([df_tecnico.columns.values.tolist()] + df_tecnico.values.tolist())
         
         if reporte_acumulado:
@@ -325,23 +344,23 @@ def ejecutar_decisor():
             ws_matriz.update([orden_columnas] + df_matriz.values.tolist())
 
         resumen = f"Motor completado. Activos: {len(df_tecnico)}. Procesados: {activos_procesados}."
-        print(f"\n{resumen}")
+        logger.info(resumen)
         procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "INFO", resumen)
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         
         if activos_procesados == 0 and len(pendientes) > 0:
-            procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "ERROR", "No se pudo procesar ningún activo por cuota", tiempo_ejecucion=duracion)
+            procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "ERROR", "No se pudo procesar ningún activo por cuota", tiempo_ejecucion=duracion)
             return False
             
-        procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "OK", f"Recs: {activos_procesados}", tiempo_ejecucion=duracion)
-        print(f"[*] Tiempo total de ejecución: {duracion}")
+        procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "OK", f"Recs: {activos_procesados}", tiempo_ejecucion=duracion)
+        logger.info(f"Tiempo total de ejecución: {duracion}")
         return True
 
     except Exception as e:
         msg = f"ERROR CRÍTICO MOTOR IA: {e}"
-        print(f"\n{msg}")
+        logger.critical(msg)
         procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "CRITICAL", msg)
-        procesamiento.actualizar_estado_proceso(sh.worksheet("ESTADO_PROCESOS"), "ERROR", "Falla global")
+        procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "ERROR", "Falla global")
         return False
 
 if __name__ == "__main__":

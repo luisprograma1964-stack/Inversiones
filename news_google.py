@@ -4,6 +4,9 @@ Realiza búsquedas específicas basadas en los filtros definidos en el Maestro d
 """
 from pygooglenews import GoogleNews
 from datetime import datetime
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 def capturar_google_news(lista_busquedas):
     """
@@ -35,7 +38,7 @@ def capturar_google_news(lista_busquedas):
                     "canal_origen": "N/A"
                 })
         except Exception as e:
-            print(f"    [!] Error buscando '{query}' en Google News: {e}")
+            logger.exception(f"Error buscando '{query}' en Google News: {e}")
             
     return noticias_capturadas
 
@@ -46,6 +49,6 @@ if __name__ == "__main__":
         {'ticker': 'GGAL', 'filtro': 'Galicia ADR'}
     ]
     res = capturar_google_news(test_busqueda)
-    print(f"Capturadas {len(res)} noticias de prueba.")
+    logger.info(f"Capturadas {len(res)} noticias de prueba.")
     for r in res:
-        print(f" - [{r['ticker']}] {r['titular']}")
+        logger.info(f" - [{r['ticker']}] {r['titular']}")

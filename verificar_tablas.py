@@ -141,13 +141,18 @@ def revisar_hoja(sh, nombre_hoja: str):
 
 def main():
     sh = conectar()
+    missing = auth_google.validar_hojas_requeridas(sh)
+    if missing:
+        log.error(f"Faltan hojas requeridas: {missing}")
+        raise RuntimeError(f"Faltan hojas requeridas: {missing}")
+
     for alias, nombre in HOJAS.items():
         try:
             revisar_hoja(sh, nombre)
         except Exception as e:
             log.error(f"Error al revisar {nombre}: {e}")
 
-    print("✅ Verificación completada. Revisa `verificacion_tablas.log` para el detalle.")
+    log.info("✅ Verificación completada. Revisa `verificacion_tablas.log` para el detalle.")
 
 
 if __name__ == "__main__":

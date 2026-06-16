@@ -11,6 +11,8 @@ import time
 import auth_google
 import config
 import procesamiento
+import logging
+import logging_config
 from datetime import datetime, timedelta
 
 # --- CONFIGURACIÓN LOCAL ---
@@ -42,7 +44,7 @@ def marcar_maestro_actualizado(ws_maestro, ticker_id):
             col_idx = list(df_m.columns).index('ULTIMA_ACTUALIZ') + 1
             ws_maestro.update_cell(idx[0] + 2, col_idx, ahora_completo)
     except Exception as e:
-        print(f"Error marcando maestro para {ticker_id}: {e}")
+        logging.getLogger('inversiones').warning(f"Error marcando maestro para {ticker_id}: {e}")
 
 def ejecutar_carga_bridge():
     """
@@ -56,7 +58,7 @@ def ejecutar_carga_bridge():
     4. Realizar una única espera de 20 segundos para que se resuelvan todas en paralelo.
     5. Descargar todo el buffer en bloque, parsear y guardar en HISTORICO_VALORES.
     """
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Sincronización Bridge...")
+    logging.getLogger('inversiones').info(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Sincronización Bridge...")
     t_inicio = time.time()
     
     sh = auth_google.conectar()
@@ -65,6 +67,10 @@ def ejecutar_carga_bridge():
     ws_buffer = sh.worksheet(config.WS_DOWNLOAD_BUFFER)
     ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
     ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
+
+    # Inicializar logger central y vincular el handler de Sheets
+    logger = logging_config.setup_logging(ws_log=ws_log)
+    logger = logging_config.get_logger(__name__)
 
     procesamiento.registrar_log(ws_log, "INFO", "INICIO: Sincronización Bridge", config.ORIGEN_LOG_CARGA)
     
@@ -134,7 +140,7 @@ def ejecutar_carga_bridge():
                 p_numeric = pd.to_numeric(df_t_actual['PRECIO_CIERRE'], errors='coerce')
                 p_min, p_max = p_numeric.min(), p_numeric.max()
                 if p_min > 0 and (p_max / p_min > 10):
-                    print(f"    [!] {t_clean}: Corrupción de escala detectada (Ratio {round(p_max/p_min,1)}x). Purgando historial...")
+                    logger.warning(f"    [!] {t_clean}: Corrupción de escala detectada (Ratio {round(p_max/p_min,1)}x). Purgando historial...")
                     conteo_actual = 0 # Fuerza la recarga completa
                     ultima_f = None
             
@@ -146,7 +152,7 @@ def ejecutar_carga_bridge():
             # Si tenemos menos de lo necesario para el análisis técnico, forzamos carga desde el pasado
             if conteo_actual < config.MIN_DIAS_HISTORIAL:
                 start_dt = ahora - timedelta(days=int(dias_a_pedir * 2.0))
-                print(f"    [*] {t_clean}: Historial insuficiente ({conteo_actual}/{config.MIN_DIAS_HISTORIAL}). Forzando recarga desde {start_dt.date()}...")
+                logger.info(f"    [*] {t_clean}: Historial insuficiente ({conteo_actual}/{config.MIN_DIAS_HISTORIAL}). Forzando recarga desde {start_dt.date()}...")
             else:
                 start_dt = (ultima_f + timedelta(days=1)) if pd.notnull(ultima_f) else (ahora - timedelta(days=int(dias_a_pedir * 1.5)))
 
@@ -188,7 +194,7 @@ def ejecutar_carga_bridge():
 
         # 3. Descargar fórmulas de Google Finance en paralelo
         if gf_jobs:
-            print(f"    [*] Preparando descarga en paralelo para {len(gf_jobs)} tickers...")
+            logger.info(f"    [*] Preparando descarga en paralelo para {len(gf_jobs)} tickers...")
             
             # Construir fila horizontal de fórmulas espaciadas por 7 columnas
             row_formulas = []
@@ -197,33 +203,83 @@ def ejecutar_carga_bridge():
                 row_formulas.extend(["", "", "", "", "", ""]) # Spacing de 6 celdas vacías
             
             ws_buffer.update(range_name='A1', values=[row_formulas], raw=False)
-            
-            print(f"    [*] Esperando 20 segundos a que Google Finance resuelva las peticiones...")
-            time.sleep(20)
-            
-            # Leer bloque completo de datos con un renderizado limpio
-            data_buffer = ws_buffer.get_all_values(value_render_option='UNFORMATTED_VALUE')
+
+            logger.info(f"    [*] Enviadas fórmulas. Iniciando polling (timeout {config.BRIDGE_POLL_TIMEOUT_SECONDS}s)...")
+            start_poll = time.time()
+            data_buffer = []
+
+            # Inicializar estados de trabajo
+            for job in gf_jobs:
+                job['state'] = 'pending'  # pending, ready, error
+
+            # Poll hasta que todas estén ready o timeout
+            while True:
+                try:
+                    data_buffer = ws_buffer.get_all_values(value_render_option='UNFORMATTED_VALUE')
+                except Exception as e:
+                    procesamiento.registrar_log(ws_log, 'WARNING', f'Error leyendo buffer: {e}', config.ORIGEN_LOG_CARGA)
+                    logger.warning(f"Error leyendo buffer: {e}")
+                    data_buffer = []
+
+                if data_buffer and len(data_buffer) > 0:
+                    header_row = data_buffer[0]
+                    for idx, job in enumerate(gf_jobs):
+                        if job.get('state') in ('ready', 'error'):
+                            continue
+                        col_start = idx * 7
+                        if len(header_row) > col_start:
+                            cell = str(header_row[col_start]).strip()
+                            if cell.upper() == 'DATE':
+                                job['state'] = 'ready'
+                            elif cell.startswith('#'):
+                                # Podría ser #N/A u otro error; dejaremos en pending para intentar hasta timeout
+                                job['state'] = 'pending'
+                            elif cell == '':
+                                job['state'] = 'pending'
+                            else:
+                                # Valor inesperado, mantenemos pending
+                                job['state'] = 'pending'
+                # Comprobar si quedan pendientes
+                pending_exists = any(j.get('state') == 'pending' for j in gf_jobs)
+                if not pending_exists:
+                    break
+                if time.time() - start_poll > config.BRIDGE_POLL_TIMEOUT_SECONDS:
+                    # Time out: marcar pendientes como error
+                    for j in gf_jobs:
+                        if j.get('state') == 'pending':
+                            j['state'] = 'error'
+                    procesamiento.registrar_log(ws_log, 'WARNING', f'Timeout polling GOOGLEFINANCE after {config.BRIDGE_POLL_TIMEOUT_SECONDS}s', config.ORIGEN_LOG_CARGA)
+                    logger.warning(f"Timeout polling GOOGLEFINANCE after {config.BRIDGE_POLL_TIMEOUT_SECONDS}s")
+                    break
+                time.sleep(config.BRIDGE_POLL_INTERVAL_SECONDS)
             
             for idx, job in enumerate(gf_jobs):
                 t_clean = job['ticker']
                 fechas_existentes = job['fechas_existentes']
                 col_start = idx * 7
-                
+
+                state = job.get('state', 'error')
+                if state != 'ready':
+                    # No se pudieron obtener datos para este ticker
+                    err_msg = '(no data or timeout)'
+                    if data_buffer and len(data_buffer) > 0 and len(data_buffer[0]) > col_start:
+                        err_msg = str(data_buffer[0][col_start])
+                    procesamiento.registrar_log(ws_log, 'WARNING', f'{t_clean}: No data from GOOGLEFINANCE ({err_msg})', config.ORIGEN_LOG_CARGA)
+                    logger.warning(f"        [!] {t_clean}: No se obtuvieron datos ({err_msg})")
+                    continue
+
                 if len(data_buffer) > 0:
                     header_row = data_buffer[0]
                     # Verificar cobertura de columnas
                     if len(header_row) > col_start:
                         first_header_cell = str(header_row[col_start]).strip().upper()
-                        
-                        # Validar si devolvió la tabla o dio error (#N/A)
-                        if first_header_cell == "DATE":
+                        if first_header_cell == 'DATE':
                             conteo_ticker = 0
                             for row in data_buffer[1:]:
                                 if len(row) > col_start + 5:
                                     val_fecha = row[col_start]
-                                    if val_fecha == "" or val_fecha is None or str(val_fecha).startswith("#"):
+                                    if val_fecha == '' or val_fecha is None or str(val_fecha).startswith('#'):
                                         continue
-                                    
                                     try:
                                         # Parsear fecha
                                         if str(val_fecha).replace('.', '').isdigit():
@@ -234,16 +290,16 @@ def ejecutar_carga_bridge():
                                                 dt_obj = pd.to_datetime(raw_fecha, format='%Y-%m-%d')
                                             except:
                                                 dt_obj = pd.to_datetime(raw_fecha, dayfirst=True)
-                                        
+
                                         f_nivelada = dt_obj.strftime('%Y-%m-%d')
-                                        
+
                                         if f_nivelada in fechas_existentes:
                                             continue
 
                                         close = row[col_start + 4]
                                         high = row[col_start + 2]
                                         low = row[col_start + 3]
-                                        vol = row[col_start + 5] if row[col_start + 5] != "" else 0
+                                        vol = row[col_start + 5] if row[col_start + 5] != '' else 0
 
                                         # Casteo seguro
                                         if not all(isinstance(x, (int, float)) for x in [close, high, low, vol]):
@@ -256,25 +312,21 @@ def ejecutar_carga_bridge():
                                                 continue
 
                                         todas_las_filas_nuevas.append([
-                                            t_clean, f_nivelada, 
-                                            float(close), 
+                                            t_clean, f_nivelada,
+                                            float(close),
                                             int(vol),
-                                            float(high), 
+                                            float(high),
                                             float(low)
                                         ])
                                         conteo_ticker += 1
-                                    except:
+                                    except Exception:
                                         continue
-                            
-                            print(f"        [OK] {t_clean}: {conteo_ticker} filas nuevas preparadas.")
+
+                            logger.info(f"        [OK] {t_clean}: {conteo_ticker} filas nuevas preparadas.")
                             marcar_maestro_actualizado(ws_maestro, t_clean)
-                        else:
-                            # Puede ser que retorne un error general como #N/A en la celda del buffer
-                            err_cell = str(data_buffer[0][col_start])
-                            print(f"        [!] {t_clean}: No se obtuvieron datos (Celda de error: '{err_cell}')")
 
         if todas_las_filas_nuevas:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Grabando {len(todas_las_filas_nuevas)} registros en HISTORICO_VALORES...")
+            logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] Grabando {len(todas_las_filas_nuevas)} registros en HISTORICO_VALORES...")
             ws_historico.append_rows(todas_las_filas_nuevas, value_input_option='USER_ENTERED')
             registros_totales = len(todas_las_filas_nuevas)
         else:
@@ -293,7 +345,7 @@ def ejecutar_carga_bridge():
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.actualizar_estado_proceso(ws_status, estado_final, detalle_final, tiempo_ejecucion=duracion)
         procesamiento.registrar_log(ws_log, "INFO", f"FIN: {detalle_final}", config.ORIGEN_LOG_CARGA)
-        print(f">>> {detalle_final}")
+        logger.info(f">>> {detalle_final}")
         return estado_final == "OK"
 
 if __name__ == "__main__":

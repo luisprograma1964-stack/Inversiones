@@ -1,4 +1,7 @@
 import requests
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 def fuente_definitiva_ambito():
     # Estas URLs están verificadas y funcionando ahora
@@ -13,7 +16,7 @@ def fuente_definitiva_ambito():
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0"
     }
 
-    print("--- Trayendo Datos Reales (Ámbito) ---")
+    logger.info("--- Trayendo Datos Reales (Ámbito) ---")
     
     for nombre, url in activos.items():
         try:
@@ -23,14 +26,11 @@ def fuente_definitiva_ambito():
                 # En Ámbito para bonos el valor es 'ultimo', para dólar es 'venta'
                 precio = data.get('ultimo') or data.get('venta')
                 
-                print(f"[{nombre}]")
-                print(f"  > Precio: {precio}")
-                print(f"  > Fecha: {data.get('fecha', 'N/A')}")
-                print("-" * 20)
+                logger.info(f"[{nombre}] Precio: {precio} Fecha: {data.get('fecha', 'N/A')}")
             else:
-                print(f"[{nombre}] Error {res.status_code} - URL desactualizada.")
+                logger.warning(f"[{nombre}] Error {res.status_code} - URL desactualizada.")
         except Exception as e:
-            print(f"[{nombre}] Error: {e}")
+            logger.exception(f"[{nombre}] Error: {e}")
 
 if __name__ == "__main__":
     fuente_definitiva_ambito()

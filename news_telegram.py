@@ -7,6 +7,9 @@ from datetime import datetime, timezone
 import asyncio
 import os
 import config
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 async def capturar_mensajes(canales):
     """
@@ -42,7 +45,7 @@ async def capturar_mensajes(canales):
                             "canal_origen": canal
                         })
             except Exception as e:
-                print(f"Error en canal {canal}: {e}")
+                logger.exception(f"Error en canal {canal}: {e}")
     finally:
         await client.disconnect()
         
@@ -54,9 +57,9 @@ def capturar_telegram(canales):
     try:
         return asyncio.run(capturar_mensajes(canales))
     except Exception as e:
-        print(f"Error crítico en sub-módulo Telegram: {e}")
+        logger.exception(f"Error crítico en sub-módulo Telegram: {e}")
         return []
 
 if __name__ == "__main__":
     res = capturar_telegram(["@DolarHoy"])
-    print(f"Capturados {len(res)} mensajes de Telegram.")
+    logger.info(f"Capturados {len(res)} mensajes de Telegram.")

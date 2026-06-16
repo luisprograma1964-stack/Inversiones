@@ -17,5 +17,12 @@
     "python.analysis.exclude": [
         "IA_LOGS",
         "BUP"
-    ]
+    ],
+    "editor.inlineSuggest.enabled": true,
+    "github.copilot.enable": {
+        "*": true
+    },
+    "github.copilot.inlineSuggest.enable": true,
+    "github.copilot.experimental.suggestLocal": false,
+    "git.enableSmartCommit": true
 }

@@ -8,6 +8,9 @@ import config
 import time
 import auth_google
 import procesamiento
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 
 def ejecutar_sincronizacion():
@@ -22,12 +25,12 @@ def ejecutar_sincronizacion():
     5. Escribe los resultados procesados en la hoja de VARIABLES_MERCADO.
     6. Finaliza el proceso actualizando los logs y el semáforo indicando el éxito o falla de la operación.
     """
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando proceso {config.ORIGEN_LOG_CARGA}...")
+    logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando proceso {config.ORIGEN_LOG_CARGA}...")
     t_inicio = time.time()
     
     sh = auth_google.conectar()
     if not sh: 
-        print("ERROR: No se pudo conectar con Google Sheets.")
+        logger.error("ERROR: No se pudo conectar con Google Sheets.")
         return
 
     # Instanciar hojas de trabajo
@@ -52,7 +55,7 @@ def ejecutar_sincronizacion():
         for f in fuentes:
             if str(f.get('ESTADO', '')).strip().upper() == 'ACTIVO':
                 nombre = f.get('DATO')
-                print(f"Capturando: {nombre}...", end="\r")
+                logger.info(f"Capturando: {nombre}...")
                 valor, msg = procesamiento.capturar_dato(f.get('FUENTE / URL'), f.get('SELECTOR / CAMPO'))
                 
                 if valor:
@@ -62,7 +65,7 @@ def ejecutar_sincronizacion():
                 else:
                     procesamiento.registrar_log(ws_log, "ERROR", f"Variable: {nombre} | {msg}")
 
-        print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Procesando y guardando datos...")
+        logger.info(f"\n[{datetime.now().strftime('%H:%M:%S')}] Procesando y guardando datos...")
 
         # 4. Procesamiento y escritura en VARIABLES_MERCADO
         ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -96,12 +99,12 @@ def ejecutar_sincronizacion():
         procesamiento.registrar_log(ws_log, "INFO", resumen)
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen, tiempo_ejecucion=duracion)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Sincronización Finalizada.")
+        logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Sincronización Finalizada.")
         return True
         
     except Exception as e:
         msg_error = f"Error crítico en proceso general: {e}"
-        print(msg_error)
+        logger.exception(msg_error)
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.registrar_log(ws_log, "CRITICAL", msg_error, config.ORIGEN_LOG_MAIN)
         procesamiento.actualizar_estado_proceso(ws_status, "ERROR", "Falla crítica global", tiempo_ejecucion=duracion)

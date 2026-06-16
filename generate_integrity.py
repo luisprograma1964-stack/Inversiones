@@ -1,4 +1,7 @@
 import os, hashlib, json
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 root = r"C:/Users/luis/Desktop/Inversiones"
 manifest = {}
@@ -18,4 +21,4 @@ output = {"files": manifest}
 out_path = os.path.join(root, "integrity_manifest.json")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(output, f, indent=2, ensure_ascii=False)
-print(f"Integrity manifest written to {out_path}")
+logger.info(f"Integrity manifest written to {out_path}")

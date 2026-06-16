@@ -4,6 +4,9 @@ Extrae sentimiento y noticias de mercado global.
 """
 import requests
 from datetime import datetime
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 def capturar_cryptopanic():
     """
@@ -27,6 +30,6 @@ def capturar_cryptopanic():
                     "canal_origen": "N/A"
                 })
     except Exception as e:
-        print(f"Error en News API (CryptoPanic): {e}")
+        logger.exception(f"Error en News API (CryptoPanic): {e}")
             
     return noticias_capturadas

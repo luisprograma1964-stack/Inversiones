@@ -1,5 +1,8 @@
 from google import genai
 from pathlib import Path
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 # 1. LEER LA NUEVA KEY
 ROOT_DIR = Path(__file__).parent.parent
@@ -16,6 +19,6 @@ try:
         model='gemini-2.5-flash',
         contents="Hola, responde solo con la palabra OK si funcionas."
     )
-    print(f"RESULTADO IA: {response.text}")
+    logger.info(f"RESULTADO IA: {response.text}")
 except Exception as e:
-    print(f"LA LLAVE SIGUE FALLANDO: {e}")
+    logger.exception(f"LA LLAVE SIGUE FALLANDO: {e}")

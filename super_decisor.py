@@ -7,21 +7,49 @@ import json
 import os
 import time
 from datetime import datetime
+from pathlib import Path
 import pandas as pd
 from google import genai
 import auth_google
 import config
 import procesamiento
 import ia_utils
+import logging_config
+
+logger = logging_config.get_logger(__name__)
+
+
+def inicializar_motor_ia():
+    """Inicializa la conexión a Google Sheets y cliente de IA para el Super Decisor."""
+    sh = auth_google.conectar()
+    if not sh:
+        raise RuntimeError("No se pudo conectar a Google Sheets con las credenciales configuradas.")
+
+    api_key_path = Path(config.API_KEY_FILE)
+    if not api_key_path.exists():
+        raise FileNotFoundError(f"Archivo de API KEY no encontrado: {config.API_KEY_FILE}")
+
+    with open(api_key_path, 'r', encoding='utf-8') as f:
+        key = f.read().strip()
+
+    if not key:
+        raise ValueError(f"El archivo de API KEY está vacío: {config.API_KEY_FILE}")
+
+    client = genai.Client(api_key=key)
+    return sh, client
+
 
 def ejecutar_super_decisor():
-    print("\n" + "X"*60)
-    print(f"ESTRATEGIA FINAL DE CARTERA | {datetime.now().strftime('%H:%M:%S')}")
-    print("X"*60)
+    logger.info("" + "X"*60)
+    logger.info(f"ESTRATEGIA FINAL DE CARTERA | {datetime.now().strftime('%H:%M:%S')}")
+    logger.info("X"*60)
     t_inicio = time.time()
     
-    sh = auth_google.conectar()
-    if not sh: return
+    try:
+        sh, client = inicializar_motor_ia()
+    except Exception as e:
+        logger.critical(f"ERROR CRÍTICO SUPER DECISOR: {e}")
+        return None
 
     ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
     ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
@@ -110,10 +138,7 @@ def ejecutar_super_decisor():
         modelos = ia_utils.obtener_modelos_activos()
         modelo_estrategico = "models/gemini-1.5-pro" if "models/gemini-1.5-pro" in modelos else modelos[0]
         
-        with open(config.API_KEY_FILE, 'r') as f:
-            client = genai.Client(api_key=f.read().strip())
-
-        print(f"[*] Generando informe estratégico con {modelo_estrategico}...")
+        logger.info(f"Generando informe estratégico con {modelo_estrategico}...")
         response = client.models.generate_content(
             model=modelo_estrategico,
             contents=prompt_estrategico
@@ -129,12 +154,11 @@ def ejecutar_super_decisor():
             f.write(informe)
         
         # 6. SALIDA POR TERMINAL Y REGISTRO
-        print("\n" + "="*60)
-        print("INFORME ESTRATÉGICO SUPER DECISIONES")
-        print(f"Reporte guardado en: {path_md}")
-        print("="*60)
-        print(informe)
-        print("="*60)
+        logger.info("="*60)
+        logger.info("INFORME ESTRATÉGICO SUPER DECISIONES")
+        logger.info(f"Reporte guardado en: {path_md}")
+        logger.info(informe)
+        logger.info("="*60)
 
         # Guardar en log histórico
         procesamiento.registrar_log(ws_log, "INFO", "Informe estratégico generado exitosamente", "SUPER_DECISOR")
@@ -145,7 +169,7 @@ def ejecutar_super_decisor():
 
     except Exception as e:
         msg = f"Error en Super Decisor: {e}"
-        print(msg)
+        logger.exception(msg)
         procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50])
         return None
 

@@ -1,4 +1,12 @@
-# Ignorar carpeta de logs de la IA
+.env
+.venv/
+IA_LOGS/
+backup/
+BUP/
+*.pyc
+__pycache__/
+creds/*.json
+creds/*.session# Ignorar carpeta de logs de la IA
 IA_LOGS/
 backup/
 BUP/

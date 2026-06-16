@@ -11,6 +11,9 @@ import analisis_tecnico
 from datetime import datetime
 import time
 import pandas as pd
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 
 def ejecutar_analisis_completo():
@@ -25,7 +28,7 @@ def ejecutar_analisis_completo():
     5. Escribe los resultados obtenidos en la hoja correspondiente.
     6. Actualiza el log y el semáforo con el resultado de la operación.
     """
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Módulo Técnico...")
+    logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Módulo Técnico...")
     t_inicio = time.time()
     
     sh = auth_google.conectar()
@@ -88,7 +91,7 @@ def ejecutar_analisis_completo():
         df.columns = [str(c).strip().rstrip('.').upper() for c in df.columns]
 
         # Diagnóstico: mostrar columnas reales leídas de la hoja
-        print(f"    [DEBUG] Columnas detectadas en HISTORICO_VALORES: {list(df.columns)}")
+        logger.debug(f"    [DEBUG] Columnas detectadas en HISTORICO_VALORES: {list(df.columns)}")
 
         # Eliminar duplicados accidentales por Ticker y Fecha antes de calcular
         cols_dedup = [c for c in ['TICKER_ID', 'FECHA'] if c in df.columns]
@@ -106,7 +109,7 @@ def ejecutar_analisis_completo():
         faltantes = [c for c in cols_requeridas if c not in df.columns]
         if faltantes:
             error_headers = f"ERROR CRÍTICO: Faltan encabezados en {config.WS_HISTORICO_VALORES}: {', '.join(faltantes)}. ¿Se borró la primera fila de la hoja?"
-            print(f"\n    [!] {error_headers}")
+            logger.critical(f"\n    [!] {error_headers}")
             procesamiento.registrar_log(ws_log, "CRITICAL", error_headers, config.ORIGEN_LOG_TECNICO)
             return False
         
@@ -130,9 +133,9 @@ def ejecutar_analisis_completo():
             f_min = df[~mask_ok]['FECHA_DT'].min().strftime('%Y-%m-%d')
             f_max = df[~mask_ok]['FECHA_DT'].max().strftime('%Y-%m-%d')
             
-            print(f"    [!] Descartando {sum(~mask_ok)} registros por escala extrema en: {locos} (Rango: {f_min} a {f_max})")
+            logger.warning(f"    [!] Descartando {sum(~mask_ok)} registros por escala extrema en: {locos} (Rango: {f_min} a {f_max})")
             df = df[mask_ok]
-            print(f"    [*] Historial saneado en memoria para el cálculo técnico.")
+            logger.info(f"    [*] Historial saneado en memoria para el cálculo técnico.")
 
         resultados = analisis_tecnico.procesar_indicadores(df)
 
@@ -145,7 +148,7 @@ def ejecutar_analisis_completo():
                 activos_procesados = [r[0] for r in resultados]
                 faltantes = [a for a in activos_activos if a not in activos_procesados]
                 error_cobertura = f"FALLA DE COBERTURA: Se esperaban {conteo_esperado} activos (Maestro), pero solo se procesaron {len(resultados)}. Faltan en histórico: {', '.join(faltantes)}"
-                print(f"\n    [!] {error_cobertura}")
+                logger.critical(error_cobertura)
                 procesamiento.registrar_log(ws_log, "CRITICAL", error_cobertura, config.ORIGEN_LOG_TECNICO)
                 return False # Esto aborta el pipeline en el ensamblador para no gastar tokens
 
@@ -168,13 +171,13 @@ def ejecutar_analisis_completo():
                 ticker = row_dict['TICKER_ID']
                 precio_actual = df[df['TICKER_ID'] == ticker]['PRECIO_CIERRE'].iloc[-1]
                 row_dict['PRECIO_CIERRE_VALIDACION'] = precio_actual
-                print(f"    [*] Validando integridad técnica de {ticker} (RSI: {row_dict.get('RSI')})")
+                logger.info(f"    [*] Validando integridad técnica de {ticker} (RSI: {row_dict.get('RSI')})")
                 
                 es_valido, motivo = procesamiento.validar_datos_tecnicos(row_dict) # Usa PRECIO_CIERRE_VALIDACION internamente
                 if not es_valido:
                     error_integ = f"Falla de Integridad Técnica en {row_dict['TICKER_ID']}: {motivo}"
                     procesamiento.registrar_log(ws_log, "CRITICAL", error_integ, config.ORIGEN_LOG_TECNICO)
-                    print(f"\n    [!] ABORTANDO: {error_integ}")
+                    logger.critical(f"\n    [!] ABORTANDO: {error_integ}")
                     return False # Aborta para que el ensamblador detecte el error
             
             # Si todos son válidos, grabamos el bloque completo
@@ -185,7 +188,7 @@ def ejecutar_analisis_completo():
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
             procesamiento.registrar_log(ws_log, "INFO", msg_exito, config.ORIGEN_LOG_TECNICO)
             procesamiento.actualizar_estado_proceso(ws_status, "OK", msg_exito, tiempo_ejecucion=duracion)
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg_exito}")
+            logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] {msg_exito}")
             return True
         else:
             procesamiento.registrar_log(ws_log, "WARNING", "No se generaron resultados técnicos.")
@@ -193,7 +196,7 @@ def ejecutar_analisis_completo():
 
     except Exception as e:
         error_msg = f"Error Crítico Técnico: {str(e)}"
-        print(error_msg)
+        logger.exception(error_msg)
         try:
             # Intentamos registrar el error en el log si la hoja está disponible
             procesamiento.registrar_log(ws_log, "ERROR", error_msg)

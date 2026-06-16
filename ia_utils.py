@@ -16,6 +16,9 @@ import pandas as pd
 import config
 from google import genai
 import procesamiento
+import logging_config
+
+logger = logging_config.get_logger(__name__)
 
 # ----------------------------------------------------------------------
 # 1️⃣ Load configuration -------------------------------------------------
@@ -69,7 +72,7 @@ def obtener_noticias_recientes(sh, ticker, limite=10):
         ws_noticias = sh.worksheet(config.WS_NOTICIAS_SISTEMA)
         data = ws_noticias.get_all_records()
         if not data:
-            print(f"    [i] No hay noticias registradas en {config.WS_NOTICIAS_SISTEMA}.")
+            logger.info(f"No hay noticias registradas en {config.WS_NOTICIAS_SISTEMA}.")
             return {"especificas": [], "macro": []}
 
         df = pd.DataFrame(data)
@@ -89,14 +92,14 @@ def obtener_noticias_recientes(sh, ticker, limite=10):
         df_macro['FECHA'] = df_macro['FECHA'].dt.strftime('%Y-%m-%d %H:%M:%S')
         macro = df_macro[['FECHA', 'TITULAR', 'RESUMEN_IA', 'SENTIMIENTO', 'FUENTE']].to_dict('records')
 
-        print(f"    [OK] Contexto recuperado: {len(especificas)} específicas, {len(macro)} macro.")
+        logger.info(f"Contexto recuperado: {len(especificas)} específicas, {len(macro)} macro.")
 
         return {
             "especificas": especificas,
             "macro": macro
         }
     except Exception as e:
-        print(f"    [!] Error recuperando noticias para el prompt: {e}")
+        logger.exception(f"Error recuperando noticias para el prompt: {e}")
         return {"especificas": [], "macro": []}
 
 def validar_datos_tecnicos(ticker_row):
