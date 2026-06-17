@@ -1,5 +1,4 @@
 import logging
-import procesamiento
 
 
 class SheetsHandler(logging.Handler):
@@ -20,6 +19,7 @@ class SheetsHandler(logging.Handler):
         if self.ws is None:
             return
         try:
+            import procesamiento
             msg = self.format(record)
             nivel = record.levelname
             # Use procesamiento.registrar_log to keep behaviour consistent
@@ -32,7 +32,7 @@ class SheetsHandler(logging.Handler):
                 pass
 
 
-def setup_logging(ws_log=None, level=logging.INFO):
+def setup_logging(ws_log=None, level=logging.INFO, sheets_level=logging.WARNING):
     """Configure a central logger for the application.
 
     - Adds a console handler and a SheetsHandler that writes to `ws_log` if provided.
@@ -57,7 +57,7 @@ def setup_logging(ws_log=None, level=logging.INFO):
 
     if sheet_handler is None:
         sheet_handler = SheetsHandler(ws=ws_log)
-        sheet_handler.setLevel(level)
+        sheet_handler.setLevel(sheets_level)
         sheet_handler.setFormatter(logging.Formatter('%(message)s'))
         logger.addHandler(sheet_handler)
     else:
@@ -73,3 +73,10 @@ def get_logger(name=None):
     if name:
         return base.getChild(name)
     return base
+
+
+if __name__ == "__main__":
+    # Prueba local para verificar que el logger funciona correctamente
+    test_logger = setup_logging()
+    test_logger.info("Módulo logging_config cargado y funcionando correctamente.")
+    print("Prueba de logger finalizada (revisa la línea de arriba).")

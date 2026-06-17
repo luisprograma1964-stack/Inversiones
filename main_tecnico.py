@@ -32,7 +32,7 @@ def ejecutar_analisis_completo():
     t_inicio = time.time()
     
     sh = auth_google.conectar()
-    if not sh: return
+    if not sh: return False
 
     try:
         # 1. Instanciar todas las hojas necesarias
@@ -52,7 +52,7 @@ def ejecutar_analisis_completo():
         raw_hist = ws_hist.get_all_values(value_render_option='UNFORMATTED_VALUE')
         if not raw_hist or len(raw_hist) < 2:
             procesamiento.registrar_log(ws_log, "WARNING", "No hay datos en HISTORICO_VALORES")
-            return
+            return False
         # Usar solo las primeras apariciones de cada encabezado para evitar duplicados
         header_raw = [str(h).strip().rstrip('.').upper() for h in raw_hist[0]]
         seen_h = {}
@@ -203,6 +203,7 @@ def ejecutar_analisis_completo():
             procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50])
         except:
             pass
+        return False
 
 if __name__ == "__main__":
     ejecutar_analisis_completo()

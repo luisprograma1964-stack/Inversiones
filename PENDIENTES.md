@@ -17,9 +17,9 @@ Fecha de revisión: 2026-06-16
 ## 3. Problemas importantes / riesgos críticos
  - [x] `captura_noticias.py` salida abrupta: Reemplazado `sys.exit(1)` por excepciones controladas.
  - [x] `decisor_con_ia.py` hardcoding: Ahora usa `config.WS_ESTADO_PROCESOS`.
-- `carga_historica_bridge.py` descarga datos en un buffer de Sheets y depende de `GOOGLEFINANCE(...)` con espera fija de 20 segundos.
-  - Esto es frágil si Google Sheets responde lento o la fórmula no se resuelve.
-  - Recomendación: agregar reintentos y validación de que el buffer se cargó correctamente antes de parsearlo.
+- [x] `carga_historica_bridge.py` buffer frágil: Se implementó lógica de polling con timeout y validación de contenido en celdas ('DATE', '#', etc.) en lugar de espera fija.
+ - [ ] **Fallo de Fail-Fast en Paso 3.5**: El error en Telegram es capturado internamente y retorna `[]`, permitiendo que el pipeline siga. Debe relanzar la excepción si se considera crítico.
+ - [ ] **Credenciales de Telegram**: `config.TELEGRAM_API_ID` o `HASH` están llegando vacíos en ejecución local. Requiere archivo `.env`.
 
 ## 4. Problemas menores detectados
 - El proyecto depende mucho de `print()` para estado y errores en lugar de un log central uniforme.
@@ -30,12 +30,10 @@ Fecha de revisión: 2026-06-16
 
 ## 5. Mejoras recomendadas
 - Establecer un flujo de ejecución claro en `README.md` con pasos de `setup`, `run`, y `debug`.
-- Agregar validación previa de la planilla Google Sheets: verificar que todas las pestañas necesarias existan antes de iniciar el pipeline.
-- Centralizar el manejo de configuración sensible en `config.py` mediante variables de entorno.
-- Añadir un comando o script de diagnóstico rápido que valide:
-  - credenciales
-  - presencia de hojas en Sheets
-  - formato de encabezados en las hojas críticas
+- [x] Validación previa de la planilla: Integrado en el ensablador y script de diagnóstico.
+- [x] Centralizar configuración: Implementado en `config.py` con variables de entorno y soporte `.env`.
+- [x] Script de diagnóstico rápido: Creado en `tools/diagnostico_sistema.py`.
+- [ ] Configuración local: Crear archivo `.env` con credenciales de Telegram para evitar `ValueError` en Paso 3.5.
 - Mantener `copilot-instructions.md` actualizado con tus preferencias de interacción.
 - Crear pruebas de integración mínima para que una ejecución de pipeline no rompa por cambios inesperados.
 
@@ -44,7 +42,8 @@ Fecha de revisión: 2026-06-16
  2. [x] Refactorizar `decisor_con_ia.py` (Init segura).
  3. [x] Actualizar `README.md` (Rama main).
  4. [x] Validación de hojas en `captura_noticias.py` (Sin sys.exit).
-5. Empezar a usar `PENDIENTES.md` como fuente única del estado del proyecto.
+ 5. [x] Empezar a usar `PENDIENTES.md` como fuente única del estado del proyecto.
+ 6. [x] Crear script de diagnóstico de salud del sistema (`tools/diagnostico_sistema.py`).
 
 ## 7. Cómo seguir
 - Cada vez que haya un bug o mejora nueva, agregarlo aquí con fecha y estado.

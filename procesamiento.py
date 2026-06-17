@@ -75,12 +75,21 @@ def registrar_log(ws_log, nivel, mensaje, origen=None):
         except Exception:
             # Fallback en caso de que falle la detección
             origen = getattr(config, 'ORIGEN_LOG', 'proceso_desconocido')
-    
-    try:
-        ws_log.append_row([ahora, nivel, origen, mensaje])
-    except Exception as e:
-        # Si falla el Sheets, al menos lo registramos localmente
-        logger.critical(f"Fallo físico en LOG_SISTEMA: {e}")
+
+    # Implementación de reintentos para manejar cuota 429
+    for intento in range(2):
+        try:
+            ws_log.append_row([ahora, nivel, origen, mensaje])
+            return # Éxito
+        except Exception as e:
+            error_str = str(e)
+            if "429" in error_str and intento == 0:
+                time.sleep(2) # Espera de cortesía antes de reintentar
+                continue
+            
+            # IMPORTANTE: No usar 'logger' aquí para evitar bucle infinito si falla Sheets
+            print(f"[{ahora}] [CRITICAL] Fallo físico en LOG_SISTEMA: {error_str}")
+            break
 
 def filtrar_anomalias(nombre_dato, lista_valores, ws_log):
     """
@@ -217,23 +226,29 @@ def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, t
         except Exception:
             nombre_proceso = getattr(config, 'ORIGEN_LOG', 'proceso_desconocido')
             
-    try:
-        data = ws_status.get_all_records()
-        nueva_fila = [nombre_proceso, ahora, estado, detalle, tiempo_ejecucion if tiempo_ejecucion else ""]
-        
-        encontrado = False
-        for i, fila in enumerate(data, start=2):
-            # Busca por Nombre_Proceso (o Proceso_ID por retrocompatibilidad)
-            clave_fila = str(fila.get('Nombre_Proceso', fila.get('Proceso_ID', '')))
-            if clave_fila == nombre_proceso:
-                ws_status.update(values=[nueva_fila], range_name=f"A{i}:E{i}")
-                encontrado = True
-                break
-                
-        if not encontrado:
-            ws_status.append_row(nueva_fila)
-    except Exception as e:
-        logger.error(f"!!! Error actualizando ESTADO_PROCESOS: {e}")
+    # Reintento para actualización de estado
+    for intento in range(2):
+        try:
+            data = ws_status.get_all_records()
+            nueva_fila = [nombre_proceso, ahora, estado, detalle, tiempo_ejecucion if tiempo_ejecucion else ""]
+            
+            encontrado = False
+            for i, fila in enumerate(data, start=2):
+                clave_fila = str(fila.get('Nombre_Proceso', fila.get('Proceso_ID', '')))
+                if clave_fila == nombre_proceso:
+                    ws_status.update(values=[nueva_fila], range_name=f"A{i}:E{i}")
+                    encontrado = True
+                    break
+                    
+            if not encontrado:
+                ws_status.append_row(nueva_fila)
+            return # Éxito
+        except Exception as e:
+            if "429" in str(e) and intento == 0:
+                time.sleep(2)
+                continue
+            print(f"!!! Error actualizando ESTADO_PROCESOS: {e}")
+            break
 
 def validar_datos_tecnicos(row_dict):
     """

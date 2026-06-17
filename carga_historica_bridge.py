@@ -20,31 +20,43 @@ PROCESO_ID = "CARGA_DATOS_BRIDGE"
 ETIQUETA_FUENTE = "GF_BRIDGE"
 
 
-def marcar_maestro_actualizado(ws_maestro, ticker_id):
-    """
-    Registra la fecha y hora de la última actualización exitosa para un ticker específico.
+def actualizar_maestro_lote(ws_maestro, tickers_exitosos):
+    """Actualiza la columna ULTIMA_ACTUALIZ en lote para reducir llamadas a la API."""
+    if not tickers_exitosos:
+        return
     
-    Actualiza la columna 'ULTIMA_ACTUALIZ' en la hoja MAESTRO_ACTIVOS para el activo 
-    procesado, permitiendo llevar un control de cuándo fue la última carga de datos.
-    
-    Argumentos:
-        ws_maestro (Worksheet): Objeto de la hoja MAESTRO_ACTIVOS.
-        ticker_id (str): El identificador único del activo (ej. 'AAPL', 'USDARS').
-    """
     ahora_completo = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    logger = logging.getLogger('inversiones')
     try:
-        data = ws_maestro.get_all_records()
-        df_m = pd.DataFrame(data)
-        df_m.columns = [str(c).strip().upper() for c in df_m.columns]
+        # 1. Obtener todos los datos del maestro
+        # Usamos get_all_values para tener la matriz completa incluyendo encabezados
+        raw_data = ws_maestro.get_all_values()
+        if not raw_data:
+            return
+            
+        header = [str(c).strip().upper() for c in raw_data[0]]
+        try:
+            col_idx = header.index('ULTIMA_ACTUALIZ')
+            ticker_idx = header.index('TICKER_ID')
+        except ValueError:
+            logger.warning("No se encontraron columnas 'TICKER_ID' o 'ULTIMA_ACTUALIZ' en el Maestro.")
+            return
+
+        # 2. Modificar registros en memoria
+        modificado = False
+        for i in range(1, len(raw_data)):
+            t_id = str(raw_data[i][ticker_idx]).strip().upper()
+            if t_id in tickers_exitosos:
+                raw_data[i][col_idx] = ahora_completo
+                modificado = True
         
-        # Encontrar la fila del ticker
-        idx = df_m[df_m['TICKER_ID'] == ticker_id].index
-        if not idx.empty:
-            # +2 porque el DF empieza en 0 y Sheets tiene encabezado en 1
-            col_idx = list(df_m.columns).index('ULTIMA_ACTUALIZ') + 1
-            ws_maestro.update_cell(idx[0] + 2, col_idx, ahora_completo)
+        # 3. Escribir de vuelta la matriz completa (1 sola llamada de escritura)
+        if modificado:
+            ws_maestro.update(values=raw_data, range_name='A1')
+            logger.info(f"    [*] Maestro actualizado en lote ({len(tickers_exitosos)} activos).")
+            
     except Exception as e:
-        logging.getLogger('inversiones').warning(f"Error marcando maestro para {ticker_id}: {e}")
+        logger.warning(f"Error actualizando maestro en lote: {e}")
 
 def ejecutar_carga_bridge():
     """
@@ -62,29 +74,35 @@ def ejecutar_carga_bridge():
     t_inicio = time.time()
     
     sh = auth_google.conectar()
-    ws_maestro = sh.worksheet(config.WS_MAESTRO_ACTIVOS)
-    ws_historico = sh.worksheet(config.WS_HISTORICO_VALORES)
-    ws_buffer = sh.worksheet(config.WS_DOWNLOAD_BUFFER)
-    ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
-    ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
-
-    # Inicializar logger central y vincular el handler de Sheets
-    logger = logging_config.setup_logging(ws_log=ws_log)
-    logger = logging_config.get_logger(__name__)
-
-    procesamiento.registrar_log(ws_log, "INFO", "INICIO: Sincronización Bridge", config.ORIGEN_LOG_CARGA)
-    
-    # Limpieza preventiva: Mantenemos la base liviana antes de buscar nuevos datos
-    procesamiento.limpiar_historico_valores(sh)
-
-    procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Buscando nuevos registros...")
+    if not sh:
+        logging.getLogger('inversiones').error("ERROR: No se pudo conectar con Google Sheets.")
+        return False
 
     todas_las_filas_nuevas = []
     ahora = datetime.now()
+    tickers_exitosos = set()
     estado_final = "OK"
     detalle_final = ""
+    logger = logging.getLogger('inversiones')
     
     try:
+        ws_maestro = sh.worksheet(config.WS_MAESTRO_ACTIVOS)
+        ws_historico = sh.worksheet(config.WS_HISTORICO_VALORES)
+        ws_buffer = sh.worksheet(config.WS_DOWNLOAD_BUFFER)
+        ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
+        ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
+
+        # Inicializar logger central y vincular el handler de Sheets
+        logger = logging_config.setup_logging(ws_log=ws_log)
+        logger = logging_config.get_logger(__name__)
+
+        procesamiento.registrar_log(ws_log, "INFO", "INICIO: Sincronización Bridge", config.ORIGEN_LOG_CARGA)
+        
+        # Limpieza preventiva: Mantenemos la base liviana antes de buscar nuevos datos
+        procesamiento.limpiar_historico_valores(sh)
+
+        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Buscando nuevos registros...")
+
         # 1. Obtener Tickers Activos de esta fuente
         df_maestro = pd.DataFrame(ws_maestro.get_all_records(value_render_option='UNFORMATTED_VALUE'))
         df_maestro.columns = [str(c).strip().upper() for c in df_maestro.columns]
@@ -179,7 +197,7 @@ def ejecutar_carga_bridge():
                                 precio_val, 0, precio_val, precio_val
                             ])
                         temp_date += timedelta(days=1)
-                    marcar_maestro_actualizado(ws_maestro, t_clean)
+                    tickers_exitosos.add(t_clean)
                 except Exception as e:
                     procesamiento.registrar_log(ws_log, "ERROR", f"Error USDARS: {e}", config.ORIGEN_LOG_CARGA)
 
@@ -323,7 +341,7 @@ def ejecutar_carga_bridge():
                                         continue
 
                             logger.info(f"        [OK] {t_clean}: {conteo_ticker} filas nuevas preparadas.")
-                            marcar_maestro_actualizado(ws_maestro, t_clean)
+                            tickers_exitosos.add(t_clean)
 
         if todas_las_filas_nuevas:
             logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] Grabando {len(todas_las_filas_nuevas)} registros en HISTORICO_VALORES...")
@@ -332,7 +350,10 @@ def ejecutar_carga_bridge():
         else:
             registros_totales = 0
 
-        detalle_final = f"Sincronizados {registros_totales} registros totales."
+        # 4. Actualizar el maestro en lote al final (Eficiencia de API)
+        actualizar_maestro_lote(ws_maestro, tickers_exitosos)
+
+        detalle_final = f"Sincronizados {registros_totales} registros en {len(tickers_exitosos)} activos."
 
     except Exception as e:
         import traceback
@@ -343,9 +364,13 @@ def ejecutar_carga_bridge():
     
     finally:
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
-        procesamiento.actualizar_estado_proceso(ws_status, estado_final, detalle_final, tiempo_ejecucion=duracion)
-        procesamiento.registrar_log(ws_log, "INFO", f"FIN: {detalle_final}", config.ORIGEN_LOG_CARGA)
-        logger.info(f">>> {detalle_final}")
+        try:
+            procesamiento.actualizar_estado_proceso(ws_status, estado_final, detalle_final, tiempo_ejecucion=duracion)
+            procesamiento.registrar_log(ws_log, "INFO", f"FIN: {detalle_final}", config.ORIGEN_LOG_CARGA)
+        except:
+            pass
+        if logger:
+            logger.info(f">>> {detalle_final}")
         return estado_final == "OK"
 
 if __name__ == "__main__":

@@ -112,8 +112,8 @@ def ejecutar_pipeline():
         t_news = time.time()
         logger.info("\n[PASO 3.5] Capturando noticias y sentimiento de mercado...")
         if not captura_noticias.ejecutar_captura_noticias():
-            # No es crítico para detener el flujo, pero registramos el aviso
-            logger.warning("    [!] Advertencia: La captura de noticias falló. Se continuará sin contexto extra.")
+            cancelar_pipeline(ws_log, ws_status, "Paso 3.5 (Captura de Noticias) falló", inicio_global)
+            return False
         else:
             logger.info(f"[OK] NOTICIAS CAPTURADAS EN {(time.time() - t_news) / 60:.2f} min")
 
@@ -129,7 +129,7 @@ def ejecutar_pipeline():
         logger.info(f"[OK] PASO 4 COMPLETADO EN {duracion_p4:.2f} min")
 
     except Exception as e:
-        cancelar_pipeline(ws_log, ws_status, f"Error inesperado en orquestador: {e}", inicio_global)
+        return cancelar_pipeline(ws_log, ws_status, f"Error inesperado en orquestador: {e}", inicio_global)
 
     # ==================================================
     # FIN EXITOSO

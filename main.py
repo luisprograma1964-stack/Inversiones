@@ -29,24 +29,24 @@ def ejecutar_sincronizacion():
     t_inicio = time.time()
     
     sh = auth_google.conectar()
-    if not sh: 
+    if not sh:
         logger.error("ERROR: No se pudo conectar con Google Sheets.")
-        return
-
-    # Instanciar hojas de trabajo
-    ws_fuentes = sh.worksheet(config.WS_CONFIG_FUENTES)
-    ws_vars = sh.worksheet(config.WS_VARIABLES_MERCADO)
-    ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
-    ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
-
-    # Mantenimiento preventivo de logs antes de iniciar la jornada
-    procesamiento.limpiar_log_sistema(sh)
-
-    # 1. Logs de Inicio
-    procesamiento.registrar_log(ws_log, "INFO", "Iniciando sincronización periódica de mercado")
-    procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Iniciando captura de datos...")
+        return False
 
     try:
+        # Instanciar hojas de trabajo
+        ws_fuentes = sh.worksheet(config.WS_CONFIG_FUENTES)
+        ws_vars = sh.worksheet(config.WS_VARIABLES_MERCADO)
+        ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
+        ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
+
+        # Mantenimiento preventivo de logs antes de iniciar la jornada
+        procesamiento.limpiar_log_sistema(sh)
+
+        # 1. Logs de Inicio
+        procesamiento.registrar_log(ws_log, "INFO", "Iniciando sincronización periódica de mercado")
+        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Iniciando captura de datos...")
+
         # 2. Leer configuración de fuentes
         fuentes = ws_fuentes.get_all_records()
         resultados_agrupados = {}
@@ -106,8 +106,12 @@ def ejecutar_sincronizacion():
         msg_error = f"Error crítico en proceso general: {e}"
         logger.exception(msg_error)
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
-        procesamiento.registrar_log(ws_log, "CRITICAL", msg_error, config.ORIGEN_LOG_MAIN)
-        procesamiento.actualizar_estado_proceso(ws_status, "ERROR", "Falla crítica global", tiempo_ejecucion=duracion)
+        try:
+            # Usamos ORIGEN_LOG_CARGA ya que ORIGEN_LOG_MAIN no está definido en config.py
+            procesamiento.registrar_log(ws_log, "CRITICAL", msg_error, config.ORIGEN_LOG_CARGA)
+            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", "Falla crítica global", tiempo_ejecucion=duracion)
+        except:
+            pass
         return False
 
 if __name__ == "__main__":
