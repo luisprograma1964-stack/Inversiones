@@ -276,8 +276,8 @@ def validar_datos_tecnicos(row_dict):
         if precio_raw and sma200_raw:
             precio = float(str(precio_raw).replace(',', '.'))
             sma200 = float(str(sma200_raw).replace(',', '.'))
-            # Si la media es 50 veces más grande que el precio, hay un error de escala.
-            if sma200 > 0 and precio > 0 and (sma200 / precio > 50):
+            # Si la media es 15 veces más grande que el precio, hay un error de escala (estándar 15x).
+            if sma200 > 0 and precio > 0 and (sma200 / precio > 15):
                  return False, f"Incongruencia SMA_200 ({sma200}) vs Precio ({precio}). Error de escala."
 
         # 3. Validar Fibonacci (Detectar errores de cálculo previos)
@@ -291,7 +291,7 @@ def validar_datos_tecnicos(row_dict):
             clean_fibo_str = fibo.lstrip("'")
             val_fibo_str = clean_fibo_str.split(' ')[0]
             # Manejo de coma decimal para validación de Fibonacci
-            if float(val_fibo_str.replace(',', '.')) > 5: 
+            if float(val_fibo_str.replace(',', '.')) > 15: 
                 return False, f"FIBO_RET fuera de rango lógico ({val_fibo_str})"
         except (ValueError, IndexError):
             pass # Es un texto como "N/A" o "Extensión", se acepta

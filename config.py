@@ -11,10 +11,11 @@ try:
 	from dotenv import load_dotenv
 	_env_path = Path(__file__).parent / '.env'
 	if _env_path.exists():
-		load_dotenv(dotenv_path=_env_path)
-except Exception:
-	# python-dotenv no está instalado o no se pudo cargar; seguimos usando os.environ
-	pass
+		load_dotenv(dotenv_path=_env_path, override=True)
+	else:
+		print(f"--- AVISO: No se encontró el archivo .env en {_env_path} ---")
+except Exception as e:
+	print(f"--- ERROR: Falló la carga de python-dotenv: {e} ---")
 
 # --- CONFIGURACIÓN DE ACCESO (se recomienda usar GitHub Secrets / Secret Manager) ---
 API_KEY_FILE = os.getenv('API_KEY_FILE', 'creds/api_key.txt')
@@ -24,8 +25,8 @@ SHEET_NAME = os.getenv('SHEET_NAME', 'Inversiones')
 DIR_ESTRATEGIA = os.getenv('DIR_ESTRATEGIA', 'ESTRATEGIA_REPORTS')
 
 # --- CREDENCIALES TELEGRAM (NO guardar secrets en el repo) ---
-TELEGRAM_API_ID = int(os.getenv('TELEGRAM_API_ID', '0'))
-TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '')
+TELEGRAM_API_ID = int(os.getenv('TELEGRAM_API_ID', '0') or '0')
+TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '').strip()
 WS_CONFIG_TELEGRAM_CHANNELS = os.getenv('WS_CONFIG_TELEGRAM_CHANNELS', 'CONFIG_TELEGRAM_CHANNELS')
 
 # --- PARÁMETROS DEL PROCESO ---

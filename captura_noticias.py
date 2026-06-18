@@ -98,6 +98,12 @@ def ejecutar_captura_noticias():
         logger.critical(msg)  # ✅ Siempre se registra en terminal
         return False
 
+    # 0.1 Validación Fail-Fast: Credenciales de Telegram
+    if not config.TELEGRAM_API_ID or config.TELEGRAM_API_ID == 0 or not config.TELEGRAM_API_HASH:
+        msg = "ERROR CRÍTICO: Credenciales de Telegram (API_ID/HASH) no configuradas en .env. Abortando Paso 3.5."
+        logger.critical(msg)
+        return False
+
     # Validar que todas las hojas requeridas existan ANTES de empezar
     try:
         hojas_ok, msg_hojas = validar_hojas_requeridas(sh)

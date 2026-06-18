@@ -27,9 +27,22 @@ Semáforo de estado para ver rápidamente si un proceso falló o terminó bien.
 
 ### `TRANSACCIONES`
 Registro histórico de todos los movimientos de compra y venta realizados.
+- **A.** `FECHA` (YYYY-MM-DD)
+- **B.** `TICKER`
+- **C.** `OPERACION` (COMPRA / VENTA)
+- **D.** `CANTIDAD`
+- **E.** `PRECIO_UNITARIO`
+- **F.** `TOTAL_BRUTO`
+- **G.** `COMISIONES`
+- **H.** `TOTAL_NETO`
+- **I.** `MONEDA` (ARS / USD)
 
 ### `CAJA_LIQUIDEZ`
 Estado actual del efectivo y saldos en cuenta en distintas monedas.
+- **A.** `MONEDA` (ARS, USD, MEP, etc.)
+- **B.** `SALDO` (Valor numérico)
+- **C.** `TIPO_CUENTA` (EFECTIVO, BANCO, ALYC)
+- **D.** `ULTIMA_ACTUALIZACION` (YYYY-MM-DD HH:MM:SS)
 
 ---
 
@@ -75,6 +88,19 @@ Base de datos cruda con el precio diario de cada activo.
 - **D.** `Volumen`
 - **E.** `Maximo_Dia`
 - **F.** `Minimo_Dia`
+
+### `DOWNLOAD_BUFFER`
+Hoja técnica temporal utilizada por `carga_historica_bridge.py` para la descarga masiva y paralela mediante la fórmula `=GOOGLEFINANCE`.
+Estructura dinámica de bloques (7 columnas por activo):
+- **Col 1.** `Date` (Encabezado generado por Google)
+- **Col 2.** `Open`
+- **Col 3.** `High`
+- **Col 4.** `Low`
+- **Col 5.** `Close`
+- **Col 6.** `Volume`
+- **Col 7.** *(Espacio vacío para separación de bloques)*
+
+*Nota: Esta hoja se limpia automáticamente al inicio de cada sincronización.*
 
 ---
 

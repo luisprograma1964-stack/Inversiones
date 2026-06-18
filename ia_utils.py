@@ -38,7 +38,7 @@ CHEQUEAR_CUOTA = CFG.get("chequeo_cuota", True)
 LOTE_MAXIMO = CFG.get("lote_maximo", 5)
 
 
-def crear_prompt(ticker_row, perfiles, instrucciones, noticias_contexto=None):
+def crear_prompt(ticker_row, perfiles, instrucciones, noticias_contexto=None, financiero_contexto=None):
     """Construye un payload JSON con los datos técnicos y las instrucciones para la IA."""
     payload = {
         "_ORIGEN_DE_DATOS": {
@@ -59,7 +59,8 @@ def crear_prompt(ticker_row, perfiles, instrucciones, noticias_contexto=None):
         },
         "indicadores_tecnicos": {campo: ticker_row.get(campo, '') for campo in CAMPO_TECNICO},
         "perfiles_a_evaluar": perfiles,
-        "contexto_noticias": noticias_contexto if noticias_contexto else {}
+        "contexto_noticias": noticias_contexto if noticias_contexto else {},
+        "contexto_financiero": financiero_contexto if financiero_contexto else {}
     }
     return json.dumps(payload, indent=4, ensure_ascii=False)
 

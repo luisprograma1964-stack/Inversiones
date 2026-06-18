@@ -92,6 +92,11 @@ def ejecutar_carga_bridge():
         ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
         ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
 
+        # 0. Verificar si ya se ejecutó con éxito hoy (Fail-Fast)
+        if procesamiento.ya_ejecutado_hoy(ws_status, PROCESO_ID):
+            logging.getLogger('inversiones').info(f"    [-] Saltando {PROCESO_ID}: ya se ejecutó exitosamente hoy.")
+            return True
+
         # Inicializar logger central y vincular el handler de Sheets
         logger = logging_config.setup_logging(ws_log=ws_log)
         logger = logging_config.get_logger(__name__)
@@ -157,8 +162,8 @@ def ejecutar_carga_bridge():
             if not df_t_actual.empty and t_clean not in ['BTC', 'ETH', 'USDARS']:
                 p_numeric = pd.to_numeric(df_t_actual['PRECIO_CIERRE'], errors='coerce')
                 p_min, p_max = p_numeric.min(), p_numeric.max()
-                if p_min > 0 and (p_max / p_min > 10):
-                    logger.warning(f"    [!] {t_clean}: Corrupción de escala detectada (Ratio {round(p_max/p_min,1)}x). Purgando historial...")
+                if p_min > 0 and (p_max / p_min > 15): # Subimos umbral a 15x para evitar falsos positivos en stocks
+                    logger.warning(f"    [!] {t_clean}: Posible corrupción de escala (Ratio {round(p_max/p_min,1)}x). Purgando para recarga limpia...")
                     conteo_actual = 0 # Fuerza la recarga completa
                     ultima_f = None
             

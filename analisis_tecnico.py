@@ -44,8 +44,8 @@ def calcular_fibonacci(df_t):
         diff = max_reciente - min_reciente
         if diff == 0: return "N/A"
         
-        # Detección de errores de escala (Fail-Fast por coma vs punto)
-        if precio_actual > (max_reciente * 5) or precio_actual < (min_reciente / 5):
+        # Detección de errores de escala (Fail-Fast por coma vs punto) - Estándar 15x
+        if precio_actual > (max_reciente * 15) or precio_actual < (min_reciente / 15):
             return "Error (Escala)"
 
         retroceso = (max_reciente - precio_actual) / diff
@@ -57,7 +57,8 @@ def calcular_fibonacci(df_t):
         elif retroceso <= 0.618: return "0.618 (Golden)"
         elif retroceso <= 1.0: return "0.786"
         else: return "Extensión (Low)"
-    except:
+    except Exception as e:
+        logger.exception(f"Error en cálculo Fibonacci: {e}")
         return "Error"
 
 def procesar_indicadores(df):
@@ -102,7 +103,9 @@ def procesar_indicadores(df):
         df_t = df[df['TICKER_ID'] == ticker].sort_values('FECHA').copy()
         
         if len(df_t) < config.MIN_DIAS_HISTORIAL:
-            logger.info(f"    [!] {ticker}: Saltado por historial insuficiente ({len(df_t)}/{config.MIN_DIAS_HISTORIAL} días).")
+            msg = f"{ticker}: Saltado por historial insuficiente ({len(df_t)}/{config.MIN_DIAS_HISTORIAL} días)."
+            logger.info(f"    [!] {msg}")
+            if ws_log: procesamiento.registrar_log(ws_log, "INFO", msg, config.ORIGEN_LOG_TECNICO)
             continue
         
         # Indicadores
@@ -120,8 +123,8 @@ def procesar_indicadores(df):
                 avg_p = df_t['PRECIO_CIERRE'].mean()
                 curr_p = df_t['PRECIO_CIERRE'].iloc[-1]
                 
-                # Solo es error crítico si hay salto de escala (x10)
-                if curr_p > (avg_p * 10) or curr_p < (avg_p / 10):
+                # Solo es error crítico si hay salto de escala (x15)
+                if curr_p > (avg_p * 15) or curr_p < (avg_p / 15):
                     # Devolvemos un valor centinela para que main_tecnico aborte
                     final_rsi_val_for_output = -1.0 
                     msg = f"ERROR CRÍTICO: Escala corrupta en {ticker} (Precio: {curr_p} vs Promedio: {avg_p}). Abortando."

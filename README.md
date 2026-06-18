@@ -1,63 +1,74 @@
 # Proyecto Inversiones
 
-Este repositorio contiene un sistema en Python para análisis e integración de noticias y datos financieros.
+Sistema automatizado de análisis financiero, captura de noticias y toma de decisiones mediante IA (Gemini).
 
-## Estructura principal
+## 🛠 1. Pre-requisitos del Sistema
+Antes de comenzar, asegúrate de tener instalado:
+1. **Python 3.10 o superior**: Descargar aquí.
+2. **Git**: Opcional, para clonar el repositorio.
+3. **Cuenta de Google Cloud**: Con la API de Google Sheets habilitada y una Cuenta de Servicio con su archivo JSON.
+4. **Gemini API Key**: Obtenida desde Google AI Studio.
+5. **Telegram API ID/Hash**: Obtenidos desde my.telegram.org (para el módulo de noticias).
 
-- `main.py`, `main_tecnico.py`: archivos principales de ejecución
-- `analisis_tecnico.py`, `control_calidad.py`, `procesamiento.py`: módulos de análisis y control
-- `news_*`: módulos para obtención de noticias por distintas fuentes
-- `carga_historica_bridge.py`: puente de carga de datos históricos
-- `ia_utils.py`, `decisor_con_ia.py`: utilidades y decisor con IA
-- `creds/`: credenciales locales (no versionadas)
-- `.venv/`: entorno virtual local (no versionado)
+## 🚀 2. Instalación desde Cero
 
-## Cómo ponerlo en marcha
+### Paso 1: Clonar y crear carpetas base
+Abre una terminal (PowerShell recomendado) en la carpeta raíz:
+```powershell
+mkdir creds
+mkdir ESTRATEGIA_REPORTS
+```
 
-1. Abrir PowerShell en `c:\Para mi\Inversiones`
-2. Crear y activar el entorno virtual:
-
+### Paso 2: Configurar el Entorno Virtual
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-```
-
-3. Actualizar `pip` e instalar dependencias:
-
-```powershell
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
+*Nota: Si no tienes el archivo requirements.txt, instala manualmente las críticas:*
+`pip install pandas pandas_ta gspread oauth2client google-genai python-dotenv telethon feedparser beautifulsoup4 requests`
 
-4. Si quieres fijar versiones exactas en el futuro:
-
-```powershell
-python -m pip freeze > requirements.txt
+### Paso 3: Configurar Credenciales
+1. Coloca tu JSON de Google en `creds/` y el archivo `api_key.txt` con tu clave de Gemini.
+2. Crea un archivo `.env` en la raíz con este formato:
+```env
+API_KEY_FILE=creds/api_key.txt
+JSON_FILE=creds/tu_archivo_google.json
+SHEET_NAME=Inversiones
+TELEGRAM_API_ID=1234567
+TELEGRAM_API_HASH=tu_hash_aqui
 ```
 
-## Git y GitHub
+## 📈 3. Flujo de Ejecución
+El sistema se opera mediante dos procesos principales en este orden:
 
-Este proyecto ya está inicializado con Git y vinculado al remoto:
+### Etapa 1: El Ensamblador
+Prepara todos los datos técnicos, financieros y noticias. Es el "cerebro operativo".
+```powershell
+python ensamblador.py
+```
+**¿Qué hace?**
+- Verifica modelos de IA.
+- Descarga precios y variables macro (Dólar, UVA).
+- Calcula indicadores (RSI, MACD, Fibonacci).
+- Captura y filtra noticias de Telegram/Web.
+- Genera el veredicto inicial basado en tu liquidez y tenencias.
 
-- Remoto: `https://github.com/luisprograma1964-stack/Inversiones.git`
-- Branch actual: `main`
+### Etapa 2: El Supervisor del Sistema
+Audita el trabajo del ensamblador y sugiere mejoras de calidad.
+```powershell
+python supervisor_del_sistema.py
+```
+**¿Qué hace?**
+- Detecta si la IA contradijo la tendencia técnica.
+- Sugiere nuevos sinónimos para el mapeo de noticias.
+- Identifica si hay desincronización de precios.
 
-### ¿Main vs Master?
+## ⚠️ Seguridad y Mantenimiento
+- **NO SUBIR** las carpetas `.venv/`, `creds/` ni el archivo `.env` a GitHub.
+- Si el pipeline falla con error de Telegram, verifica que el `TELEGRAM_API_ID` en el `.env` sea un número sin comillas.
+- Puedes usar `python tools/diagnostico_sistema.py` para verificar que todo esté bien configurado.
 
-- `master` y `main` son solo nombres de ramas.
-- No hay ninguna diferencia funcional entre ellas.
-- `master` es el nombre tradicional que usaban repositorios antiguos.
-- `main` es el nombre moderno que GitHub usa por defecto hoy en día.
-
-En este proyecto estamos usando `main`.
-
-## Aclaraciones de seguridad
-
-- No subas la carpeta `.venv/` ni `creds/` al repositorio.
-- Las credenciales deben mantenerse fuera de GitHub.
-- Ya está configurado `.gitignore` para evitar subir `backup/`, `BUP/`, `IA_LOGS/`, `.venv/`, `creds/`, `.env` y otros archivos temporales.
-
-## Cómo avanzar
-
-- Ejecuta los scripts `main.py` o `main_tecnico.py` según lo que necesites correr.
-- Si quieres, puedo ayudarte a agregar un `README` más detallado de uso paso a paso.
+---
+*Mantenimiento: `master` y `main` son equivalentes, pero este proyecto utiliza **main** por defecto.*

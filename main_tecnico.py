@@ -124,18 +124,21 @@ def ejecutar_analisis_completo():
         
         ultimos_precios = df.groupby('TICKER_ID')['PRECIO_CIERRE'].transform('last')
         
-        # Si un precio histórico es 10 veces mayor o menor al último, se descarta (excepto en activos volátiles)
+        # Si un precio histórico es 15 veces mayor o menor al último, se descarta (evita ruidos de carga)
         mask_ok = (df['TICKER_ID'].isin(['BTC', 'ETH', 'USDARS'])) | \
-                  ((df['PRECIO_CIERRE'] < ultimos_precios * 10) & (df['PRECIO_CIERRE'] > ultimos_precios * 0.1))
+                  ((df['PRECIO_CIERRE'] < ultimos_precios * 15) & (df['PRECIO_CIERRE'] > ultimos_precios * (1/15)))
         
         if not mask_ok.all():
             locos = df[~mask_ok]['TICKER_ID'].unique().tolist()
             f_min = df[~mask_ok]['FECHA_DT'].min().strftime('%Y-%m-%d')
             f_max = df[~mask_ok]['FECHA_DT'].max().strftime('%Y-%m-%d')
             
-            logger.warning(f"    [!] Descartando {sum(~mask_ok)} registros por escala extrema en: {locos} (Rango: {f_min} a {f_max})")
+            msg_desc = f"Descartando {sum(~mask_ok)} registros por escala extrema en: {locos} (Rango: {f_min} a {f_max})"
+            logger.warning(f"    [!] {msg_desc}")
+            procesamiento.registrar_log(ws_log, "WARNING", msg_desc, config.ORIGEN_LOG_TECNICO)
             df = df[mask_ok]
-            logger.info(f"    [*] Historial saneado en memoria para el cálculo técnico.")
+            logger.info("    [*] Historial saneado en memoria para el cálculo técnico.")
+            procesamiento.registrar_log(ws_log, "INFO", "Historial saneado en memoria", config.ORIGEN_LOG_TECNICO)
 
         resultados = analisis_tecnico.procesar_indicadores(df)
 

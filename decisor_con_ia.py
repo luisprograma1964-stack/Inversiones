@@ -111,6 +111,32 @@ def ejecutar_decisor():
         ws_gen = {k.strip(): v for k, v in gen_data.items()}
         ws_reporte = sh.worksheet(config.WS_REPORTE_IA)
         ws_matriz = sh.worksheet(config.WS_MATRIZ_RECOMENDACIONES)
+
+        # --- CONTEXTO FINANCIERO INTEGRAL ---
+        def get_df_raw(ws_name):
+            try: 
+                df = pd.DataFrame(sh.worksheet(ws_name).get_all_records())
+                df.columns = [c.strip().upper() for c in df.columns]
+                return df
+            except: return pd.DataFrame()
+
+        df_mercado = get_df_raw(config.WS_VARIABLES_MERCADO)
+        df_caja = get_df_raw(config.WS_CAJA_LIQUIDEZ)
+        df_transacciones = get_df_raw(config.WS_TRANSACCIONES)
+
+        dolar_mep = 1.0
+        if not df_mercado.empty:
+            mask_mep = df_mercado['DATO'].str.contains('MEP', case=False, na=False)
+            if any(mask_mep):
+                dolar_mep = float(str(df_mercado[mask_mep]['VALOR_PROM'].iloc[0]).replace(',', '.'))
+        
+        contexto_financiero = {
+            "variables_market": df_mercado.to_dict('records') if not df_mercado.empty else [],
+            "caja_liquidez": df_caja.to_dict('records') if not df_caja.empty else [],
+            "tenencias_actuales": df_transacciones.to_dict('records') if not df_transacciones.empty else [],
+            "referencia_dolar_mep": dolar_mep
+        }
+        # ------------------------------------
         
         # 3. CARGA DE MATRIZ (Normalizada para evitar duplicados)
         raw_values = ws_matriz.get_all_values()
@@ -155,7 +181,13 @@ def ejecutar_decisor():
             # Buscamos las noticias recientes del activo y el contexto macro (9999_AR/US)
             noticias_ctx = ia_utils.obtener_noticias_recientes(sh, ticker)
 
-            cuerpo_prompt = ia_utils.crear_prompt(row, perfiles_lista, instrucciones_excel, noticias_contexto=noticias_ctx)
+            cuerpo_prompt = ia_utils.crear_prompt(
+                row, 
+                perfiles_lista, 
+                instrucciones_excel, 
+                noticias_contexto=noticias_ctx,
+                financiero_contexto=contexto_financiero
+            )
             
             logro_procesar = False
             config_ia = ia_utils.obtener_config_generacion()
@@ -315,16 +347,16 @@ def ejecutar_decisor():
                         if mod_id in modelos:
                             modelos.remove(mod_id)
                     else:
-                        logger.exception(f"ERROR TÉCNICO en {mod_id}: {err_msg[:200]}")
-                time.sleep(2)
+                        logger.error(f"ERROR TÉCNICO en {mod_id}: {err_msg[:200]}")
+                time.sleep(1) # Pausa mínima entre reintentos de modelos
 
             if not logro_procesar:
                 errores += 1
                 logger.warning("No se pudo procesar este activo con ninguno de los modelos candidatos.")
                 time.sleep(10)
             else:
-                logger.info("Esperando 6 segundos para cuidar cuota (RPM)...")
-                time.sleep(6)
+                logger.info("Esperando 4 segundos para cuidar cuota (15 RPM free tier)...")
+                time.sleep(4)
 
         # Guardar cambios
         logger.info("Sincronizando resultados con Google Sheets...")
