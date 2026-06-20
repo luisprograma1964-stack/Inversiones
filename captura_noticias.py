@@ -118,6 +118,7 @@ def ejecutar_captura_noticias():
     # Mantenimiento preventivo de tablas de noticias antes de comenzar
     procesamiento.limpiar_noticias_descartadas(sh)
     procesamiento.limpiar_sugerencias_sinonimos(sh)
+    procesamiento.limpiar_noticias_sistema(sh)
 
     # Carga de hojas principales (ahora sabemos que todas existen)
     try:
@@ -242,23 +243,52 @@ def ejecutar_captura_noticias():
             return True
 
         # 3. Deduplicación (No procesar lo que ya tenemos o ya descartamos)
-        # Leemos URL de noticias existentes y Titulares de descartadas
-        urls_vistas = {str(r.get('URL', '')).strip() for r in ws_noticias.get_all_records() if r.get('URL')}
-        titulares_descartados = {str(r.get('TITULAR', '')).strip().upper() for r in ws_descartadas.get_all_records() if r.get('TITULAR')}
+        # Usamos caché local para evitar descargar miles de filas de Sheets en cada corrida.
+        cache_dir = Path("IA_LOGS")
+        cache_dir.mkdir(exist_ok=True)
+        cache_file = cache_dir / "noticias_procesadas.json"
         
+        cache_procesadas = {}
+        if cache_file.exists():
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    cache_procesadas = json.load(f)
+            except Exception as e:
+                logger.warning(f"No se pudo leer el caché local de noticias: {e}")
+        
+        # Como fallback, si el caché está vacío, inicializarlo con lo que hay en Sheets
+        # para no perder lo que ya se subió en días anteriores.
+        if not cache_procesadas:
+            logger.info("Caché local vacío. Inicializando desde Google Sheets...")
+            try:
+                urls_vistas = {str(r.get('URL', '')).strip() for r in ws_noticias.get_all_records() if r.get('URL')}
+                titulares_descartados = {str(r.get('TITULAR', '')).strip().upper() for r in ws_descartadas.get_all_records() if r.get('TITULAR')}
+                for url in urls_vistas:
+                    cache_procesadas[url] = {"estado": "APROBADO", "fecha": ""}
+                for tit in titulares_descartados:
+                    cache_procesadas[f"titular_{tit}"] = {"estado": "RECHAZADO", "fecha": ""}
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    json.dump(cache_procesadas, f, indent=4, ensure_ascii=False)
+            except Exception as e:
+                logger.warning(f"Error inicializando caché desde Sheets: {e}")
+                urls_vistas = set()
+                titulares_descartados = set()
+        else:
+            urls_vistas = {url for url, info in cache_procesadas.items() if info.get("estado") == "APROBADO" and not url.startswith("titular_")}
+            titulares_descartados = {url.replace("titular_", "") for url, info in cache_procesadas.items() if info.get("estado") == "RECHAZADO" and url.startswith("titular_")}
+
         nuevas = []
         for n in todas_las_noticias:
             url_n = str(n.get('url', '')).strip()
             tit_n = str(n.get('titular', '')).strip().upper()
             
-            # Si la URL ya existe, la saltamos
-            if url_n and url_n in urls_vistas:
+            if url_n and (url_n in urls_vistas or url_n in cache_procesadas):
                 continue
-            # Si el titular ya fue descartado antes, lo saltamos
-            if tit_n and tit_n in titulares_descartados:
+            if tit_n and (tit_n in titulares_descartados or f"titular_{tit_n}" in cache_procesadas):
                 continue
             
             nuevas.append(n)
+
         # Ordenar por fecha descendente y limitar a 25 novedades
         nuevas.sort(key=lambda x: x.get('fecha'), reverse=True)
         if len(nuevas) > 25:
@@ -281,7 +311,6 @@ def ejecutar_captura_noticias():
             n['ticker'] = identificar_ticker(n['titular'])
             
             # Evitamos que la IA descarte noticias macro por no reconocer "9999" como un ticker real.
-            # Si el ticker es 9999, le pasamos una descripción amigable para el análisis.
             ticker_para_ia = n['ticker']
             if n['ticker'] == "9999":
                 ticker_para_ia = "Mercado General (Macroeconomía / Contexto Global)"
@@ -289,6 +318,7 @@ def ejecutar_captura_noticias():
             prompt_final = prompt_triage_base.format(titular=n['titular'], ticker=ticker_para_ia)
             
             logro_triage = False
+            response_text = ""
             # Rotación de modelos en caso de error de cuota (429)
             for mod_id in list(modelos_candidatos):
                 if logro_triage: break
@@ -298,6 +328,7 @@ def ejecutar_captura_noticias():
                         contents=prompt_final,
                         config={"response_mime_type": "application/json"}
                     )
+                    response_text = response.text
                     logro_triage = True
                 except Exception as e:
                     err_msg = str(e)
@@ -315,8 +346,11 @@ def ejecutar_captura_noticias():
             if not logro_triage: continue
 
             try:
-                res_ia = json.loads(response.text)
+                res_ia = json.loads(response_text)
                 region_ia = str(res_ia.get('region', 'GLOBAL')).upper()
+                
+                # Registrar el resultado en el caché de inmediato (Resiliente ante cortes)
+                cache_key = n['url'] if n['url'] else f"titular_{n['titular'].upper()}"
                 
                 if res_ia.get('estado') == "APROBADO":
                     # Si es macro (9999), le ponemos el sufijo según lo que detectó la IA
@@ -335,6 +369,11 @@ def ejecutar_captura_noticias():
                         n['submodulo'], n['url'], n['canal_origen'], 
                         res_ia.get('resumen'), res_ia.get('sentimiento')
                     ])
+                    cache_procesadas[cache_key] = {
+                        "estado": "APROBADO",
+                        "fecha": n['fecha'],
+                        "datos": res_ia
+                    }
                 else:
                     motivo = res_ia.get('motivo_descarte', 'Irrelevante')
                     logger.info(f"    [-] DESCARTADA [{n['ticker']}] (Región: {region_ia}): {n['titular'][:50]}... -> Motivo: {motivo}")
@@ -342,8 +381,13 @@ def ejecutar_captura_noticias():
                     # FECHA, TICKER_ID, TITULAR, MOTIVO_DESCARTE, SUBMODULO
                     descartadas_batch.append([
                         n['fecha'], n['ticker'], n['titular'], 
-                        res_ia.get('motivo_descarte', 'Irrelevante'), n['submodulo']
+                        motivo, n['submodulo']
                     ])
+                    cache_procesadas[cache_key] = {
+                        "estado": "RECHAZADO",
+                        "fecha": n['fecha'],
+                        "datos": res_ia
+                    }
                 
                 # 4.1 Capturar sugerencias si el ticker actual es 9999
                 sug_ticker = res_ia.get('sugerencia_ticker')
@@ -353,11 +397,37 @@ def ejecutar_captura_noticias():
                         sug_ticker, res_ia.get('resumen')
                     ])
 
+                # Guardar el caché actualizado inmediatamente en disco
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    json.dump(cache_procesadas, f, indent=4, ensure_ascii=False)
+
                 # Pausa estratégica para respetar el RPM de la capa gratuita (Free tier = 10 RPM)
                 time.sleep(6)
                 
             except Exception as e:
                 logger.exception(f"    [!] Error en Triage para: {n['titular'][:30]}... -> {e}")
+
+        # 4.2 Limpieza de caché local para registros antiguos (>30 días)
+        try:
+            limite_fecha_cache = datetime.now() - pd.Timedelta(days=30)
+            llaves_a_borrar = []
+            for k, info in cache_procesadas.items():
+                fecha_str = info.get("fecha", "")
+                if fecha_str:
+                    try:
+                        fecha_dt = pd.to_datetime(fecha_str)
+                        if fecha_dt < limite_fecha_cache:
+                            llaves_a_borrar.append(k)
+                    except:
+                        pass
+            if llaves_a_borrar:
+                for k in llaves_a_borrar:
+                    cache_procesadas.pop(k, None)
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    json.dump(cache_procesadas, f, indent=4, ensure_ascii=False)
+                logger.info(f"[*] Limpieza de caché local completada: se eliminaron {len(llaves_a_borrar)} registros antiguos.")
+        except Exception as e:
+            logger.warning(f"No se pudo limpiar el caché local de noticias: {e}")
 
         # 5. Guardado en Google Sheets
         if aprobadas_batch:

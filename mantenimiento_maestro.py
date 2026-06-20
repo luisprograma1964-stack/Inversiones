@@ -12,23 +12,8 @@ import requests
 import logging_config
 
 logger = logging_config.get_logger(__name__)
-
-# Diccionario de nombres reales para los activos solicitados
-INFO_NUEVOS = {
-    "NKE": "Nike, Inc.",
-    "BRKB": "Berkshire Hathaway Inc. Class B",
-    "AMZN": "Amazon.com, Inc.",
-    "META": "Meta Platforms, Inc.",
-    "C": "Citigroup Inc.",
-    "VIST": "Vista Energy, S.A.B. de C.V.",
-    "SPGY": "SPDR Portfolio S&P 500 Growth ETF", # Nota: Verificar si es SPYG
-    "SPYG": "SPDR Portfolio S&P 500 Growth ETF",
-    "ARKK": "ARK Innovation ETF",
-    "DISN": "The Walt Disney Company",
-    "DIS": "The Walt Disney Company",
-    "WMT": "Walmart Inc.",
-    "ETHA": "iShares Ethereum Trust"
-}
+# Tickers esenciales del sistema que no deben ser desactivados aunque no tengan CEDEAR
+TICKERS_SISTEMA_EXCLUIDOS = {"USDARS", "MERVAL", "9999", "9999_AR", "9999_US"}
 
 def verificar_yahoo(ticker):
     """
@@ -48,104 +33,134 @@ def verificar_yahoo(ticker):
 
 def ejecutar_actualizacion_maestro():
     """
-    Inserta nuevos tickers y ordena la tabla MAESTRO_ACTIVOS.
+    Sincroniza MAESTRO_ACTIVOS con PROGRAMA_CEDEARS:
+    - Desactiva activos que no figuran en Comafi (y no son del sistema).
+    - Inserta nuevos CEDEARs detectados automáticamente.
+    - Ordena la tabla alfabéticamente.
     """
     logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Mantenimiento de Maestro...")
+    print("[*] Iniciando sincronización de Maestro de Activos...")
     
     ahora_ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     sh = auth_google.conectar()
     if not sh:
-        return
+        print("[ERROR] Conexión a Google Sheets falló.")
+        return False
 
     try:
         ws_maestro = sh.worksheet(config.WS_MAESTRO_ACTIVOS)
+        ws_cedears = sh.worksheet(config.WS_PROGRAMA_CEDEARS)
         ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
         ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
 
-        procesamiento.registrar_log(ws_log, "INFO", "Iniciando inserción masiva de tickers")
-        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Validando e insertando nuevos tickers...")
+        procesamiento.registrar_log(ws_log, "INFO", "Iniciando mantenimiento del maestro con base en Comafi", "mantenimiento_maestro")
+        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Sincronizando maestro con programas de Comafi...")
 
-        # 1. Leer datos actuales
-        all_values = ws_maestro.get_all_values()
+        # 1. Leer datos de CEDEARs oficiales de la planilla
+        datos_cedears = ws_cedears.get_all_records()
+        if not datos_cedears:
+            raise ValueError("La tabla PROGRAMA_CEDEARS está vacía. Abortando mantenimiento para evitar desactivación masiva.")
+            
+        df_cedears = pd.DataFrame(datos_cedears)
+        df_cedears.columns = [c.strip().upper() for c in df_cedears.columns]
         
-        # Columnas según ESTRUCTURA_SHEETS.md:
-        # A: Ticker_ID, B: Nombre_Largo, C: Filtro_Noticias, D: Ultima_Actualiz, 
-        # E: Dias_Keep_Hist, F: Fuente_Data, G: ESTADO
-        columnas_base = [
+        # Obtener el conjunto de tickers internacionales (subyacentes) permitidos
+        subyacentes_validos = set(df_cedears['TICKER_SUBYACENTE'].astype(str).str.strip().str.upper().unique())
+
+        # 2. Leer datos actuales del Maestro
+        all_values = ws_maestro.get_all_values()
+        columnas_originales = [
             "TICKER_ID", "NOMBRE_LARGO", "FILTRO_NOTICIAS", 
             "ULTIMA_ACTUALIZ", "DIAS_KEEP_HIST", "FUENTE_DATA", "ESTADO"
         ]
 
         if not all_values or len(all_values) == 0:
-            logger.warning("La hoja está vacía. Reconstruyendo estructura base y títulos...")
-            columnas_originales = columnas_base
             df_maestro = pd.DataFrame(columns=columnas_originales)
         else:
-            # Extraer encabezados y datos existentes
-            columnas_originales = [c.strip().upper() for c in all_values[0]]
-            df_maestro = pd.DataFrame(all_values[1:], columns=columnas_originales)
+            columnas_leidas = [c.strip().upper() for c in all_values[0]]
+            # Asegurar que existan todas las columnas requeridas
+            for col in columnas_originales:
+                if col not in columnas_leidas:
+                    raise KeyError(f"Columna crítica faltante en MAESTRO_ACTIVOS: {col}")
+            df_maestro = pd.DataFrame(all_values[1:], columns=columnas_leidas)
 
-        # 3. Nivelar y normalizar formatos de fecha existentes (según ESTANDARES.md)
-        if 'ULTIMA_ACTUALIZ' in df_maestro.columns:
-            def normalizar_ts(val):
-                val_str = str(val).strip()
-                if not val_str or val_str.lower() in ['nan', 'none', '']:
-                    return ""
-                # Intentar convertir a datetime y luego a string ISO
-                dt = pd.to_datetime(val_str, errors='coerce')
-                return dt.strftime('%Y-%m-%d %H:%M:%S') if pd.notnull(dt) else ""
-            
-            df_maestro['ULTIMA_ACTUALIZ'] = df_maestro['ULTIMA_ACTUALIZ'].apply(normalizar_ts)
+        # Normalizar claves
+        df_maestro['TICKER_ID'] = df_maestro['TICKER_ID'].astype(str).str.strip().str.upper()
         
-        # 2. Identificar tickers que NO existen
-        existentes = set(df_maestro['TICKER_ID'].astype(str).str.upper().tolist()) if not df_maestro.empty else set()
-        agregados = 0
+        # 3. SANEAMIENTO: Desactivar activos ausentes en Comafi
+        desactivados = 0
+        for idx, row in df_maestro.iterrows():
+            ticker = row['TICKER_ID']
+            # Omitir los del sistema o los que empiezan con 9999
+            if ticker in TICKERS_SISTEMA_EXCLUIDOS or ticker.startswith("9999"):
+                continue
+                
+            # Si no está en el listado oficial de Comafi y está activo, lo desactivamos
+            if ticker not in subyacentes_validos:
+                if row['ESTADO'] == 'ACTIVO':
+                    df_maestro.at[idx, 'ESTADO'] = 'INACTIVO'
+                    df_maestro.at[idx, 'ULTIMA_ACTUALIZ'] = ahora_ts
+                    desactivados += 1
+                    logger.info(f"Desactivando {ticker} (no posee programa CEDEAR vigente)")
 
+        # 4. AUTO-INSERTAR: Agregar nuevos CEDEARs ausentes en el Maestro
+        existentes = set(df_maestro['TICKER_ID'].tolist())
+        agregados = 0
         filas_nuevas = []
-        for t, nombre in INFO_NUEVOS.items():
-            t_upper = t.strip().upper()
-            if t_upper not in existentes:
-                logger.info(f"Validando {t_upper} en Yahoo Finance...")
+
+        # Agrupar cedears para obtener el nombre oficial del primer registro
+        cedears_unicos = df_cedears.drop_duplicates(subset=['TICKER_SUBYACENTE']).copy()
+
+        for _, r in cedears_unicos.iterrows():
+            subyacente = str(r['TICKER_SUBYACENTE']).strip().upper()
+            if not subyacente or subyacente in existentes:
+                continue
                 
-                # Solo asignamos Bridge si existe en Yahoo, sino queda vacío
-                fuente = "GF_BRIDGE" if verificar_yahoo(t_upper) else ""
-                
-                nuevo_registro = {
-                    "TICKER_ID": t_upper,
-                    "NOMBRE_LARGO": nombre,
-                    "FILTRO_NOTICIAS": f"stock:{t_upper}",
-                    "ULTIMA_ACTUALIZ": ahora_ts,
-                    "DIAS_KEEP_HIST": 250,   # Suficiente para SMA_200 + margen
-                    "FUENTE_DATA": fuente,
-                    "ESTADO": "ACTIVO"
-                }
-                filas_nuevas.append(nuevo_registro)
-                agregados += 1
+            nombre_largo = str(r['EMPRESA']).strip()
+            # Validar en Yahoo Finance si es operable
+            fuente = "GF_BRIDGE" if verificar_yahoo(subyacente) else ""
+            
+            nuevo_registro = {
+                "TICKER_ID": subyacente,
+                "NOMBRE_LARGO": nombre_largo,
+                "FILTRO_NOTICIAS": f"stock:{subyacente}",
+                "ULTIMA_ACTUALIZ": ahora_ts,
+                "DIAS_KEEP_HIST": "250",
+                "FUENTE_DATA": fuente,
+                "ESTADO": "INACTIVO" # Se auto-inserta inactivo por defecto, el usuario decide si activarlo
+            }
+            filas_nuevas.append(nuevo_registro)
+            agregados += 1
+            logger.info(f"Auto-insertando nuevo CEDEAR detectado: {subyacente} ({nombre_largo})")
 
         if filas_nuevas:
             df_nuevos = pd.DataFrame(filas_nuevas)
             df_maestro = pd.concat([df_maestro, df_nuevos], ignore_index=True)
-            logger.info(f"Se identificaron {agregados} tickers nuevos para agregar.")
-        else:
-            logger.info("Todos los tickers ya existen en el maestro.")
 
-        # 3. Ordenar por TICKER_ID
+        # 5. Ordenar por TICKER_ID
         df_maestro = df_maestro.sort_values(by="TICKER_ID")
 
-        # 4. Sobrescribir la hoja con los datos ordenados y actualizados
+        # 6. Sobrescribir hoja con datos ordenados
         ws_maestro.clear()
-        # Forzamos la escritura desde A1 para restaurar títulos y datos
         ws_maestro.update(range_name='A1', values=[columnas_originales] + df_maestro[columnas_originales].values.tolist())
 
-        resumen = f"Maestro actualizado. Agregados: {agregados}. Total: {len(df_maestro)}."
-        procesamiento.registrar_log(ws_log, "INFO", resumen)
+        resumen = f"Sincronización Maestro OK. Desactivados: {desactivados}. Agregados: {agregados}. Total: {len(df_maestro)}."
+        logger.info(resumen)
+        procesamiento.registrar_log(ws_log, "INFO", resumen, "mantenimiento_maestro")
         procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen)
-        logger.info(f"{resumen}")
+        print(f"[OK] {resumen}")
+        return True
 
     except Exception as e:
         error_msg = f"Error en mantenimiento maestro: {e}"
         logger.exception(error_msg)
-        procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "ERROR", error_msg)
+        try:
+            procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "ERROR", error_msg, "mantenimiento_maestro")
+            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50])
+        except:
+            pass
+        print(f"[ERROR] {error_msg}")
+        return False
 
 if __name__ == "__main__":
     ejecutar_actualizacion_maestro()

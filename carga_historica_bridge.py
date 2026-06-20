@@ -114,6 +114,12 @@ def ejecutar_carga_bridge():
         mask = (df_maestro['ESTADO'] == 'ACTIVO') & (df_maestro['FUENTE_DATA'] == ETIQUETA_FUENTE)
         tickers = df_maestro[mask]['TICKER_ID'].unique().tolist()
 
+        # Obtener lista de subyacentes con CEDEAR para habilitar la descarga dual
+        ws_cedears = sh.worksheet(config.WS_PROGRAMA_CEDEARS)
+        df_cedears = pd.DataFrame(ws_cedears.get_all_records())
+        df_cedears.columns = [c.strip().upper() for c in df_cedears.columns]
+        tickers_cedears = set(df_cedears['TICKER_SUBYACENTE'].astype(str).str.strip().str.upper().tolist())
+
         # 2. Cargar históricos actuales para saber desde dónde arrancar
         df_hist = pd.DataFrame(ws_historico.get_all_records(value_render_option='UNFORMATTED_VALUE'))
         
@@ -137,11 +143,20 @@ def ejecutar_carga_bridge():
         # Guardaremos la lista de tickers que procesaremos vía Google Finance
         gf_jobs = []
         
+        # Expandir la lista de tickers para incluir el par local BCBA:TICKER si corresponde
+        tickers_expandidos = []
         for t in tickers:
             t_clean = str(t).strip().upper()
-            
+            tickers_expandidos.append((t_clean, t_clean)) # (Ticker para Histórico, Ticker para GoogleFinance)
+            if t_clean in tickers_cedears:
+                # Agregamos la descarga Byma con prefijo BCBA:
+                tickers_expandidos.append((f"BCBA:{t_clean}", f"BCBA:{t_clean}"))
+
+        for t_hist, t_gf in tickers_expandidos:
             # 2.1 Obtener configuración de días desde el maestro con Piso de Seguridad
-            row_maestro = df_maestro[df_maestro['TICKER_ID'] == t_clean]
+            # Para el ticker Byma (BCBA:AAPL) usamos la configuración del maestro de su subyacente (AAPL)
+            subyacente_lookup = t_hist.replace("BCBA:", "")
+            row_maestro = df_maestro[df_maestro['TICKER_ID'] == subyacente_lookup]
             dias_base = config.MIN_DIAS_HISTORIAL + 60 # Margen extra
             
             if not row_maestro.empty:
@@ -154,16 +169,17 @@ def ejecutar_carga_bridge():
                 dias_a_pedir = dias_base
 
             # 2.2 Determinar fecha de inicio (última fecha en base + 1 día o carga inicial completa)
-            df_t_actual = df_hist[df_hist['TICKER_ID'] == t_clean]
+            df_t_actual = df_hist[df_hist['TICKER_ID'] == t_hist]
             conteo_actual = df_t_actual['FECHA_DT'].nunique() if not df_t_actual.empty else 0
             ultima_f = df_t_actual['FECHA_DT'].max() if not df_t_actual.empty else None
             
             # --- DETECCIÓN DE CORRUPCIÓN DE ESCALA (Mejorada) ---
-            if not df_t_actual.empty and t_clean not in ['BTC', 'ETH', 'USDARS']:
-                p_numeric = pd.to_numeric(df_t_actual['PRECIO_CIERRE'], errors='coerce')
+            if not df_t_actual.empty and subyacente_lookup not in ['BTC', 'ETH', 'USDARS']:
+                # Hacemos casteo seguro reemplazando comas decimales a puntos si es necesario
+                p_numeric = pd.to_numeric(df_t_actual['PRECIO_CIERRE'].astype(str).str.replace(',', '.'), errors='coerce')
                 p_min, p_max = p_numeric.min(), p_numeric.max()
-                if p_min > 0 and (p_max / p_min > 15): # Subimos umbral a 15x para evitar falsos positivos en stocks
-                    logger.warning(f"    [!] {t_clean}: Posible corrupción de escala (Ratio {round(p_max/p_min,1)}x). Purgando para recarga limpia...")
+                if p_min > 0 and (p_max / p_min > 15): 
+                    logger.warning(f"    [!] {t_hist}: Posible corrupción de escala (Ratio {round(p_max/p_min,1)}x). Purgando para recarga limpia...")
                     conteo_actual = 0 # Fuerza la recarga completa
                     ultima_f = None
             
@@ -175,7 +191,7 @@ def ejecutar_carga_bridge():
             # Si tenemos menos de lo necesario para el análisis técnico, forzamos carga desde el pasado
             if conteo_actual < config.MIN_DIAS_HISTORIAL:
                 start_dt = ahora - timedelta(days=int(dias_a_pedir * 2.0))
-                logger.info(f"    [*] {t_clean}: Historial insuficiente ({conteo_actual}/{config.MIN_DIAS_HISTORIAL}). Forzando recarga desde {start_dt.date()}...")
+                logger.info(f"    [*] {t_hist}: Historial insuficiente ({conteo_actual}/{config.MIN_DIAS_HISTORIAL}). Forzando recarga desde {start_dt.date()}...")
             else:
                 start_dt = (ultima_f + timedelta(days=1)) if pd.notnull(ultima_f) else (ahora - timedelta(days=int(dias_a_pedir * 1.5)))
 
@@ -186,10 +202,12 @@ def ejecutar_carga_bridge():
             f_fin = ahora.strftime('%Y-%m-%d')
 
             # --- CASO ESPECIAL: USDARS (Dólar API) ---
-            if t_clean == "USDARS":
+            if t_hist == "USDARS":
                 try:
                     res = requests.get("https://dolarapi.com/v1/dolares/oficial")
                     precio_val = float(res.json()['venta'])
+                    # Convertir decimal para Sheets regional
+                    precio_val_str = f"{precio_val:.2f}".replace('.', ',')
                     
                     temp_date = start_dt.date()
                     hoy_date = ahora.date()
@@ -198,19 +216,33 @@ def ejecutar_carga_bridge():
                         f_iso = temp_date.strftime('%Y-%m-%d')
                         if f_iso not in fechas_existentes:
                             todas_las_filas_nuevas.append([
-                                t_clean, f_iso,
-                                precio_val, 0, precio_val, precio_val
+                                t_hist, f_iso,
+                                precio_val_str, 0, precio_val_str, precio_val_str
                             ])
                         temp_date += timedelta(days=1)
-                    tickers_exitosos.add(t_clean)
+                    tickers_exitosos.add(t_hist)
                 except Exception as e:
                     procesamiento.registrar_log(ws_log, "ERROR", f"Error USDARS: {e}", config.ORIGEN_LOG_CARGA)
 
             # --- CASO GENERAL: Google Finance ---
             else:
-                formula = f'=GOOGLEFINANCE("{t_clean}"; "all"; "{f_ini}"; "{f_fin}")'
+                # Resolver prefijo de mercado internacional para evitar #N/A en planillas de Argentina
+                t_gf_final = t_gf
+                if not ":" in t_gf:
+                    # Mapear tickers comunes de tu portfolio al prefijo correcto
+                    ticker_upper = t_gf.upper()
+                    if ticker_upper in ["AAPL", "AMD", "AMZN", "META", "MU", "TSLA", "QQQ"]:
+                        t_gf_final = f"NASDAQ:{ticker_upper}"
+                    elif ticker_upper in ["C", "CVX", "DIS", "KO", "NKE", "WMT", "XOM", "VIST"]:
+                        t_gf_final = f"NYSE:{ticker_upper}"
+                    elif ticker_upper == "BRKB":
+                        t_gf_final = "NYSE:BRK.B" # Formato específico de Google Finance para Berkshire B
+                    elif ticker_upper in ["SPY", "SPYG", "ARKK", "ETHA"]:
+                        t_gf_final = f"NYSEARCA:{ticker_upper}"
+                
+                formula = f'=GOOGLEFINANCE("{t_gf_final}"; "all"; "{f_ini}"; "{f_fin}")'
                 gf_jobs.append({
-                    'ticker': t_clean,
+                    'ticker': t_hist, # Guardamos el ID del histórico (ej. BCBA:AAPL)
                     'formula': formula,
                     'fechas_existentes': fechas_existentes
                 })
@@ -322,24 +354,23 @@ def ejecutar_carga_bridge():
                                         close = row[col_start + 4]
                                         high = row[col_start + 2]
                                         low = row[col_start + 3]
-                                        vol = row[col_start + 5] if row[col_start + 5] != '' else 0
+                                        vol = row[col_start + 5]
 
-                                        # Casteo seguro
-                                        if not all(isinstance(x, (int, float)) for x in [close, high, low, vol]):
-                                            try:
-                                                close = float(close)
-                                                high = float(high)
-                                                low = float(low)
-                                                vol = int(float(vol))
-                                            except:
-                                                continue
+                                        # Casteo seguro y formateo decimal regional con comas
+                                        try:
+                                            c_val = f"{float(close):.2f}".replace('.', ',')
+                                            h_val = f"{float(high):.2f}".replace('.', ',')
+                                            l_val = f"{float(low):.2f}".replace('.', ',')
+                                            v_val = int(float(vol)) if vol != '' else 0
+                                        except:
+                                            continue
 
                                         todas_las_filas_nuevas.append([
                                             t_clean, f_nivelada,
-                                            float(close),
-                                            int(vol),
-                                            float(high),
-                                            float(low)
+                                            c_val,
+                                            v_val,
+                                            h_val,
+                                            l_val
                                         ])
                                         conteo_ticker += 1
                                     except Exception:

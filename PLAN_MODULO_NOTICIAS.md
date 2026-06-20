@@ -70,12 +70,12 @@ En el Paso 4 del pipeline (`decisor_con_ia.py`), se modificará la carga de dato
 - **Tiempos de Ejecución:** Cada sub-módulo registrará su duración.
 - **Frecuencia:** Se recomienda correr este módulo **antes** del `decisor_con_ia.py` pero de forma independiente al inicio para testear.
 
-## 8. Próximos Pasos
-1. Crear la hoja `NOTICIAS_SISTEMA` en el Spreadsheet.
-2. Desarrollar `news_rss.py` como primer sub-módulo (es el más estable).
-3. Desarrollar el orquestador `captura_noticias.py` con integración a Gemini Flash.
+## 8. Próximos Pasos [COMPLETADO]
+1. [x] Crear la hoja `NOTICIAS_SISTEMA` en el Spreadsheet.
+2. [x] Desarrollar `news_rss.py` como primer sub-módulo (es el más estable).
+3. [x] Desarrollar el orquestador `captura_noticias.py` con integración a Gemini Flash.
 
-## 7. El Caso Especial: Ticker 9999
+## 9. El Caso Especial: Ticker 9999
 Se define el Ticker `9999` como el contenedor de noticias que afectan a toda la cartera:
 - Decisiones del BCRA (Tasas).
 - Datos de Inflación (IPC).

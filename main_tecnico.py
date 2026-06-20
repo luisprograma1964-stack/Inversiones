@@ -143,7 +143,7 @@ def ejecutar_analisis_completo():
         resultados = analisis_tecnico.procesar_indicadores(df)
 
         # 5. ESCRIBIR RESULTADOS
-        encabezados = ["TICKER_ID", "FECHA", "RSI", "MACD", "TREND", "SMA_20", "SMA_50", "SMA_200", "PSAR", "FIBO_RET", "DMI", "ESTADO", "ULTIMA_ACTUALIZACION", "PRECIO_ACTUAL", "FECHA_PRECIO_ACTUAL"]
+        encabezados = ["TICKER_ID", "FECHA", "RSI", "MACD", "TREND", "SMA_20", "SMA_50", "SMA_200", "PSAR", "FIBO_RET", "DMI", "ESTADO", "ULTIMA_ACTUALIZACION", "PRECIO_ACTUAL", "FECHA_PRECIO_ACTUAL", "CCL_IMPLICITO"]
         
         if resultados:
             # VALIDACIÓN DE COBERTURA: Detener si no se procesaron todos los activos activos

@@ -40,6 +40,7 @@ def inicializar_motor_ia():
 
 
 def ejecutar_supervisor():
+    print("[*] Iniciando Supervisor del Sistema...")
     logger.info("" + "X"*60)
     logger.info(f"SUPERVISOR Y MEJORADOR DEL SISTEMA | {datetime.now().strftime('%H:%M:%S')}")
     logger.info("X"*60)
@@ -53,6 +54,8 @@ def ejecutar_supervisor():
 
     ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
     ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
+    procesamiento.registrar_log(ws_log, "INFO", "Iniciando Supervisor del Sistema")
+    procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Auditando calidad del sistema...")
 
     try:
         # 1. RECOLECCIÓN DE DATOS PARA EL CONTEXTO GLOBAL
@@ -88,8 +91,8 @@ def ejecutar_supervisor():
         ahora_iso = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         payload = {
             "estado_actual_matriz": df_matriz.to_dict('records'),
-            "datos_tecnicos_vigentes": df_tecnico[['TICKER_ID', 'TREND', 'RSI', 'FIBO_RET', 'FECHA_PRECIO_ACTUAL']].to_dict('records') if not df_tecnico.empty else [],
-            "maestro_filtros": df_maestro[['TICKER_ID', 'FILTRO_NOTICIAS']].to_dict('records') if not df_maestro.empty and 'TICKER_ID' in df_maestro.columns else [],
+            "datos_tecnicos_vigentes": df_tecnico[['TICKER_ID', 'TREND', 'RSI', 'FIBO_RET', 'FECHA_PRECIO_ACTUAL', 'CCL_IMPLICITO']].to_dict('records') if not df_tecnico.empty and 'CCL_IMPLICITO' in df_tecnico.columns else (df_tecnico[['TICKER_ID', 'TREND', 'RSI', 'FIBO_RET', 'FECHA_PRECIO_ACTUAL']].to_dict('records') if not df_tecnico.empty else []),
+            "maestro_filtros": df_maestro[['TICKER_ID', 'FILTRO_NOTICIAS', 'ESTADO']].to_dict('records') if not df_maestro.empty and 'TICKER_ID' in df_maestro.columns else [],
             "tickers_con_noticias_recientes": tickers_con_noticias,
             "auditoria_noticias": {
                 "ultimos_descartes": df_descartes[['TITULAR', 'MOTIVO_DESCARTE', 'SUBMODULO']].to_dict('records') if not df_descartes.empty and 'TITULAR' in df_descartes.columns else [],
@@ -108,11 +111,17 @@ def ejecutar_supervisor():
         1. MEJORADOR DE DATOS (SINÓNIMOS Y TICKERS): 
            - SINÓNIMOS: Revisa 'sugerencias_pendientes'. Dame la fila EXACTA (TERMINO;TICKER_ASOCIADO) para pegar en CONFIG_SINONIMOS.
            - NUEVOS TICKERS: Si el mercado habla de algo que no seguimos, dame la fila EXACTA para MAESTRO_ACTIVOS: TICKER_ID;Nombre_Largo;Filtro_Noticias;{ahora_iso};250;GF_BRIDGE;ACTIVO.
-        2. OPTIMIZACIÓN DE BÚSQUEDA: Si un activo importante no trae noticias, acción: 'Luis, cambia el filtro de X por Y en el Maestro'.
+        2. ACTIVACIÓN DE ACTIVOS INACTIVOS: 
+           - Revisa 'tickers_con_noticias_recientes' y cruza con 'maestro_filtros'. Si un activo está en estado 'INACTIVO' en el maestro pero tiene flujo de noticias recientes, genera una alerta para el usuario:
+             Acción: 'Luis, el activo X tiene noticias relevantes pero está INACTIVO en tu maestro. Considera activarlo para que el pipeline técnico calcule sus indicadores y la IA tome decisiones'.
         3. COMPARATIVA E INTEGRIDAD (AUDITORÍA): 
            - Detecta si el Paso 4 ignoró noticias.
            - **AVISO DE DISCREPANCIA**: Compara las fechas en 'datos_tecnicos_vigentes' con las fechas en 'noticias_aprobadas_recientes'. Si el técnico es antiguo pero hay noticias nuevas, acción: 'Luis, el análisis de X está desincronizado: precio de hace 24hs vs noticias de hace 1h. Re-ejecuta el Bridge'.
-        4. ANÁLISIS DE CONTRADICCIÓN TÉCNICA: 
+        4. AUDITORÍA DE BRECHA CAMBIARIA (CCL):
+           - Analiza el campo 'CCL_IMPLICITO' en 'datos_tecnicos_vigentes'. 
+           - Calcula la brecha (tipo de cambio implícito) promedio del mercado. Si algún activo se desvía más de un 2.5% del promedio (presentando un CCL significativamente alto/caro o bajo/barato relativo), genera una alerta:
+             Acción: 'Luis, el CEDEAR de X cotiza localmente con un sobreprecio cambiario de Y% respecto a la media de mercado. Se sugiere evitar compras locales temporales'.
+        5. ANÁLISIS DE CONTRADICCIÓN TÉCNICA: 
            - Identifica discrepancias severas entre el veredicto de la IA (SENTIMIENTO/SCORE en 'estado_actual_matriz') y la realidad técnica (TREND/RSI en 'datos_tecnicos_vigentes').
            - Alerta si el Score es alto (>7) en tendencia bajista o bajo (<4) en tendencia alcista sin noticias de peso que lo justifiquen.
         5. REPORTE DE BLOQUEOS POR ESCALA (15x):
@@ -153,6 +162,12 @@ def ejecutar_supervisor():
             f.write(informe)
         
         # 6. SALIDA POR TERMINAL Y REGISTRO
+        print(f"\n[OK] Informe de supervisión guardado en: {path_md}\n")
+        print("="*60)
+        print("INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA:")
+        print(informe)
+        print("="*60)
+        
         logger.info("="*60)
         logger.info("INFORME DE SUPERVISIÓN Y MEJORA")
         logger.info(f"Reporte guardado en: {path_md}")
@@ -163,6 +178,7 @@ def ejecutar_supervisor():
         procesamiento.registrar_log(ws_log, "INFO", "Informe de supervisión generado exitosamente", "SUPERVISOR")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.actualizar_estado_proceso(ws_status, "OK", "Informe generado", tiempo_ejecucion=duracion)
+        print(f"[OK] Supervisor finalizado exitosamente en {duracion}.\n")
         
         return informe
 

@@ -189,7 +189,7 @@ def capturar_dato(url, campo_buscado):
 def ya_ejecutado_hoy(ws_status, nombre_proceso):
     """
     Consulta la tabla ESTADO_PROCESOS para verificar si un proceso específico
-    ya finalizó exitosamente ('OK') en la fecha actual.
+    ya finalizó exitosamente ('OK' o '🟢 OK') en la fecha actual.
     """
     try:
         hoy_str = datetime.now().strftime("%Y-%m-%d")
@@ -198,8 +198,8 @@ def ya_ejecutado_hoy(ws_status, nombre_proceso):
             # Soporta tanto Nombre_Proceso como Proceso_ID por retrocompatibilidad
             nombre = str(fila.get('Nombre_Proceso', fila.get('Proceso_ID', '')))
             fecha = str(fila.get('Fecha/Hora', ''))
-            estado = str(fila.get('Estado', ''))
-            if nombre == nombre_proceso and hoy_str in fecha and estado == 'OK':
+            estado = str(fila.get('Estado', '')).upper()
+            if nombre == nombre_proceso and hoy_str in fecha and ("OK" in estado or "🟢" in estado):
                 return True
     except Exception:
         pass
@@ -207,7 +207,7 @@ def ya_ejecutado_hoy(ws_status, nombre_proceso):
 
 def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, tiempo_ejecucion=None):
     """
-    Actualiza el estado de ejecución en la tabla ESTADO_PROCESOS en Google Sheets.
+    Actualiza el estado de ejecución en la tabla ESTADO_PROCESOS en Google Sheets con semáforos visuales.
     
     Argumentos:
         ws_status (Worksheet): Objeto de la hoja de cálculo de estado de procesos.
@@ -219,6 +219,17 @@ def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, t
     """
     ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
+    # Mapear estados a semáforos visuales para AppSheet y visualización rápida
+    estado_upper = str(estado).strip().upper()
+    if "OK" in estado_upper:
+        estado_visual = "🟢 OK"
+    elif "ERROR" in estado_upper:
+        estado_visual = "🔴 ERROR"
+    elif "PROCESANDO" in estado_upper:
+        estado_visual = "🟡 PROCESANDO"
+    else:
+        estado_visual = estado
+
     if nombre_proceso is None:
         try:
             frame = inspect.stack()[1]
@@ -230,7 +241,7 @@ def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, t
     for intento in range(2):
         try:
             data = ws_status.get_all_records()
-            nueva_fila = [nombre_proceso, ahora, estado, detalle, tiempo_ejecucion if tiempo_ejecucion else ""]
+            nueva_fila = [nombre_proceso, ahora, estado_visual, detalle, tiempo_ejecucion if tiempo_ejecucion else ""]
             
             encontrado = False
             for i, fila in enumerate(data, start=2):
@@ -734,3 +745,79 @@ def limpiar_sugerencias_sinonimos(sh, dias_a_mantener=None):
     except Exception as e:
         actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_sugerencias_sinonimos", tiempo_ejecucion="0.00 min")
         logger.exception(f"Error técnico en limpieza de sugerencias: {e}")
+
+
+def limpiar_noticias_sistema(sh, dias_a_mantener=None):
+    """
+    Limpia la hoja NOTICIAS_SISTEMA, manteniendo solo los registros de los últimos X días.
+    """
+    ws_noticias = sh.worksheet(config.WS_NOTICIAS_SISTEMA)
+    ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
+    ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
+    
+    if dias_a_mantener is None:
+        dias_a_mantener = getattr(config, 'DIAS_KEEP_NOTICIAS_SISTEMA', 30)
+
+    try:
+        t_inicio = time.time()
+        # Verificar si ya se limpió hoy
+        if ya_ejecutado_hoy(ws_status, "limpieza_noticias_sistema"):
+            logger.info("    [-] Saltando limpieza de NOTICIAS_SISTEMA (ya ejecutada hoy)")
+            return
+
+        data = ws_noticias.get_all_records()
+        total_actual = len(data)
+        
+        # Solo limpiar si supera el umbral de filas
+        if total_actual < getattr(config, 'UMBRAL_FILAS_NOTICIAS_SISTEMA', 500):
+            logger.info(f"    [-] Saltando limpieza de noticias aprobadas (Filas: {total_actual} < {getattr(config, 'UMBRAL_FILAS_NOTICIAS_SISTEMA', 500)})")
+            return
+
+        logger.info(f"[*] Iniciando limpieza de {config.WS_NOTICIAS_SISTEMA} ({dias_a_mantener} días)...")
+        actualizar_estado_proceso(ws_status, "PROCESANDO", "Limpiando noticias aprobadas...", "limpieza_noticias_sistema")
+        
+        if not data:
+            actualizar_estado_proceso(ws_status, "OK", "Sin datos para limpiar", "limpieza_noticias_sistema", tiempo_ejecucion="0.00 min")
+            return
+
+        df = pd.DataFrame(data)
+        df.columns = [c.strip().upper() for c in df.columns]
+        total_antes = len(df)
+
+        if 'FECHA' not in df.columns:
+            actualizar_estado_proceso(ws_status, "ERROR", "Columna FECHA no hallada", "limpieza_noticias_sistema", tiempo_ejecucion="0.00 min")
+            return
+
+        df['FECHA_DT'] = pd.to_datetime(df['FECHA'], errors='coerce')
+        limite = datetime.now() - pd.Timedelta(days=dias_a_mantener)
+        
+        df_limpio = df[df['FECHA_DT'] >= limite].copy()
+        df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+
+        eliminados = total_antes - len(df_limpio)
+        if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
+            msg_skip = f"Saltando escritura de NOTICIAS_SISTEMA: solo se identificaron {eliminados} filas viejas para borrar."
+            logger.info(f"    [-] {msg_skip}")
+            duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
+            actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_noticias_sistema", tiempo_ejecucion=duracion)
+            return
+
+        # Sobrescribir la hoja
+        ws_noticias.clear()
+        ws_noticias.append_row(df_limpio.columns.values.tolist())
+        
+        if not df_limpio.empty:
+            num_chunks = (len(df_limpio) + config.CHUNK_SIZE_SHEETS - 1) // config.CHUNK_SIZE_SHEETS
+            for i in range(num_chunks):
+                start_idx = i * config.CHUNK_SIZE_SHEETS
+                end_idx = min((i + 1) * config.CHUNK_SIZE_SHEETS, len(df_limpio))
+                ws_noticias.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
+
+        msg_fin = f"Limpieza completada. Se eliminaron {eliminados} noticias aprobadas viejas."
+        logger.info(f"[OK] {msg_fin}")
+        registrar_log(ws_log, "INFO", msg_fin, "limpieza_noticias_sistema")
+        duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
+        actualizar_estado_proceso(ws_status, "OK", msg_fin, "limpieza_noticias_sistema", tiempo_ejecucion=duracion)
+    except Exception as e:
+        actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_noticias_sistema", tiempo_ejecucion="0.00 min")
+        logger.exception(f"Error técnico en limpieza de noticias aprobadas: {e}")

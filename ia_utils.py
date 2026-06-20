@@ -64,7 +64,7 @@ def crear_prompt(ticker_row, perfiles, instrucciones, noticias_contexto=None, fi
     }
     return json.dumps(payload, indent=4, ensure_ascii=False)
 
-def obtener_noticias_recientes(sh, ticker, limite=10):
+def obtener_noticias_recientes(sh, ticker, limite=5):
     """
     Extrae las noticias más recientes para el ticker y el contexto macro (9999) 
     desde la hoja NOTICIAS_SISTEMA.

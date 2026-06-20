@@ -9,7 +9,8 @@
     "SMA_20",
     "SMA_50",
     "SMA_200",
-    "FIBO_RET"
+    "FIBO_RET",
+    "CCL_IMPLICITO"
   ],
   "campos_usuario": ["PERFILES"],
   "modelo_preferido": "models/gemini-1.5-flash",

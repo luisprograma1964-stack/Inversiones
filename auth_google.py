@@ -49,6 +49,7 @@ REQUIRED_SHEETS = [
     config.WS_SUGERENCIAS_SINONIMOS,
     config.WS_TRANSACCIONES,
     config.WS_CAJA_LIQUIDEZ,
+    config.WS_PROGRAMA_CEDEARS,
 ]
 
 

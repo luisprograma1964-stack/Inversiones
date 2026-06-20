@@ -83,6 +83,7 @@ def ejecutar_decisor():
         return False
 
     procesamiento.limpiar_reporte_ia(sh)
+    procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "PROCESANDO", "Analizando activos con IA...")
 
     try:
         # 1. MAPEO DE USUARIOS
@@ -164,8 +165,11 @@ def ejecutar_decisor():
             # --- GUARDIA DE DATOS (Check de Cordura) ---
             apto, motivo = ia_utils.validar_datos_tecnicos(row)
             if not apto:
-                logger.warning(f"DESCARTADO: Datos técnicos corruptos para {ticker}: {motivo}")
-                continue
+                error_fatal = f"FALLA DE INTEGRIDAD TÉCNICA CRÍTICA en {ticker}: {motivo}"
+                logger.critical(error_fatal)
+                procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "CRITICAL", error_fatal)
+                procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "ERROR", error_fatal[:50])
+                return False
 
             # --- ARMADO DEL PROMPT Y VERIFICACIÓN DE DATOS ---
             instrucciones_excel = ws_gen.get('Instrucciones_Fijas', '')

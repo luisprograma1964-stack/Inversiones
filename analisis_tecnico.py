@@ -82,13 +82,35 @@ def procesar_indicadores(df):
     resultados = []
     df.columns = [c.upper() for c in df.columns]
 
-    # Conexión para logs (según estándar de Luis)
+    # Conexión para logs y carga de ratios
     sh = None
     ws_log = None
+    mapa_ratios = {}
     try:
         sh = auth_google.conectar()
         ws_log = sh.worksheet(config.WS_LOG_SISTEMA) if sh else None
-    except: pass
+        
+        # Cargar los ratios del Comafi para calcular la brecha cambiaria (CCL)
+        if sh:
+            ws_cedears = sh.worksheet(config.WS_PROGRAMA_CEDEARS)
+            datos_cedears = ws_cedears.get_all_records()
+            if datos_cedears:
+                df_cedears = pd.DataFrame(datos_cedears)
+                df_cedears.columns = [c.strip().upper() for c in df_cedears.columns]
+                for _, r in df_cedears.iterrows():
+                    subyacente = str(r['TICKER_SUBYACENTE']).strip().upper()
+                    ratio_str = str(r['RATIO']).strip()
+                    try:
+                        parts = ratio_str.split(':')
+                        if len(parts) == 2:
+                            a = float(parts[0].strip())
+                            b = float(parts[1].strip())
+                            if a > 0 and b > 0:
+                                mapa_ratios[subyacente] = a / b
+                    except:
+                        pass
+    except Exception as e:
+        logger.warning(f"Error cargando ratios para cálculo de CCL: {e}")
     
     # Nivelación de fechas en memoria para el cálculo (soportando números de serie de Google Sheets)
     def parse_fecha_tecnico(v):
@@ -99,7 +121,10 @@ def procesar_indicadores(df):
     df['FECHA'] = df['FECHA'].apply(parse_fecha_tecnico)
     df = df.dropna(subset=['FECHA', 'PRECIO_CIERRE'])
     
-    for ticker in df['TICKER_ID'].unique():
+    # Filtrar solo tickers que no sean de Byma (los BCBA: se usan para cruce, no se analizan por separado)
+    tickers_analizar = [t for t in df['TICKER_ID'].unique() if not str(t).startswith("BCBA:")]
+    
+    for ticker in tickers_analizar:
         df_t = df[df['TICKER_ID'] == ticker].sort_values('FECHA').copy()
         
         if len(df_t) < config.MIN_DIAS_HISTORIAL:
@@ -170,13 +195,33 @@ def procesar_indicadores(df):
         # Helper to format numbers as strings with comma decimal for Sheets
         def format_num_for_sheets(v):
             if pd.notnull(v) and not np.isinf(v):
-                return float(round(float(v), 2))
+                return f"{float(v):.2f}".replace('.', ',')
             return None
 
         # Prepend "'" to FIBO_RET to force it as text in Sheets
         fibo_for_sheets = "'" + str(fibo)
 
         txt_trend = "ALCISTA L.P." if last['PRECIO_CIERRE'] > last['SMA_200'] else "BAJISTA L.P."
+
+        # Cálculo del CCL Implícito
+        ccl_val = "N/A"
+        if ticker in mapa_ratios:
+            # Buscar el registro de Byma (BCBA:TICKER) para el mismo día
+            fecha_busqueda = last['FECHA']
+            df_local = df[(df['TICKER_ID'] == f"BCBA:{ticker}") & (df['FECHA'] == fecha_busqueda)]
+            if not df_local.empty:
+                try:
+                    # Obtenemos precio en pesos (casteo seguro)
+                    precio_ars_raw = df_local['PRECIO_CIERRE'].iloc[-1]
+                    precio_ars = float(str(precio_ars_raw).replace(',', '.'))
+                    precio_usd = float(str(last['PRECIO_CIERRE']).replace(',', '.'))
+                    factor = mapa_ratios[ticker]
+                    
+                    if precio_usd > 0:
+                        ccl_calc = (precio_ars * factor) / precio_usd
+                        ccl_val = f"{ccl_calc:.2f}".replace('.', ',')
+                except Exception as ex:
+                    logger.warning(f"Error al calcular CCL para {ticker} el {fecha_busqueda.strftime('%Y-%m-%d')}: {ex}")
 
         resultados.append([
             ticker, 
@@ -186,7 +231,8 @@ def procesar_indicadores(df):
             format_num_for_sheets(last['SMA_20']), format_num_for_sheets(last['SMA_50']), format_num_for_sheets(last['SMA_200']), 
             txt_psar, fibo_for_sheets, txt_dmi, "PENDIENTE", datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             format_num_for_sheets(last['PRECIO_CIERRE']),
-            last['FECHA'].strftime('%Y-%m-%d') # FECHA_PRECIO_ACTUAL
+            last['FECHA'].strftime('%Y-%m-%d'), # FECHA_PRECIO_ACTUAL
+            ccl_val
         ])
     return resultados
 
