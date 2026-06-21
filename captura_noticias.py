@@ -159,16 +159,17 @@ def ejecutar_captura_noticias():
     # 0.1 Cargar Mapa de Sinónimos desde Google Sheets (Tu nueva forma de carga)
     try:
         records_raw = ws_sinonimos.get_all_records()
-        # Creamos el diccionario dinámicamente: {"TECNOLOGÍA": "NASDAQ", ...}
         MAPA_SINONIMOS = {}
         for r in records_raw:
-            # Normalizamos las llaves del diccionario (las cabeceras de la fila 1) para evitar el KeyError
             r_norm = {str(k).strip().upper(): v for k, v in r.items()}
-            termino = str(r_norm.get('TERMINO', '')).strip().upper()
-            ticker = str(r_norm.get('TICKER_ASOCIADO', '')).strip().upper()
-            if termino and ticker:
-                MAPA_SINONIMOS[termino] = ticker
-        logger.info(f"[*] {len(MAPA_SINONIMOS)} sinónimos cargados desde la planilla.")
+            ticker = str(r_norm.get('TICKER', '')).strip().upper()
+            sinonimos_str = str(r_norm.get('SINONIMOS', '')).strip()
+            if ticker and sinonimos_str:
+                # Separar por comas y normalizar a mayúsculas
+                sinonimos_lista = [s.strip().upper() for s in sinonimos_str.split(',') if s.strip()]
+                for sinonimo in sinonimos_lista:
+                    MAPA_SINONIMOS[sinonimo] = ticker
+        logger.info(f"[*] {len(MAPA_SINONIMOS)} sinónimos cargados desde la planilla (formato agrupado).")
     except Exception as e:
         logger.warning(f"[!] Error cargando tabla de sinónimos: {e}")
         MAPA_SINONIMOS = {}
@@ -389,12 +390,22 @@ def ejecutar_captura_noticias():
                         "datos": res_ia
                     }
                 
-                # 4.1 Capturar sugerencias si el ticker actual es 9999
-                sug_ticker = res_ia.get('sugerencia_ticker')
-                if n['ticker'] == "9999" and sug_ticker and str(sug_ticker).upper() != "9999":
+                # 4.1 Capturar sugerencias si el ticker actual es 9999 y el ticker sugerido existe en el maestro
+                sug_ticker = str(res_ia.get('sugerencia_ticker', '')).strip().upper()
+                
+                existe_en_maestro = False
+                try:
+                    if 'df_maestro' in locals() and not df_maestro.empty and 'TICKER_ID' in df_maestro.columns:
+                        tickers_validos = set(df_maestro['TICKER_ID'].astype(str).str.strip().str.upper().unique())
+                        existe_en_maestro = sug_ticker in tickers_validos
+                except Exception as ex_maestro:
+                    logger.warning(f"Error al verificar existencia de ticker sugerido en maestro: {ex_maestro}")
+                    existe_en_maestro = False
+
+                if n['ticker'] == "9999" and sug_ticker and sug_ticker != "9999" and existe_en_maestro:
                     sugerencias_batch.append([
                         n['fecha'], n['titular'], res_ia.get('sugerencia_termino'),
-                        sug_ticker, res_ia.get('resumen')
+                        sug_ticker, res_ia.get('resumen'), 'PENDIENTE'
                     ])
 
                 # Guardar el caché actualizado inmediatamente en disco

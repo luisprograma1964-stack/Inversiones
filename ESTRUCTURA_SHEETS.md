@@ -102,6 +102,17 @@ Estructura dinámica de bloques (7 columnas por activo):
 
 *Nota: Esta hoja se limpia automáticamente al inicio de cada sincronización.*
 
+### `PROGRAMA_CEDEARS`
+Listado oficial de todos los CEDEARs vigentes capturado desde la API del Banco Comafi.
+- **A.** `TICKER_LOCAL` (Ticker Byma local, ej: AAPL)
+- **B.** `TICKER_SUBYACENTE` (Ticker internacional, ej: AAPL)
+- **C.** `EMPRESA` (Nombre de la empresa o ETF subyacente)
+- **D.** `ISIN_CEDEAR` (Código ISIN local de custodia)
+- **E.** `ISIN_SUBYACENTE` (Código ISIN internacional)
+- **F.** `RATIO` (Ratio de conversión, ej: 10:1 o 20:1)
+- **G.** `TIPO` (Cedear Shares / Cedear ETF)
+- **H.** `ULTIMA_ACTUALIZACION` (Fecha y hora de sincronización, YYYY-MM-DD HH:MM:SS)
+
 ---
 
 ## 4. Hojas de Análisis e Inteligencia Artificial
@@ -123,6 +134,7 @@ Resultados matemáticos de los indicadores para cada Ticker.
 - **M.** `ULTIMA_ACTUALIZACION` (Fecha y hora de ejecución del cálculo)
 - **N.** `PRECIO_ACTUAL` (Valor de cierre más reciente)
 - **O.** `FECHA_PRECIO_ACTUAL` (Fecha de la que se obtuvo el PRECIO_ACTUAL)
+- **P.** `CCL_IMPLICITO` (Tipo de cambio implícito en Byma vs subyacente internacional)
 
 ### `CONFIG_IA_USUARIO`
 Mapeo de los inversores y su perfil de riesgo para la IA.
@@ -138,9 +150,9 @@ Mapeo de los inversores y su perfil de riesgo para la IA.
 - **D.** `Prompt_Triage_Noticias` (Prompt para resumir y descartar noticias)
 
 ### `CONFIG_SINONIMOS`
-Mapeo manual de palabras clave a Tickers específicos.
-- **A.** `TERMINO` (Ej: Tecnológicas, Petróleo, Tech)
-- **B.** `TICKER_ASOCIADO` (Ej: NASDAQ, YPFD, AAPL)
+Listado maestro de sinónimos consolidados en mapeo 1-a-N.
+- **A.** `TICKER` (El símbolo del activo, ej: AAPL, GGAL)
+- **B.** `SINONIMOS` (Listado de sinónimos separados por comas, ej: Apple, Apple Inc)
 
 ### `CONFIG_TELEGRAM_CHANNELS`
 Lista dinámica de canales a monitorear.
@@ -148,12 +160,13 @@ Lista dinámica de canales a monitorear.
 - **B.** `ESTADO` (ACTIVO / INACTIVO)
 
 ### `SUGERENCIAS_SINONIMOS`
-Sugerencias automáticas de la IA para nuevos mapeos.
+Sugerencias automáticas de la IA para nuevos mapeos, para aprobación/rechazo manual del usuario (compatible con AppSheet).
 - **A.** `FECHA`
 - **B.** `TITULAR`
 - **C.** `TERMINO_SUGERIDO`
 - **D.** `TICKER_SUGERIDO`
 - **E.** `EXPLICACION`
+- **F.** `ESTADO` (PENDIENTE, APROBADO, RECHAZADO, PROCESADO)
 
 ### `NOTICIAS_SISTEMA`
 Almacena las noticias validadas por la IA para su uso en el motor de decisiones.

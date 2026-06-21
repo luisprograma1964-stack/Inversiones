@@ -22,7 +22,9 @@ import main
 import carga_historica_bridge
 import main_tecnico
 import captura_noticias
+import valorador_cartera
 import decisor_con_ia
+import pre_mantenimiento
 from TEST.test_ia import descubrir_modelos
 
 def ejecutar_pipeline():
@@ -72,7 +74,16 @@ def ejecutar_pipeline():
             return False
         duracion_p0 = (time.time() - t0) / 60
         logger.info(f"[OK] PASO 0 COMPLETADO EN {duracion_p0:.2f} min")
-        
+        # ==================================================
+        # PASO 0.5: Mantenimiento Previo (Sinónimos, etc.)
+        # ==================================================
+        t05 = time.time()
+        logger.info("\n[PASO 0.5] Ejecutando rutinas de mantenimiento previo...")
+        if not pre_mantenimiento.ejecutar_mantenimiento_previo():
+            logger.warning("[!] El mantenimiento previo reportó un error, pero el pipeline continuará.")
+        duracion_p05 = (time.time() - t05) / 60
+        logger.info(f"[OK] PASO 0.5 COMPLETADO EN {duracion_p05:.2f} min")
+
         # ==================================================
         # PASO 1: Variables de Mercado General
         # ==================================================
@@ -116,6 +127,17 @@ def ejecutar_pipeline():
             return False
         else:
             logger.info(f"[OK] NOTICIAS CAPTURADAS EN {(time.time() - t_news) / 60:.2f} min")
+
+        # ==================================================
+        # PASO 3.8: Valuación de Cartera y Rentabilidad
+        # ==================================================
+        t_val = time.time()
+        logger.info("\n[PASO 3.8] Calculando tenencias y rentabilidad de cartera...")
+        if not valorador_cartera.ejecutar_valoracion():
+            cancelar_pipeline(ws_log, ws_status, "Paso 3.8 (Valuación de Cartera) falló", inicio_global)
+            return False
+        else:
+            logger.info(f"[OK] CARTERA VALORIZADA EN {(time.time() - t_val) / 60:.2f} min")
 
         # ==================================================
         # PASO 4: Motor de Inteligencia Artificial

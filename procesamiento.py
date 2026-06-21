@@ -715,8 +715,12 @@ def limpiar_sugerencias_sinonimos(sh, dias_a_mantener=None):
         df['FECHA_DT'] = pd.to_datetime(df['FECHA'], errors='coerce')
         limite = datetime.now() - pd.Timedelta(days=dias_a_mantener)
         
-        df_limpio = df[df['FECHA_DT'] >= limite].copy()
-        df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+        # Conservar registros que no estén PROCESADOS o que sean más recientes que el límite
+        df['ESTADO_NORM'] = df['ESTADO'].astype(str).str.strip().str.upper()
+        condicion_conservar = (df['ESTADO_NORM'] != 'PROCESADO') | (df['FECHA_DT'] >= limite)
+        
+        df_limpio = df[condicion_conservar].copy()
+        df_limpio = df_limpio.drop(columns=['FECHA_DT', 'ESTADO_NORM'])
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):

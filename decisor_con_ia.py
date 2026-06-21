@@ -101,6 +101,23 @@ def ejecutar_decisor():
         df_tecnico['ESTADO'] = df_tecnico['ESTADO'].astype(str).str.strip().str.replace('.', '', regex=False).str.upper()
         pendientes = df_tecnico[df_tecnico['ESTADO'] == 'PENDIENTE'].copy()
 
+        # --- CÁLCULO DE CCL PROMEDIO DE MERCADO ---
+        ccl_values = []
+        if 'CCL_IMPLICITO' in df_tecnico.columns:
+            for val in df_tecnico['CCL_IMPLICITO']:
+                try:
+                    if val is not None and str(val).strip() != '' and str(val).strip() != '0':
+                        clean_val = float(str(val).replace(',', '.'))
+                        if clean_val > 500: # Filtro de cordura: el CCL debe estar en rango realista (> 500 ARS)
+                            ccl_values.append(clean_val)
+                except Exception:
+                    pass
+        ccl_promedio = sum(ccl_values) / len(ccl_values) if len(ccl_values) > 0 else 0.0
+        if ccl_promedio > 0:
+            logger.info(f"[*] Tipo de cambio CCL Promedio de Mercado: {ccl_promedio:.2f} ARS (basado en {len(ccl_values)} activos)")
+        else:
+            logger.warning("[!] No se pudo calcular el CCL Promedio del Mercado o no hay activos con CCL válido.")
+
 
         if pendientes.empty:
             logger.info(">>> No hay activos pendientes.")
@@ -123,7 +140,7 @@ def ejecutar_decisor():
 
         df_mercado = get_df_raw(config.WS_VARIABLES_MERCADO)
         df_caja = get_df_raw(config.WS_CAJA_LIQUIDEZ)
-        df_transacciones = get_df_raw(config.WS_TRANSACCIONES)
+        df_valoracion = get_df_raw("VALORACION_PORTAFOLIO")
 
         dolar_mep = 1.0
         if not df_mercado.empty:
@@ -133,8 +150,8 @@ def ejecutar_decisor():
         
         contexto_financiero = {
             "variables_market": df_mercado.to_dict('records') if not df_mercado.empty else [],
-            "caja_liquidez": df_caja.to_dict('records') if not df_caja.empty else [],
-            "tenencias_actuales": df_transacciones.to_dict('records') if not df_transacciones.empty else [],
+            "saldos_caja_disponibles": df_caja.to_dict('records') if not df_caja.empty else [],
+            "valoracion_cartera_propietarios": df_valoracion.to_dict('records') if not df_valoracion.empty else [],
             "referencia_dolar_mep": dolar_mep
         }
         # ------------------------------------
@@ -283,6 +300,44 @@ def ejecutar_decisor():
                         conflu = partes.get('CONFLUENCIA', 'Sin datos de contexto')
                         conviccion = partes.get('CONVICCION', 'Basada en indicadores técnicos')
                         detalle = partes.get('VEREDICTO_IA', 'Sin detalle técnico')
+
+                        # --- GUARDRAILS TÉCNICOS: Validación de Consistencia de Score vs RSI ---
+                        try:
+                            rsi = float(str(row.get('RSI', 50)).replace(',', '.'))
+                        except Exception:
+                            rsi = 50.0
+
+                        try:
+                            score_num = int(score)
+                        except ValueError:
+                            score_num = None
+
+                        if score_num is not None:
+                            # Regla de Sobrecompra (RSI > 70): Evitar compras de alto riesgo. Si es alcista, máximo score = 6
+                            if rsi > 70:
+                                if "BULL" in sentimiento or "COMPR" in sentimiento:
+                                    if score_num > 6:
+                                        score = "6"
+                                        detalle = f"{detalle} [Ajuste Guardrail: Score limitado a 6/10 por sobrecompra (RSI: {rsi:.1f})]"
+
+                            # Regla de Sobreprecio Cambiario CCL (Desvío > +2.5% sobre la media):
+                            try:
+                                ccl_activo = float(str(row.get('CCL_IMPLICITO', 0.0)).replace(',', '.'))
+                            except Exception:
+                                ccl_activo = 0.0
+
+                            if ccl_promedio > 0 and ccl_activo > 500:
+                                desvio_ccl = (ccl_activo - ccl_promedio) / ccl_promedio
+                                if desvio_ccl > 0.025: # Desvío mayor al +2.5%
+                                    desvio_pct = desvio_ccl * 100
+                                    # Si es recomendación de compra o bullish
+                                    if "BULL" in sentimiento or "COMPR" in sentimiento:
+                                        if score_num > 6:
+                                            score = "6"
+                                        detalle = f"{detalle} [Ajuste Guardrail: Compra penalizada/advertida por sobreprecio CCL (+{desvio_pct:.1f}% sobre la media). CCL Activo: {ccl_activo:.1f} vs Promedio: {ccl_promedio:.1f}]"
+                                    else:
+                                        # Si es neutral o bajista, igual inyectamos la nota de alerta en el detalle
+                                        detalle = f"{detalle} [Alerta CCL: El CEDEAR cotiza con un sobreprecio del +{desvio_pct:.1f}% respecto a la media de mercado (CCL: {ccl_activo:.1f} vs Promedio: {ccl_promedio:.1f})]"
 
                         # Unificamos el formato: siempre mostramos la confluencia de noticias
                         prefix = "⚠️ CONTRADICCIÓN TÉCNICA: " if "CONTRADICCION" in sentimiento else ""

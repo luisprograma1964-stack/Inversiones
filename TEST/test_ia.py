@@ -34,11 +34,17 @@ def descubrir_modelos():
     try:
         modelos_candidatos = []
         for m in client.models.list():
-            # Atributo correcto en google-genai: supported_generation_methods
-            # Usamos getattr por seguridad ante diferentes versiones de la SDK
             metodos = getattr(m, 'supported_generation_methods', [])
-            if "gemini" in m.name.lower() and ("generateContent" in metodos or not metodos):
-                modelos_candidatos.append(m.name)
+            name_lower = m.name.lower()
+            
+            # Filtro estricto: debe ser gemini, apto para generación y no ser de tuning, robótica o experimental interno
+            is_valid_gemini = "gemini" in name_lower and ("generateContent" in metodos or not metodos)
+            no_experimental = not any(x in name_lower for x in ["tuning", "robotics", "dolly", "bison", "gecko"])
+            is_standard = any(x in name_lower for x in ["gemini-1.5", "gemini-2.0", "gemini-2.5", "gemini-3.0", "gemini-3.5", "gemini-flash", "gemini-pro"])
+            
+            if is_valid_gemini and no_experimental and is_standard:
+                model_clean = m.name.replace("models/", "")
+                modelos_candidatos.append(model_clean)
         
         if not modelos_candidatos:
             logger.warning("No se encontraron modelos Gemini disponibles.")
@@ -54,17 +60,20 @@ def descubrir_modelos():
     for nombre_full in modelos_candidatos:
         start_time = time.time()
         try:
+            # Consultamos sin el prefijo 'models/'
             response = client.models.generate_content(model=nombre_full, contents="ping")
             latencia = round(time.time() - start_time, 2)
             if response.text:
-                m_display = nombre_full.replace("models/", "")
-                logger.info(f"{m_display:<25} | {'OK':<10} | {latencia:<10}s | {'Disponible'}")
+                logger.info(f"{nombre_full:<25} | {'OK':<10} | {latencia:<10}s | {'Disponible'}")
                 modelos_vivos.append({"modelo": nombre_full, "latencia": latencia})
         except Exception as e:
             err = str(e)
-            status = "CUOTA" if "429" in err else "ERROR"
-            m_display = nombre_full.replace("models/", "")
-            logger.warning(f"{m_display:<25} | {status:<10} | {'N/A':<10} | {err[:25]}...")
+            # Si es un error de cuota o temporal del servidor, el modelo es válido pero está cargado. Lo conservamos.
+            if any(x in err for x in ["429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE"]):
+                logger.info(f"{nombre_full:<25} | {'CUOTA/BUSY':<10} | {'10.0':<10}s | {'Disponible (Penalización latencia)'}")
+                modelos_vivos.append({"modelo": nombre_full, "latencia": 10.0})
+            else:
+                logger.warning(f"{nombre_full:<25} | {'ERROR':<10} | {'N/A':<10} | {err[:25]}...")
 
     # Ordenar por latencia (el más rápido primero)
     modelos_vivos.sort(key=lambda x: x['latencia'])

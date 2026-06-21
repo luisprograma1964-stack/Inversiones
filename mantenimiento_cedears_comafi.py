@@ -9,6 +9,7 @@ import auth_google
 import procesamiento
 from datetime import datetime
 import requests
+import time
 import logging_config
 
 logger = logging_config.get_logger(__name__)
@@ -38,6 +39,7 @@ def ejecutar_actualizacion_maestro():
     - Inserta nuevos CEDEARs detectados automáticamente.
     - Ordena la tabla alfabéticamente.
     """
+    t_inicio = time.time()
     logger.info(f"[{datetime.now().strftime('%H:%M:%S')}] >>> Iniciando Mantenimiento de Maestro...")
     print("[*] Iniciando sincronización de Maestro de Activos...")
     
@@ -54,7 +56,7 @@ def ejecutar_actualizacion_maestro():
         ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
 
         procesamiento.registrar_log(ws_log, "INFO", "Iniciando mantenimiento del maestro con base en Comafi", "mantenimiento_maestro")
-        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Sincronizando maestro con programas de Comafi...")
+        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Sincronizando maestro con programas de Comafi...", nombre_proceso="mantenimiento_maestro")
 
         # 1. Leer datos de CEDEARs oficiales de la planilla
         datos_cedears = ws_cedears.get_all_records()
@@ -147,7 +149,8 @@ def ejecutar_actualizacion_maestro():
         resumen = f"Sincronización Maestro OK. Desactivados: {desactivados}. Agregados: {agregados}. Total: {len(df_maestro)}."
         logger.info(resumen)
         procesamiento.registrar_log(ws_log, "INFO", resumen, "mantenimiento_maestro")
-        procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen)
+        duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
+        procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen, nombre_proceso="mantenimiento_maestro", tiempo_ejecucion=duracion)
         print(f"[OK] {resumen}")
         return True
 
@@ -155,8 +158,9 @@ def ejecutar_actualizacion_maestro():
         error_msg = f"Error en mantenimiento maestro: {e}"
         logger.exception(error_msg)
         try:
+            duracion = f"{round((time.time() - t_inicio) / 60, 2)} min" if 't_inicio' in locals() else ""
             procesamiento.registrar_log(sh.worksheet(config.WS_LOG_SISTEMA), "ERROR", error_msg, "mantenimiento_maestro")
-            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50])
+            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], nombre_proceso="mantenimiento_maestro", tiempo_ejecucion=duracion)
         except:
             pass
         print(f"[ERROR] {error_msg}")
