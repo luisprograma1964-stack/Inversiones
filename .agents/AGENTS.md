@@ -18,9 +18,10 @@ Este archivo contiene las directrices obligatorias para el asistente de IA (Anti
 - **Manejo de Errores**: Usar bloques `try/except` en procesos principales y consultas externas (APIs, Google Finance), registrando las excepciones como `ERROR` o `CRITICAL` en el log.
 - **Formateo y Tipado**: Añadir anotaciones de tipos cuando sea práctico y respetar el formateo estandarizado.
 
-## 3. Integración con Google Sheets
+## 3. Integración con Google Sheets y AppSheet
 - **Validación Estricta**: Antes de escribir, leer o modificar cualquier código que interactúe con Google Sheets, consultar obligatoriamente `ESTRUCTURA_SHEETS.md` para garantizar que se respetan las columnas, su orden y sus formatos.
 - **Fechas**: Usar estrictamente el formato ISO `YYYY-MM-DD` (o `YYYY-MM-DD HH:MM:SS` para marcas temporales). Prohibido usar barras (`/`) o formatos alternativos.
+- **Claves Primarias para AppSheet**: Está prohibido usar columnas de fecha/timestamp como claves únicas (Key) de una tabla en AppSheet. Se debe utilizar siempre una columna física explícita de `ID` en la primera posición (Columna A) que contenga valores únicos cortos (vía `uuid.uuid4()[:8]` en Python) para evitar colisiones por concurrencia o por la truncación a segundos que realiza AppSheet.
 - **Logs y Estado**: 
   - Registrar eventos importantes usando `procesamiento.registrar_log` (hoja `LOG_SISTEMA`).
   - Actualizar el semáforo de estado con `procesamiento.actualizar_estado_proceso` (hoja `ESTADO_PROCESOS`).

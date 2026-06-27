@@ -6,7 +6,7 @@ IA para filtrar y resumir antes de guardar en las tablas finales.
 import json
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import pandas as pd
 from google import genai
@@ -239,6 +239,11 @@ def ejecutar_captura_noticias():
 
         # Fin de recolección paralela
 
+        # Asignar timestamp natural a todas las noticias recolectadas
+        base_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        for n in todas_las_noticias:
+            n['fecha'] = base_time
+
         if not todas_las_noticias:
             procesamiento.actualizar_estado_proceso(ws_status, "OK", "No se hallaron noticias", tiempo_ejecucion="0.00 min")
             return True
@@ -364,9 +369,11 @@ def ejecutar_captura_noticias():
 
                     logger.info(f"    [+] APROBADA [{ticker_final}] (Región: {region_ia}): {n['titular'][:50]}...")
                     # Orden Columnas NOTICIAS_SISTEMA: 
-                    # FECHA, TICKER_ID, TITULAR, FUENTE, SUBMODULO, URL, CANAL_ORIGEN, RESUMEN_IA, SENTIMIENTO
+                    # ID, FECHA, TICKER_ID, TITULAR, FUENTE, SUBMODULO, URL, CANAL_ORIGEN, RESUMEN_IA, SENTIMIENTO
+                    import uuid
+                    noticia_id = str(uuid.uuid4())[:8]
                     aprobadas_batch.append([
-                        n['fecha'], ticker_final, n['titular'], n['fuente'], 
+                        noticia_id, n['fecha'], ticker_final, n['titular'], n['fuente'], 
                         n['submodulo'], n['url'], n['canal_origen'], 
                         res_ia.get('resumen'), res_ia.get('sentimiento')
                     ])
@@ -379,9 +386,11 @@ def ejecutar_captura_noticias():
                     motivo = res_ia.get('motivo_descarte', 'Irrelevante')
                     logger.info(f"    [-] DESCARTADA [{n['ticker']}] (Región: {region_ia}): {n['titular'][:50]}... -> Motivo: {motivo}")
                     # Orden Columnas NOTICIAS_DESCARTADAS: 
-                    # FECHA, TICKER_ID, TITULAR, MOTIVO_DESCARTE, SUBMODULO
+                    # ID, FECHA, TICKER_ID, TITULAR, MOTIVO_DESCARTE, SUBMODULO
+                    import uuid
+                    noticia_id = str(uuid.uuid4())[:8]
                     descartadas_batch.append([
-                        n['fecha'], n['ticker'], n['titular'], 
+                        noticia_id, n['fecha'], n['ticker'], n['titular'], 
                         motivo, n['submodulo']
                     ])
                     cache_procesadas[cache_key] = {
@@ -403,8 +412,10 @@ def ejecutar_captura_noticias():
                     existe_en_maestro = False
 
                 if n['ticker'] == "9999" and sug_ticker and sug_ticker != "9999" and existe_en_maestro:
+                    import uuid
+                    sug_id = str(uuid.uuid4())[:8]
                     sugerencias_batch.append([
-                        n['fecha'], n['titular'], res_ia.get('sugerencia_termino'),
+                        sug_id, n['fecha'], n['titular'], res_ia.get('sugerencia_termino'),
                         sug_ticker, res_ia.get('resumen'), 'PENDIENTE'
                     ])
 
