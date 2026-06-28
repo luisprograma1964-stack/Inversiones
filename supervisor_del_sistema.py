@@ -40,12 +40,45 @@ def inicializar_motor_ia():
     return sh, client
 
 
+def limpiar_reportes_antiguos(dias=30):
+    """Borra reportes estratégicos antiguos de la carpeta ESTRATEGIA_REPORTS para no acumular basura."""
+    try:
+        report_dir = Path(config.DIR_ESTRATEGIA)
+        if not report_dir.exists():
+            return
+        
+        ahora = time.time()
+        limite = ahora - (dias * 86400) # 86400 segundos = 1 día
+        
+        borrados = 0
+        for archivo in report_dir.glob("Supervision_Sistema_*.md"):
+            if archivo.is_file():
+                if archivo.stat().st_mtime < limite:
+                    archivo.unlink()
+                    borrados += 1
+        
+        for archivo in report_dir.glob("Estrategia_*.md"):
+            if archivo.is_file():
+                if archivo.stat().st_mtime < limite:
+                    archivo.unlink()
+                    borrados += 1
+                    
+        if borrados > 0:
+            logger.info(f"[*] Mantenimiento Supervisor: Se eliminaron {borrados} reportes antiguos (> {dias} días).")
+            print(f"[*] Mantenimiento: Se eliminaron {borrados} reportes antiguos de {config.DIR_ESTRATEGIA}.")
+    except Exception as e:
+        logger.exception(f"Error al limpiar reportes antiguos: {e}")
+
+
 def ejecutar_supervisor():
     print("[*] Iniciando Supervisor del Sistema...")
     logger.info("" + "X"*60)
     logger.info(f"SUPERVISOR Y MEJORADOR DEL SISTEMA | {datetime.now().strftime('%H:%M:%S')}")
     logger.info("X"*60)
     t_inicio = time.time()
+    
+    # Mantenimiento de reportes viejos antes de iniciar
+    limpiar_reportes_antiguos(dias=30)
     
     try:
         sh, client = inicializar_motor_ia()
@@ -203,6 +236,8 @@ def ejecutar_supervisor():
         - 🕒 SINCRONIZACIÓN DE DATOS (Avisos de discrepancia de fechas)
         - ⚠️ ALERTAS Y CALIDAD (Anomalías detectadas y ajustes de IA)
         - ⚙️ OPTIMIZACIÓN DE INSTRUCCIONES IA (Sugerencias para 'Instrucciones_Fijas')
+
+        REGLA DE FORMATO CRÍTICA: Comienza directamente con el encabezado de nivel 2 '## 💰 ESTRATEGIA DE CARTERA'. No incluyas ningún título de nivel 1 (#) ni preámbulos introductorios, ya que tu informe será concatenado a un encabezado estructurado por el sistema.
         """
 
         # 4. CONSULTA A GEMINI (Usamos Pro si está disponible para máxima calidad estratégica, con rotación en caso de error)
@@ -236,24 +271,63 @@ def ejecutar_supervisor():
         if not informe:
             raise RuntimeError(f"Todos los modelos de IA fallaron. Último error: {ultimo_error}")
 
+        # --- GENERAR PUNTO 1: ESTRUCTURA DE INPUTS DE LA IA DECISORA (DETERMINISTA) ---
+        campos_tecnicos = ia_utils.CAMPO_TECNICO
+        punto_1_audit = f"""# INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA
+
+## 📋 1. ESTRUCTURA DE INPUTS DE LA IA DECISORA (AUDITORÍA)
+
+Este apartado detalla el catálogo completo de datos y campos que se inyectan dinámicamente en el prompt de la IA decisora (`decisor_con_ia.py`), agrupados por su origen de datos en Google Sheets:
+
+### 📊 Origen: `ANALISIS_TECNICO` (Datos Técnicos del Activo)
+Métricas matemáticas y de precio que definen la situación técnica de cada Ticker:
+* **Identificación**: `TICKER_ID`, `FECHA` (Fecha de cálculo).
+* **Indicadores Técnicos**: {", ".join([f"`{c}`" for c in campos_tecnicos])}
+* **Valores de Control**: `ESTADO` (Debe ser `PENDIENTE` para procesar).
+
+### 📰 Origen: `NOTICIAS_SISTEMA` (Contexto Fundamental y Sentimiento)
+Noticias recolectadas en paralelo y filtradas por la IA. Se inyectan las 5 más recientes del Ticker y las 5 más recientes de contexto macroeconómico global (Ticker 9999):
+* **Campos por noticia**: `FECHA`, `TITULAR`, `RESUMEN_IA`, `SENTIMIENTO`, `FUENTE`.
+
+### 💼 Origen: `VALORACION_PORTAFOLIO` (Situación de Cartera)
+Tenencias y rentabilidades consolidadas por propietario calculadas en el Paso 3.8:
+* **Campos**: `PROPIETARIO`, `ACTIVO`, `CANTIDAD`, `PRECIO_PROMEDIO_COMPRA`, `VALORACION_MERCADO`, `RENTABILIDAD_NOMINAL`, `RENTABILIDAD_REAL_PERC`.
+
+### 💵 Origen: `CAJA_LIQUIDEZ` (Saldos Disponibles)
+Saldos líquidos por cuenta, propietario y moneda (ARS, USD, MEP):
+* **Campos**: `MONEDA`, `SALDO`, `TIPO_CUENTA`, `ULTIMA_ACTUALIZACION`, `PROPIETARIO`.
+
+### 📈 Origen: `VARIABLES_MERCADO` (Contexto de Referencia Financiera)
+Monitoreo de tipos de cambio de referencia e inflación:
+* **Campos**: `DATO`, `VALOR_PROM`, `VALOR_MIN`, `VALOR_MAX`, `GAP_PERC`.
+
+### 👥 Origen: `CONFIG_IA_USUARIO` (Perfiles y Reglas del Inversor)
+Define la política y ponderaciones que la IA debe contrastar:
+* **Campos**: `Usuario_ID`, `Perfil_Riesgo`, `Mix_Target`, `Tolerancia_Desvio`.
+
+---
+
+"""
+        informe_completo = punto_1_audit + informe
+
         # 5. GUARDAR REPORTE EN ARCHIVO MD
         os.makedirs(config.DIR_ESTRATEGIA, exist_ok=True)
         filename = f"Supervision_Sistema_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         path_md = os.path.join(config.DIR_ESTRATEGIA, filename)
         with open(path_md, "w", encoding="utf-8") as f:
-            f.write(informe)
+            f.write(informe_completo)
         
         # 6. SALIDA POR TERMINAL Y REGISTRO
         try:
             print(f"\n[OK] Informe de supervisión guardado en: {path_md}\n")
             print("="*60)
             print("INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA:")
-            print(informe)
+            print(informe_completo)
             print("="*60)
         except UnicodeEncodeError:
             try:
                 sys_stdout_encoding = sys.stdout.encoding or 'ascii'
-                safe_informe = informe.encode(sys_stdout_encoding, errors='replace').decode(sys_stdout_encoding)
+                safe_informe = informe_completo.encode(sys_stdout_encoding, errors='replace').decode(sys_stdout_encoding)
                 print(f"\n[OK] Informe de supervision guardado en: {path_md}\n")
                 print("="*60)
                 print("INFORME DE SUPERVISION Y MEJORA ESTRATEGICA (Safe Encoding):")
@@ -265,16 +339,16 @@ def ejecutar_supervisor():
         logger.info("="*60)
         logger.info("INFORME DE SUPERVISIÓN Y MEJORA")
         logger.info(f"Reporte guardado en: {path_md}")
-        logger.info(informe)
+        logger.info(informe_completo)
         logger.info("="*60)
-
+ 
         # Guardar en log histórico
         procesamiento.registrar_log(ws_log, "INFO", f"Informe de supervisión generado exitosamente (modelo: {modelo_exitoso})", "SUPERVISOR")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.actualizar_estado_proceso(ws_status, "OK", f"Informe generado ({modelo_exitoso})", nombre_proceso="supervisor_del_sistema", tiempo_ejecucion=duracion)
         print(f"[OK] Supervisor finalizado exitosamente en {duracion}.\n")
         
-        return informe
+        return informe_completo
 
     except Exception as e:
         msg = f"Error en Supervisor: {e}"

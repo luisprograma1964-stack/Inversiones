@@ -64,14 +64,22 @@ def crear_prompt(ticker_row, perfiles, instrucciones, noticias_contexto=None, fi
     }
     return json.dumps(payload, indent=4, ensure_ascii=False)
 
+# Variable de caché global para la sesión de noticias
+_CACHE_NOTICIAS = None
+
 def obtener_noticias_recientes(sh, ticker, limite=5):
     """
     Extrae las noticias más recientes para el ticker y el contexto macro (9999) 
-    desde la hoja NOTICIAS_SISTEMA.
+    desde la hoja NOTICIAS_SISTEMA. Utiliza caché en memoria para no saturar la API.
     """
+    global _CACHE_NOTICIAS
     try:
-        ws_noticias = sh.worksheet(config.WS_NOTICIAS_SISTEMA)
-        data = ws_noticias.get_all_records()
+        if _CACHE_NOTICIAS is None:
+            logger.info(f"Descargando noticias desde {config.WS_NOTICIAS_SISTEMA}...")
+            ws_noticias = sh.worksheet(config.WS_NOTICIAS_SISTEMA)
+            _CACHE_NOTICIAS = ws_noticias.get_all_records()
+            
+        data = _CACHE_NOTICIAS
         if not data:
             logger.info(f"No hay noticias registradas en {config.WS_NOTICIAS_SISTEMA}.")
             return {"especificas": [], "macro": []}
