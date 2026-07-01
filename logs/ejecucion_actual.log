@@ -1,0 +1,105 @@
+--- INICIANDO EJECUCIÓN DE: supervisor_del_sistema.py (22:13:03) ---
+
+Error generando informe con gemini-1.5-pro: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
+Error generando informe con gemini-2.0-flash: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 39.440080972s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '39s'}]}}. Intentando fallback...
+Error generando informe con gemini-1.5-flash: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
+[*] Iniciando Supervisor del Sistema...
+[*] Mantenimiento: Se eliminaron 2 reportes antiguos de ESTRATEGIA_REPORTS.
+
+[OK] Informe de supervisión guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260630_221328.md
+
+============================================================
+INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA:
+
+[OK] Informe de supervision guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260630_221328.md
+
+============================================================
+INFORME DE SUPERVISION Y MEJORA ESTRATEGICA (Safe Encoding):
+# INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA
+
+## ? 1. ESTRUCTURA DE INPUTS DE LA IA DECISORA (AUDITORÍA)
+
+Este apartado detalla el catálogo completo de datos y campos que se inyectan dinámicamente en el prompt de la IA decisora (`decisor_con_ia.py`), agrupados por su origen de datos en Google Sheets:
+
+### ? Origen: `ANALISIS_TECNICO` (Datos Técnicos del Activo)
+Métricas matemáticas y de precio que definen la situación técnica de cada Ticker:
+* **Identificación**: `TICKER_ID`, `FECHA` (Fecha de cálculo).
+* **Indicadores Técnicos**: `RSI`, `MACD`, `TREND`, `PSAR`, `DMI`, `SMA_20`, `SMA_50`, `SMA_200`, `FIBO_RET`, `CCL_IMPLICITO`
+* **Valores de Control**: `ESTADO` (Debe ser `PENDIENTE` para procesar).
+
+### ? Origen: `NOTICIAS_SISTEMA` (Contexto Fundamental y Sentimiento)
+Noticias recolectadas en paralelo y filtradas por la IA. Se inyectan las 5 más recientes del Ticker y las 5 más recientes de contexto macroeconómico global (Ticker 9999):
+* **Campos por noticia**: `FECHA`, `TITULAR`, `RESUMEN_IA`, `SENTIMIENTO`, `FUENTE`.
+
+### ? Origen: `VALORACION_PORTAFOLIO` (Situación de Cartera)
+Tenencias y rentabilidades consolidadas por propietario calculadas en el Paso 3.8:
+* **Campos**: `PROPIETARIO`, `ACTIVO`, `CANTIDAD`, `PRECIO_PROMEDIO_COMPRA`, `VALORACION_MERCADO`, `RENTABILIDAD_NOMINAL`, `RENTABILIDAD_REAL_PERC`.
+
+### ? Origen: `CAJA_LIQUIDEZ` (Saldos Disponibles)
+Saldos líquidos por cuenta, propietario y moneda (ARS, USD, MEP):
+* **Campos**: `MONEDA`, `SALDO`, `TIPO_CUENTA`, `ULTIMA_ACTUALIZACION`, `PROPIETARIO`.
+
+### ? Origen: `VARIABLES_MERCADO` (Contexto de Referencia Financiera)
+Monitoreo de tipos de cambio de referencia e inflación:
+* **Campos**: `DATO`, `VALOR_PROM`, `VALOR_MIN`, `VALOR_MAX`, `GAP_PERC`.
+
+### ? Origen: `CONFIG_IA_USUARIO` (Perfiles y Reglas del Inversor)
+Define la política y ponderaciones que la IA debe contrastar:
+* **Campos**: `Usuario_ID`, `Perfil_Riesgo`, `Mix_Target`, `Tolerancia_Desvio`.
+
+---
+
+## ? ESTRATEGIA DE CARTERA
+
+**Estado Actual:**
+*   **Familiar:** Tenencia concentrada (100 AL30 GF). Valor: 20.000 ARS. Cash: 0 ARS.
+*   **Perfiles Luis (Moderado/Agresivo):** Carteras sin tenencias activas registradas.
+
+**Órdenes de Rebalanceo:**
+*   **Para Luis_Moderado:** El Mix_Target exige 50% Bonos, 30% Cedears, 20% Cash. Dado que no hay patrimonio, **inicia posición** aportando capital proporcional:
+    *   Compra el equivalente al 50% en **AL30** (Soberano).
+    *   Compra el equivalente al 30% en **ASML** (Alta convicción técnica, Score 8/10).
+    *   Mantener 20% en ARS (Cash).
+*   **Para Luis_Agresivo:** Mix_Target 60% Cedears, 20% Acciones Locales, 10% Bonos, 10% Cash.
+    *   Compra **ASML** (Score 9/10, alta confluencia técnica).
+    *   Compra **AMZN** (Oportunidad de acumulación).
+    *   *Nota:* Evitar compra de **VIST** en pesos debido al sobreprecio cambiario detectado (+3.14% sobre MEP).
+
+## ? MEJORA DE DATOS
+
+*   **Sinónimos:** Luis, tienes 50 sugerencias de sinónimos pendientes. Por favor revisa la hoja `SUGERENCIAS_SINONIMOS` y cambia su estado a APROBADO o RECHAZADO para refinar el triage.
+*   **Radar de Oportunidades:** Iniciar posición en **ASML** (Score 8/10 en Moderado, 9/10 en Agresivo).
+*   **Activación de Activos:** Los activos **AMD, AMZN, C, META, NKE, TSLA, WMT, XOM** tienen noticias recientes pero estaban en estado INACTIVO o sin filtro optimizado. **Acción:** Proceder a su activación para que el motor técnico los incluya en el próximo ciclo.
+
+## ? AUDITORÍA DE NOTICIAS VS DECISIÓN
+
+*   **Discrepancias:** Se detectó un ruido excesivo en el descarte de noticias (ej: noticias deportivas en el flujo de YPF y macro).
+*   **Ajuste sugerido:** El `Prompt_Triage_Noticias` debe endurecer el filtro de "Relevancia Macro" para evitar procesar titulares de diarios generalistas como TN o artículos deportivos.
+
+## ? CONTRADICCIONES TÉCNICAS
+
+*   **META:** La IA presenta una contradicción clara: score bajo (4-5) en un entorno de fundamentos positivos. El precio bajo la SMA200 pesa más que los fundamentales. Se recomienda mantener "Esperar" hasta superar SMA200.
+*   **SPY:** La noticia del "desplome" (17/06) genera un sesgo bajista injustificado en el veredicto de la IA frente a la estructura de largo plazo alcista.
+
+## ? ERRORES DE ESCALA (15x)
+
+*   Sin activos detectados con error 15x en esta corrida. El sistema se mantiene estable en el escalado de datos.
+
+## ? SINCRONIZACIÓN DE DATOS
+
+*   **Aviso:** Los datos técnicos de **WMT** corresponden al `2026-06-18`, mientras que el resto del sistema está en el `2026-06-30`. **Acción:** Re-ejecutar el módulo de Bridge para WMT inmediatamente.
+
+## ?? ALERTAS Y CALIDAD
+
+*   **Brecha Cambiaria (CCL):** **VIST** cotiza con un sobreprecio cambiario del 3.14%. **Alerta:** Evitar compras de este CEDEAR en pesos hasta que el CCL implícito converja al promedio de mercado (1519 ARS).
+*   **Silencio de mercado:** **TSLA** y **C** suben/bajan sin noticias fundamentales claras que lo respalden en nuestro radar. **Acción:** Realizar búsqueda manual de contexto en Twitter/Google, ya que el motor de noticias no detecta el driver.
+
+## ?? OPTIMIZACIÓN DE INSTRUCCIONES IA
+
+*   **Instrucciones_Fijas:** Modificar la prioridad del motor para que, ante una "CONTRADICCIÓN TÉCNICA", la IA priorice siempre la tendencia de largo plazo (SMA200) sobre noticias de corto plazo (1 día) para evitar que el usuario opere en contra de la tendencia estructural.
+*   **Prompt_Triage_Noticias:** Agregar la regla: "Descartar automáticamente cualquier titular que contenga nombres de futbolistas, clubes, mascotas o términos de 'Wiki' o 'CoinMarketCap' sobre tokens".
+============================================================
+[OK] Supervisor finalizado exitosamente en 0.38 min.
+
+
+[OK] EJECUCIÓN FINALIZADA EXITOSAMENTE (22:13:29)

@@ -108,20 +108,33 @@ def ejecutar_carga_bridge():
 
         procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Buscando nuevos registros...")
 
+        # Función auxiliar de lectura resiliente ante cuotas 429
+        def get_records_safe(ws, **kwargs):
+            for intento in range(3):
+                try:
+                    return ws.get_all_records(**kwargs)
+                except Exception as ex:
+                    if "429" in str(ex):
+                        logger.warning(f"    [!] Cuota 429 excedida al leer {ws.title}. Reintentando en 3 segundos...")
+                        time.sleep(3)
+                        continue
+                    raise ex
+            raise Exception(f"Error persistente de cuota 429 en hoja {ws.title}")
+
         # 1. Obtener Tickers Activos de esta fuente
-        df_maestro = pd.DataFrame(ws_maestro.get_all_records(value_render_option='UNFORMATTED_VALUE'))
+        df_maestro = pd.DataFrame(get_records_safe(ws_maestro, value_render_option='UNFORMATTED_VALUE'))
         df_maestro.columns = [str(c).strip().upper() for c in df_maestro.columns]
         mask = (df_maestro['ESTADO'] == 'ACTIVO') & (df_maestro['FUENTE_DATA'] == ETIQUETA_FUENTE)
         tickers = df_maestro[mask]['TICKER_ID'].unique().tolist()
 
         # Obtener lista de subyacentes con CEDEAR para habilitar la descarga dual
         ws_cedears = sh.worksheet(config.WS_PROGRAMA_CEDEARS)
-        df_cedears = pd.DataFrame(ws_cedears.get_all_records())
+        df_cedears = pd.DataFrame(get_records_safe(ws_cedears))
         df_cedears.columns = [c.strip().upper() for c in df_cedears.columns]
         tickers_cedears = set(df_cedears['TICKER_SUBYACENTE'].astype(str).str.strip().str.upper().tolist())
 
         # 2. Cargar históricos actuales para saber desde dónde arrancar
-        df_hist = pd.DataFrame(ws_historico.get_all_records(value_render_option='UNFORMATTED_VALUE'))
+        df_hist = pd.DataFrame(get_records_safe(ws_historico, value_render_option='UNFORMATTED_VALUE'))
         
         if not df_hist.empty:
             df_hist.columns = [str(c).strip().upper() for c in df_hist.columns]

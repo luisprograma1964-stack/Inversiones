@@ -237,8 +237,8 @@ def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, t
         except Exception:
             nombre_proceso = getattr(config, 'ORIGEN_LOG', 'proceso_desconocido')
             
-    # Reintento para actualización de estado
-    for intento in range(2):
+    # Intentar hasta 4 veces con una espera progresiva si da error 429 de Sheets API
+    for intento in range(4):
         try:
             data = ws_status.get_all_records()
             nueva_fila = [nombre_proceso, ahora, estado_visual, detalle, tiempo_ejecucion if tiempo_ejecucion else ""]
@@ -253,10 +253,12 @@ def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, t
                     
             if not encontrado:
                 ws_status.append_row(nueva_fila)
-            return # Éxito
+            return # Éxito total
         except Exception as e:
-            if "429" in str(e) and intento == 0:
-                time.sleep(2)
+            error_str = str(e)
+            if "429" in error_str:
+                espera = (intento + 1) * 3  # Esperas: 3s, 6s, 9s, 12s
+                time.sleep(espera)
                 continue
             print(f"!!! Error actualizando ESTADO_PROCESOS: {e}")
             break

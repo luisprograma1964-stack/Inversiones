@@ -100,6 +100,7 @@ def ejecutar_pipeline():
         # ==================================================
         t2 = time.time()
         logger.info("\n[PASO 2/4] Sincronización Histórica de Activos (Bridge)...")
+        time.sleep(3)  # Pausa de cortesía para estabilizar cuotas de Google Sheets API
         if not carga_historica_bridge.ejecutar_carga_bridge():
             cancelar_pipeline(ws_log, ws_status, "Paso 2 (Bridge Histórico) falló", inicio_global)
             return False
