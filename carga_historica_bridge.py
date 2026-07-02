@@ -110,13 +110,13 @@ def ejecutar_carga_bridge():
 
         # Función auxiliar de lectura resiliente ante cuotas 429
         def get_records_safe(ws, **kwargs):
-            for intento in range(3):
+            for intento in range(8):
                 try:
                     return ws.get_all_records(**kwargs)
                 except Exception as ex:
                     if "429" in str(ex):
-                        logger.warning(f"    [!] Cuota 429 excedida al leer {ws.title}. Reintentando en 3 segundos...")
-                        time.sleep(3)
+                        logger.warning(f"    [!] Cuota 429 excedida al leer {ws.title}. Reintentando en 15 segundos (Intento {intento+1}/8)...")
+                        time.sleep(15)
                         continue
                     raise ex
             raise Exception(f"Error persistente de cuota 429 en hoja {ws.title}")
@@ -240,18 +240,24 @@ def ejecutar_carga_bridge():
             # --- CASO GENERAL: Google Finance ---
             else:
                 # Resolver prefijo de mercado internacional para evitar #N/A en planillas de Argentina
+                # NOTA: Los prefijos NYSE: y NYSEARCA: devuelven #N/A en cuentas regionales de Sheets.
+                # Se usan tickers sin prefijo para NYSE/NYSEARCA (confirmado que funcionan).
+                # NASDAQ: también probado y funciona; se mantiene para precisión.
                 t_gf_final = t_gf
                 if not ":" in t_gf:
                     # Mapear tickers comunes de tu portfolio al prefijo correcto
                     ticker_upper = t_gf.upper()
-                    if ticker_upper in ["AAPL", "AMD", "AMZN", "META", "MU", "TSLA", "QQQ"]:
+                    if ticker_upper in ["AAPL", "AMD", "AMZN", "META", "MU", "TSLA", "QQQ", "ASML"]:
                         t_gf_final = f"NASDAQ:{ticker_upper}"
                     elif ticker_upper in ["C", "CVX", "DIS", "KO", "NKE", "WMT", "XOM", "VIST"]:
-                        t_gf_final = f"NYSE:{ticker_upper}"
+                        # NYSE: prefix returns #N/A — usar ticker sin prefijo
+                        t_gf_final = ticker_upper
                     elif ticker_upper == "BRKB":
-                        t_gf_final = "NYSE:BRK.B" # Formato específico de Google Finance para Berkshire B
+                        # BRK.B sin prefijo NYSE para evitar #N/A
+                        t_gf_final = "BRK.B"
                     elif ticker_upper in ["SPY", "SPYG", "ARKK", "ETHA"]:
-                        t_gf_final = f"NYSEARCA:{ticker_upper}"
+                        # NYSEARCA: prefix returns #N/A — usar ticker sin prefijo
+                        t_gf_final = ticker_upper
                 
                 formula = f'=GOOGLEFINANCE("{t_gf_final}"; "all"; "{f_ini}"; "{f_fin}")'
                 gf_jobs.append({
@@ -300,8 +306,10 @@ def ejecutar_carga_bridge():
                             if cell.upper() == 'DATE':
                                 job['state'] = 'ready'
                             elif cell.startswith('#'):
-                                # Podría ser #N/A u otro error; dejaremos en pending para intentar hasta timeout
-                                job['state'] = 'pending'
+                                # #N/A u otro error de Google Finance: marcar inmediatamente como error
+                                # para no desperdiciar el timeout completo esperando algo que no llegará
+                                job['state'] = 'error'
+                                logger.warning(f"        [!] GOOGLEFINANCE devolvió '{cell}' para job idx={idx}. Marcado como error inmediato.")
                             elif cell == '':
                                 job['state'] = 'pending'
                             else:

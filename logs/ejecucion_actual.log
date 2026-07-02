@@ -1,17 +1,16 @@
---- INICIANDO EJECUCIÓN DE: supervisor_del_sistema.py (22:13:03) ---
+--- INICIANDO EJECUCIÓN DE: supervisor_del_sistema.py (22:02:03) ---
 
-Error generando informe con gemini-1.5-pro: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
-Error generando informe con gemini-2.0-flash: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 39.440080972s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '39s'}]}}. Intentando fallback...
-Error generando informe con gemini-1.5-flash: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
 [*] Iniciando Supervisor del Sistema...
-[*] Mantenimiento: Se eliminaron 2 reportes antiguos de ESTRATEGIA_REPORTS.
+Error generando informe con gemini-1.5-pro: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
+Error generando informe con gemini-2.0-flash: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 38.144772363s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '38s'}]}}. Intentando fallback...
+Error generando informe con gemini-1.5-flash: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
 
-[OK] Informe de supervisión guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260630_221328.md
+[OK] Informe de supervisión guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260701_220230.md
 
 ============================================================
 INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA:
 
-[OK] Informe de supervision guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260630_221328.md
+[OK] Informe de supervision guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260701_220230.md
 
 ============================================================
 INFORME DE SUPERVISION Y MEJORA ESTRATEGICA (Safe Encoding):
@@ -51,55 +50,54 @@ Define la política y ponderaciones que la IA debe contrastar:
 
 ## ? ESTRATEGIA DE CARTERA
 
-**Estado Actual:**
-*   **Familiar:** Tenencia concentrada (100 AL30 GF). Valor: 20.000 ARS. Cash: 0 ARS.
-*   **Perfiles Luis (Moderado/Agresivo):** Carteras sin tenencias activas registradas.
+Basado en la valoración actual y el análisis de mercado al 01/07/2026:
 
-**Órdenes de Rebalanceo:**
-*   **Para Luis_Moderado:** El Mix_Target exige 50% Bonos, 30% Cedears, 20% Cash. Dado que no hay patrimonio, **inicia posición** aportando capital proporcional:
-    *   Compra el equivalente al 50% en **AL30** (Soberano).
-    *   Compra el equivalente al 30% en **ASML** (Alta convicción técnica, Score 8/10).
-    *   Mantener 20% en ARS (Cash).
-*   **Para Luis_Agresivo:** Mix_Target 60% Cedears, 20% Acciones Locales, 10% Bonos, 10% Cash.
-    *   Compra **ASML** (Score 9/10, alta confluencia técnica).
-    *   Compra **AMZN** (Oportunidad de acumulación).
-    *   *Nota:* Evitar compra de **VIST** en pesos debido al sobreprecio cambiario detectado (+3.14% sobre MEP).
+*   **LUIS (Agresivo/Alto Patrimonio):**
+    *   **Acción:** **Mantener** posiciones actuales (META, AAPL, TSLA). No aumentar exposición en pesos debido a la distorsión del CCL (sobreprecio detectado en el 90% de los activos locales).
+    *   **Orden:** Si el objetivo es aumentar exposición en **AMZN** (Score 7/10 en IA), se recomienda ejecutar exclusivamente vía **USD (MEP)** para evitar el sobreprecio cambiario del 2.5% al 3% implícito en la cotización ARS.
+*   **LUIS_MODERADO:**
+    *   **Acción:** **Stop Buy**. El perfil requiere prudencia técnica. La mayoría de los activos (KO, AMZN) se encuentran en "ALERTA DE MOMENTO SIN DRIVER".
+*   **VICKY & ANTO:**
+    *   **Acción:** **Hold preventivo**. La alta rentabilidad negativa de las tenencias actuales (superior al -90%) refleja una desincronización severa con los precios actuales. Se requiere una revisión de costos base y re-ejecución del Bridge.
+
+**Radar de Oportunidades:**
+*   **ASML:** Score 9/10 (Agresivo). Es el candidato ideal para iniciar posición si se busca alta convicción técnica apoyada por noticias.
 
 ## ? MEJORA DE DATOS
 
-*   **Sinónimos:** Luis, tienes 50 sugerencias de sinónimos pendientes. Por favor revisa la hoja `SUGERENCIAS_SINONIMOS` y cambia su estado a APROBADO o RECHAZADO para refinar el triage.
-*   **Radar de Oportunidades:** Iniciar posición en **ASML** (Score 8/10 en Moderado, 9/10 en Agresivo).
-*   **Activación de Activos:** Los activos **AMD, AMZN, C, META, NKE, TSLA, WMT, XOM** tienen noticias recientes pero estaban en estado INACTIVO o sin filtro optimizado. **Acción:** Proceder a su activación para que el motor técnico los incluya en el próximo ciclo.
+*   **Alertas de Sinónimos:** Luis, tienes **51 sugerencias de sinónimos pendientes**. Por favor revisa la hoja `SUGERENCIAS_SINONIMOS` y cambia su estado a APROBADO o RECHAZADO para limpiar el ruido del sistema.
+*   **Activación Requerida:** Los activos **BTC** y **ETHA** tienen noticias relevantes en el flujo de trabajo pero están marcados como **INACTIVO** en el maestro. Actívalos para que el pipeline técnico comience a procesar indicadores.
+*   **Actualización Comafi:** No se detectaron nuevos CEDEARs en esta rueda.
 
 ## ? AUDITORÍA DE NOTICIAS VS DECISIÓN
 
-*   **Discrepancias:** Se detectó un ruido excesivo en el descarte de noticias (ej: noticias deportivas en el flujo de YPF y macro).
-*   **Ajuste sugerido:** El `Prompt_Triage_Noticias` debe endurecer el filtro de "Relevancia Macro" para evitar procesar titulares de diarios generalistas como TN o artículos deportivos.
+*   **Calidad del Triage:** El descarte de noticias ha sido eficiente, eliminando contenido irrelevante (deportes, parlamentario, institucional). Sin embargo, se observa un exceso de descarte de noticias sectoriales en *Tech* que podrían haber sido indicadores líderes.
+*   **Sugerencia de Búsqueda:** El filtro para **XOM** es correcto, pero para **META** se recomienda cambiar el filtro por: `"Meta Platforms AI technology, Meta earnings, Mark Zuckerberg strategy"` para capturar los drivers fundamentales que hoy faltan.
 
 ## ? CONTRADICCIONES TÉCNICAS
 
-*   **META:** La IA presenta una contradicción clara: score bajo (4-5) en un entorno de fundamentos positivos. El precio bajo la SMA200 pesa más que los fundamentales. Se recomienda mantener "Esperar" hasta superar SMA200.
-*   **SPY:** La noticia del "desplome" (17/06) genera un sesgo bajista injustificado en el veredicto de la IA frente a la estructura de largo plazo alcista.
+*   **META:** La IA indica "CONTRADICCIÓN TÉCNICA" (Fundamentals positivos vs Estructura bajista). **Alerta:** No ignorar la señal de la IA sobre el soporte de la SMA50.
+*   **SPY:** Discrepancia entre la estructura alcista de largo plazo y el desplome reciente del 17/06. La IA sugiere correctamente "ESPERAR".
 
-## ? ERRORES DE ESCALA (15x)
+## ? ERRORES DE ESCALA
 
-*   Sin activos detectados con error 15x en esta corrida. El sistema se mantiene estable en el escalado de datos.
+*   No se detectaron activos con RSI = -1 o errores de escala 15x en esta carga.
 
 ## ? SINCRONIZACIÓN DE DATOS
 
-*   **Aviso:** Los datos técnicos de **WMT** corresponden al `2026-06-18`, mientras que el resto del sistema está en el `2026-06-30`. **Acción:** Re-ejecutar el módulo de Bridge para WMT inmediatamente.
+*   **Aviso de Discrepancia:** Los datos de **WMT** tienen fecha de actualización del 18/06, mientras que otros activos están actualizados al 30/06. **Luis, el análisis de WMT está desincronizado.** Re-ejecuta el Bridge para obtener datos de cotización actualizados.
 
 ## ?? ALERTAS Y CALIDAD
 
-*   **Brecha Cambiaria (CCL):** **VIST** cotiza con un sobreprecio cambiario del 3.14%. **Alerta:** Evitar compras de este CEDEAR en pesos hasta que el CCL implícito converja al promedio de mercado (1519 ARS).
-*   **Silencio de mercado:** **TSLA** y **C** suben/bajan sin noticias fundamentales claras que lo respalden en nuestro radar. **Acción:** Realizar búsqueda manual de contexto en Twitter/Google, ya que el motor de noticias no detecta el driver.
+*   **Anomalía Cambiaria:** El CEDEAR de **AMD** cotiza con un CCL implícito de **156,565**, comparado con la media de mercado (aprox. 15,500). **Existe un error de carga o una distorsión crítica en la cotización.** Se sugiere verificar el feed de precios antes de cualquier operación.
+*   **Alerta de Silencio:** **VIST** muestra fuertes noticias sectoriales sobre Vaca Muerta, pero nuestro sistema muestra el activo como "NEUTRAL". Buscar manualmente en fuentes locales cualquier anuncio de Capex que pueda romper el rango técnico actual.
 
 ## ?? OPTIMIZACIÓN DE INSTRUCCIONES IA
 
-*   **Instrucciones_Fijas:** Modificar la prioridad del motor para que, ante una "CONTRADICCIÓN TÉCNICA", la IA priorice siempre la tendencia de largo plazo (SMA200) sobre noticias de corto plazo (1 día) para evitar que el usuario opere en contra de la tendencia estructural.
-*   **Prompt_Triage_Noticias:** Agregar la regla: "Descartar automáticamente cualquier titular que contenga nombres de futbolistas, clubes, mascotas o términos de 'Wiki' o 'CoinMarketCap' sobre tokens".
+*   **Prompt_Triage_Noticias:** Se sugiere añadir una instrucción fija: "Si la noticia trata sobre cambios de directivos en empresas tecnológicas de gran capitalización (Alphabet, Meta, Apple), clasificar como ALTA RELEVANCIA, independientemente de si es técnica o fundamental".
+*   **Instrucciones_Fijas:** Modificar la lógica para que, cuando el CCL implícito de un activo se desvíe > 2% de la media diaria, el sistema automáticamente sugiera "Compra preferencial en USD/MEP" en lugar de "Compra en Pesos".
 ============================================================
-[OK] Supervisor finalizado exitosamente en 0.38 min.
+[OK] Supervisor finalizado exitosamente en 0.4 min.
 
 
-[OK] EJECUCIÓN FINALIZADA EXITOSAMENTE (22:13:29)
+[OK] EJECUCIÓN FINALIZADA EXITOSAMENTE (22:02:31)

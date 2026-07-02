@@ -377,17 +377,16 @@ def limpiar_historico_valores(sh, dias_a_mantener=None):
         df_limpio = pd.DataFrame()
         for ticker in df_historico['TICKER_ID'].unique():
             t_upper = str(ticker).strip().upper()
+            subyacente = t_upper.replace("BCBA:", "")
             
-            # Si el ticker no está en el maestro o está INACTIVO, no lo incluimos en el nuevo historial
-            # (Esto limpia registros huérfanos o de activos que ya no sigues)
-            if t_upper in reglas and reglas[t_upper]['activo']:
+            # Si el ticker (o su subyacente local de Byma) no está en el maestro o está INACTIVO, se descarta
+            if subyacente in reglas and reglas[subyacente]['activo']:
                 # PISO DE SEGURIDAD: Aumentamos a +50 para evitar quedarnos cortos por feriados
-                limite = max(reglas[t_upper]['dias'], config.MIN_DIAS_HISTORIAL + 50)
+                limite = max(reglas[subyacente]['dias'], config.MIN_DIAS_HISTORIAL + 50)
                 df_t = df_historico[df_historico['TICKER_ID'] == ticker].sort_values('FECHA', ascending=False)
                 df_limpio = pd.concat([df_limpio, df_t.head(limite)], ignore_index=True)
             else:
-                # Opcional: Podrías conservar 1 solo registro por historial inactivo o 0 para máximo ahorro.
-                # Aquí decidimos 0 (borrado total de inactivos/no listados).
+                # Se limpia el historial si el activo no se sigue más
                 continue
         
         # Ordenar el DataFrame final para una mejor visualización en Sheets
