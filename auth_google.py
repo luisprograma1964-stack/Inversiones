@@ -12,22 +12,22 @@ logger = logging_config.get_logger(__name__)
 def conectar():
     """
     Establece la conexión con la API de Google Sheets utilizando credenciales de cuenta de servicio.
-    
-    Lee el archivo JSON de credenciales y el nombre del documento definidos en el
-    archivo de configuración (config.py).
-    
-    Retorna:
-        gspread.Spreadsheet: Objeto que representa el documento completo (Spreadsheet), 
-                             del cual luego se pueden extraer las distintas hojas de cálculo.
-        None: Si ocurre un error durante el proceso de autenticación o conexión.
+    Con reintentos resilientes ante cuotas 429 de Google Sheets.
     """
-    try:
-        gc = gspread.service_account(filename=config.JSON_FILE)
-        sh = gc.open(config.SHEET_NAME)
-        return sh
-    except Exception as e:
-        logger.exception(f"Error crítico de conexión: {e}")
-        return None
+    import time
+    for intento in range(8):
+        try:
+            gc = gspread.service_account(filename=config.JSON_FILE)
+            sh = gc.open(config.SHEET_NAME)
+            return sh
+        except Exception as e:
+            if "429" in str(e) and intento < 7:
+                delay = 15
+                logger.warning(f"    [!] Cuota 429 al abrir Spreadsheet '{config.SHEET_NAME}'. Reintentando en {delay}s (Intento {intento+1}/8)...")
+                time.sleep(delay)
+                continue
+            logger.exception(f"Error crítico de conexión: {e}")
+            return None
 
 
 REQUIRED_SHEETS = [
@@ -66,3 +66,47 @@ def validar_hojas_requeridas(sh=None, required_sheets=None):
     existing = {worksheet.title for worksheet in sh.worksheets()}
     missing = [name for name in required_sheets if name not in existing]
     return missing
+
+
+# --- MONKEY PATCH PARA RESILIENCIA ANTE ERRORES 429 EN GSPREAD ---
+def _hacer_resiliente_gspread():
+    import time
+    
+    def robust_decorator(method, max_retries=8, initial_delay=15):
+        def wrapper(*args, **kwargs):
+            for intento in range(max_retries):
+                try:
+                    return method(*args, **kwargs)
+                except Exception as e:
+                    error_str = str(e)
+                    if "429" in error_str and intento < max_retries - 1:
+                        delay = initial_delay + 3 * intento
+                        print(f"    [!] gspread 429 detectado al ejecutar '{method.__name__}'. Reintentando en {delay}s (Intento {intento+1}/{max_retries})...")
+                        time.sleep(delay)
+                        continue
+                    raise e
+        # Mantener metadatos del método original
+        wrapper.__name__ = method.__name__
+        wrapper.__doc__ = method.__doc__
+        return wrapper
+
+    # Decorar Spreadsheet
+    gspread.Spreadsheet.worksheet = robust_decorator(gspread.Spreadsheet.worksheet)
+    gspread.Spreadsheet.worksheets = robust_decorator(gspread.Spreadsheet.worksheets)
+
+    # Decorar Worksheet (lecturas y escrituras comunes)
+    gspread.Worksheet.get_all_values = robust_decorator(gspread.Worksheet.get_all_values)
+    gspread.Worksheet.get_all_records = robust_decorator(gspread.Worksheet.get_all_records)
+    gspread.Worksheet.update = robust_decorator(gspread.Worksheet.update)
+    gspread.Worksheet.update_cell = robust_decorator(gspread.Worksheet.update_cell)
+    gspread.Worksheet.update_cells = robust_decorator(gspread.Worksheet.update_cells)
+    gspread.Worksheet.append_row = robust_decorator(gspread.Worksheet.append_row)
+    gspread.Worksheet.append_rows = robust_decorator(gspread.Worksheet.append_rows)
+    gspread.Worksheet.clear = robust_decorator(gspread.Worksheet.clear)
+    gspread.Worksheet.get = robust_decorator(gspread.Worksheet.get)
+
+# Ejecutar el parche al importar el módulo
+try:
+    _hacer_resiliente_gspread()
+except Exception as patch_err:
+    print(f"    [!] Error al aplicar monkey patch de resiliencia gspread: {patch_err}")

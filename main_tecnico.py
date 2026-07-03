@@ -184,8 +184,8 @@ def ejecutar_analisis_completo():
                     return False # Aborta para que el ensamblador detecte el error
             
             # Si todos son válidos, grabamos el bloque completo
-            # Forzamos USER_ENTERED para que Google Sheets respete el tipo de dato numérico
-            ws_analisis.append_rows(resultados, value_input_option='USER_ENTERED')
+            # Usamos RAW para evitar que Google Sheets interprete el punto decimal de los floats como separador de miles en locales hispanos
+            ws_analisis.append_rows(resultados, value_input_option='RAW')
             
             msg_exito = f"Análisis técnico finalizado con éxito: {len(resultados)} activos."
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"

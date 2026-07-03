@@ -192,10 +192,13 @@ def procesar_indicadores(df):
             control = "COMPRADORES" if dmi_raw.iloc[-1, 1] > dmi_raw.iloc[-1, 2] else "VENDEDORES"
             txt_dmi = f"TENDENCIA {'FUERTE' if adx_val > 20 else 'DEBIL'} de {control}"
 
-        # Helper to format numbers as strings with comma decimal for Sheets
+        # Helper to format numbers as floats for Sheets
         def format_num_for_sheets(v):
             if pd.notnull(v) and not np.isinf(v):
-                return f"{float(v):.2f}".replace('.', ',')
+                try:
+                    return round(float(v), 2)
+                except:
+                    return None
             return None
 
         # Prepend "'" to FIBO_RET to force it as text in Sheets
@@ -204,7 +207,7 @@ def procesar_indicadores(df):
         txt_trend = "ALCISTA L.P." if last['PRECIO_CIERRE'] > last['SMA_200'] else "BAJISTA L.P."
 
         # Cálculo del CCL Implícito
-        ccl_val = "N/A"
+        ccl_val = None
         if ticker in mapa_ratios:
             # Buscar el registro de Byma (BCBA:TICKER) para el mismo día
             fecha_busqueda = last['FECHA']
@@ -219,7 +222,7 @@ def procesar_indicadores(df):
                     
                     if precio_usd > 0:
                         ccl_calc = (precio_ars * factor) / precio_usd
-                        ccl_val = f"{ccl_calc:.2f}".replace('.', ',')
+                        ccl_val = round(ccl_calc, 2)
                 except Exception as ex:
                     logger.warning(f"Error al calcular CCL para {ticker} el {fecha_busqueda.strftime('%Y-%m-%d')}: {ex}")
 

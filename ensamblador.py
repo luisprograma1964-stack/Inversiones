@@ -58,6 +58,52 @@ def ejecutar_pipeline():
     procesamiento.registrar_log(ws_log, "INFO", "Iniciando Pipeline Global de Inversiones", "ENSAMBLADOR")
     procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Pipeline en ejecución...")
 
+    # Resguardar y comparar prompts en archivos de texto locales para control de cambios por Git
+    try:
+        logger.info("[*] Verificando resguardo local de prompts (Control de cambios)...")
+        ws_ia = sh.worksheet(config.WS_CONFIG_IA_GENERAL)
+        data_ia = ws_ia.get_all_records()
+        if data_ia:
+            row_ia = data_ia[0]
+            instrucciones_sheet = str(row_ia.get('Instrucciones_Fijas', '')).strip()
+            triage_sheet = str(row_ia.get('Prompt_Triage_Noticias', '')).strip()
+            
+            def es_valido(txt):
+                return txt and len(txt) > 100 and "#ERROR" not in txt and "#N/A" not in txt
+                
+            import os
+            # Archivo 1: instrucciones_fijas.txt
+            if es_valido(instrucciones_sheet):
+                path_inst = os.path.join("C:\\Para mi\\Inversiones", "instrucciones_fijas.txt")
+                distinto = True
+                if os.path.exists(path_inst):
+                    with open(path_inst, "r", encoding="utf-8") as f:
+                        contenido_local = f.read().strip()
+                    if contenido_local == instrucciones_sheet:
+                        distinto = False
+                
+                if distinto:
+                    with open(path_inst, "w", encoding="utf-8") as f:
+                        f.write(instrucciones_sheet)
+                    logger.info(f"[OK] Prompt de comportamiento actualizado localmente en: {path_inst}")
+                    
+            # Archivo 2: prompt_triage.txt
+            if es_valido(triage_sheet):
+                path_triage = os.path.join("C:\\Para mi\\Inversiones", "prompt_triage.txt")
+                distinto = True
+                if os.path.exists(path_triage):
+                    with open(path_triage, "r", encoding="utf-8") as f:
+                        contenido_local = f.read().strip()
+                    if contenido_local == triage_sheet:
+                        distinto = False
+                
+                if distinto:
+                    with open(path_triage, "w", encoding="utf-8") as f:
+                        f.write(triage_sheet)
+                    logger.info(f"[OK] Prompt de triage de noticias actualizado localmente en: {path_triage}")
+    except Exception as e_p:
+        logger.error(f"[!] Error en resguardo local de prompts: {e_p}")
+
     try:
         # ==================================================
         # PASO 0: Health Check de Modelos IA

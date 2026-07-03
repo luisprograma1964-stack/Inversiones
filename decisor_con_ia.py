@@ -101,6 +101,16 @@ def ejecutar_decisor():
         df_tecnico['ESTADO'] = df_tecnico['ESTADO'].astype(str).str.strip().str.replace('.', '', regex=False).str.upper()
         pendientes = df_tecnico[df_tecnico['ESTADO'] == 'PENDIENTE'].copy()
 
+        # Cruce con MAESTRO_ACTIVOS para excluir inactivos de la cola de decisión
+        try:
+            df_maestro = pd.DataFrame(sh.worksheet(config.WS_MAESTRO_ACTIVOS).get_all_records())
+            df_maestro.columns = [c.strip().upper() for c in df_maestro.columns]
+            tickers_activos = set(df_maestro[df_maestro['ESTADO'].astype(str).str.strip().str.upper() == 'ACTIVO']['TICKER_ID'].astype(str).str.strip().str.upper().tolist())
+            pendientes = pendientes[pendientes['TICKER_ID'].astype(str).str.strip().str.upper().isin(tickers_activos)].copy()
+            logger.info(f"[*] Total activos pendientes y activos en el maestro a procesar: {len(pendientes)}")
+        except Exception as e_m:
+            logger.warning(f"No se pudo cruzar con MAESTRO_ACTIVOS para filtrar inactivos: {e_m}")
+
         # --- CÁLCULO DE CCL PROMEDIO DE MERCADO ---
         ccl_values = []
         if 'CCL_IMPLICITO' in df_tecnico.columns:
@@ -133,7 +143,7 @@ def ejecutar_decisor():
         # --- CONTEXTO FINANCIERO INTEGRAL ---
         def get_df_raw(ws_name):
             try: 
-                df = pd.DataFrame(sh.worksheet(ws_name).get_all_records())
+                df = pd.DataFrame(sh.worksheet(ws_name).get_all_records(value_render_option='UNFORMATTED_VALUE'))
                 df.columns = [c.strip().upper() for c in df.columns]
                 return df
             except: return pd.DataFrame()
@@ -320,24 +330,36 @@ def ejecutar_decisor():
                                         score = "6"
                                         detalle = f"{detalle} [Ajuste Guardrail: Score limitado a 6/10 por sobrecompra (RSI: {rsi:.1f})]"
 
-                            # Regla de Sobreprecio Cambiario CCL (Desvío > +2.5% sobre la media):
+                            # Regla de Sobreprecio Cambiario CCL (Desvío > +2.5% sobre la media o sobre el Dólar MEP de referencia):
                             try:
                                 ccl_activo = float(str(row.get('CCL_IMPLICITO', 0.0)).replace(',', '.'))
                             except Exception:
                                 ccl_activo = 0.0
 
-                            if ccl_promedio > 0 and ccl_activo > 500:
-                                desvio_ccl = (ccl_activo - ccl_promedio) / ccl_promedio
-                                if desvio_ccl > 0.025: # Desvío mayor al +2.5%
-                                    desvio_pct = desvio_ccl * 100
-                                    # Si es recomendación de compra o bullish
-                                    if "BULL" in sentimiento or "COMPR" in sentimiento:
-                                        if score_num > 6:
-                                            score = "6"
-                                        detalle = f"{detalle} [Ajuste Guardrail: Compra penalizada/advertida por sobreprecio CCL (+{desvio_pct:.1f}% sobre la media). CCL Activo: {ccl_activo:.1f} vs Promedio: {ccl_promedio:.1f}]"
-                                    else:
-                                        # Si es neutral o bajista, igual inyectamos la nota de alerta en el detalle
-                                        detalle = f"{detalle} [Alerta CCL: El CEDEAR cotiza con un sobreprecio del +{desvio_pct:.1f}% respecto a la media de mercado (CCL: {ccl_activo:.1f} vs Promedio: {ccl_promedio:.1f})]"
+                            if ccl_activo > 500:
+                                # 1. Desvío contra Dólar MEP de referencia (si existe)
+                                if dolar_mep > 1.0:
+                                    desvio_mep = (ccl_activo - dolar_mep) / dolar_mep
+                                    if desvio_mep > 0.025:
+                                        desvio_mep_pct = desvio_mep * 100
+                                        if "BULL" in sentimiento or "COMPR" in sentimiento:
+                                            if score_num > 5:
+                                                score = "5"
+                                            detalle = f"{detalle} [Alerta MEP: Compra penalizada por sobreprecio cambiario de +{desvio_mep_pct:.1f}% respecto al Dólar MEP (${dolar_mep:.1f}). CCL Implícito: ${ccl_activo:.1f}]"
+                                        else:
+                                            detalle = f"{detalle} [Alerta MEP: Brecha cambiaria alta de +{desvio_mep_pct:.1f}% respecto al Dólar MEP (CCL: {ccl_activo:.1f} vs MEP: {dolar_mep:.1f})]"
+
+                                # 2. Desvío clásico contra la media de Cedears (para confluencia de mercado)
+                                if ccl_promedio > 0:
+                                    desvio_ccl = (ccl_activo - ccl_promedio) / ccl_promedio
+                                    if desvio_ccl > 0.025:
+                                        desvio_pct = desvio_ccl * 100
+                                        if "BULL" in sentimiento or "COMPR" in sentimiento:
+                                            if score_num > 6:
+                                                score = "6"
+                                            detalle = f"{detalle} [Ajuste Guardrail: Compra advertida por sobreprecio CCL (+{desvio_pct:.1f}% sobre la media de Cedears). CCL Activo: {ccl_activo:.1f} vs Promedio: {ccl_promedio:.1f}]"
+                                        else:
+                                            detalle = f"{detalle} [Alerta CCL: El CEDEAR cotiza con un sobreprecio del +{desvio_pct:.1f}% respecto a la media de Cedears (CCL: {ccl_activo:.1f} vs Promedio: {ccl_promedio:.1f})]"
 
                         # Unificamos el formato: siempre mostramos la confluencia de noticias
                         prefix = "⚠️ CONTRADICCIÓN TÉCNICA: " if "CONTRADICCION" in sentimiento else ""

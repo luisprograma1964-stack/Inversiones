@@ -48,18 +48,30 @@ def inicializar_motor_noticias():
 
 
 def acceder_hoja(sh, nombre):
-    """Accede a una hoja de Google Sheets con validación robusta."""
-    try:
-        return sh.worksheet(nombre)
-    except Exception as e:
-        hojas_detectadas = [w.title for w in sh.worksheets()]
-        msg = f"ERROR: No se encontró la pestaña '{nombre}'. Hojas disponibles: {hojas_detectadas}"
-        logger.error(msg)
-        raise RuntimeError(msg)
+    """Accede a una hoja de Google Sheets con validación robusta y reintentos para cuota 429."""
+    for intento in range(8):
+        try:
+            return sh.worksheet(nombre)
+        except Exception as e:
+            if "429" in str(e) and intento < 7:
+                delay = 3 * (intento + 1)
+                logger.warning(f"    [!] Cuota 429 al acceder a la hoja '{nombre}'. Reintentando en {delay}s...")
+                time.sleep(delay)
+                continue
+            
+            # Si es otro error o agotamos intentos
+            try:
+                hojas_detectadas = [w.title for w in sh.worksheets()]
+            except Exception:
+                hojas_detectadas = ["(No se pudo listar hojas por cuota)"]
+            msg = f"ERROR: No se encontró la pestaña '{nombre}'. Hojas disponibles: {hojas_detectadas}"
+            logger.error(msg)
+            raise RuntimeError(msg)
+    raise RuntimeError(f"ERROR: No se pudo acceder a la pestaña '{nombre}' debido a cuota 429 persistente.")
 
 
 def validar_hojas_requeridas(sh):
-    """Valida que todas las hojas requeridas existan antes de iniciar el proceso."""
+    """Valida que todas las hojas requeridas existan antes de iniciar el proceso, con reintentos para 429."""
     hojas_requeridas = [
         config.WS_LOG_SISTEMA,
         config.WS_ESTADO_PROCESOS,
@@ -72,9 +84,23 @@ def validar_hojas_requeridas(sh):
         config.WS_CONFIG_TELEGRAM_CHANNELS
     ]
     
-    hojas_disponibles = [w.title for w in sh.worksheets()]
+    hojas_disponibles = None
+    for intento in range(8):
+        try:
+            hojas_disponibles = [w.title for w in sh.worksheets()]
+            break
+        except Exception as e:
+            if "429" in str(e) and intento < 7:
+                delay = 3 * (intento + 1)
+                logger.warning(f"    [!] Cuota 429 al listar hojas en validación. Reintentando en {delay}s...")
+                time.sleep(delay)
+                continue
+            raise e
+            
+    if hojas_disponibles is None:
+        return False, "ERROR: No se pudo obtener la lista de hojas debido a límites de la API."
+        
     faltantes = [h for h in hojas_requeridas if h not in hojas_disponibles]
-    
     if faltantes:
         msg = f"ERROR CRÍTICO: Faltan las siguientes pestañas en Google Sheets: {faltantes}"
         logger.critical(msg)
@@ -119,6 +145,15 @@ def ejecutar_captura_noticias():
     procesamiento.limpiar_noticias_descartadas(sh)
     procesamiento.limpiar_sugerencias_sinonimos(sh)
     procesamiento.limpiar_noticias_sistema(sh)
+
+    # Pausa defensiva + reconexión fresca después de las limpiezas preventivas.
+    # Las funciones de limpieza pueden saturar la cuota 429 internamente; reconectar
+    # garantiza que el objeto 'sh' esté limpio antes de cargar las hojas principales.
+    time.sleep(5)
+    try:
+        sh, client = inicializar_motor_noticias()
+    except Exception as e:
+        logger.warning(f"    [!] No se pudo reconectar después de limpiezas preventivas: {e}. Usando conexión original.")
 
     # Carga de hojas principales (ahora sabemos que todas existen)
     try:

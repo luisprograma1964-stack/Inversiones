@@ -95,7 +95,7 @@ def ejecutar_supervisor():
         # 1. RECOLECCIÓN DE DATOS PARA EL CONTEXTO GLOBAL
         def get_df(ws_name):
             try: 
-                df = pd.DataFrame(sh.worksheet(ws_name).get_all_records())
+                df = pd.DataFrame(sh.worksheet(ws_name).get_all_records(value_render_option='UNFORMATTED_VALUE'))
                 # Estandarizamos cabeceras a mayúsculas para evitar errores de casing
                 df.columns = [c.strip().upper() for c in df.columns]
                 return df
@@ -209,10 +209,10 @@ def ejecutar_supervisor():
         4. ACTIVACIÓN DE ACTIVOS INACTIVOS: 
            - Revisa 'tickers_con_noticias_recientes' y cruza con 'maestro_filtros'. Si un activo está en estado 'INACTIVO' en el maestro pero tiene flujo de noticias recientes, genera una alerta para el usuario:
              Acción: 'Luis, el activo X tiene noticias relevantes pero está INACTIVO en tu maestro. Considera activarlo para que el pipeline técnico calcule sus indicadores y la IA tome decisiones'.
-        5. COMPARATIVA E INTEGRIDAD (AUDITORÍA): 
-           - Detecta si el Paso 4 ignoró noticias.
-           - **AVISO DE DISCREPANCIA**: Compara las fechas en 'datos_tecnicos_vigentes' con las fechas en 'noticias_aprobadas_recientes'. Si el técnico es antiguo pero hay noticias nuevas, acción: 'Luis, el análisis de X está desincronizado: precio de hace 24hs vs noticias de hace 1h. Re-ejecuta el Bridge'.
-        6. AUDITORÍA DE BRECHA CAMBIARIA (CCL):
+         5. COMPARATIVA E INTEGRIDAD (AUDITORÍA): 
+            - Detecta si el Paso 4 ignoró noticias.
+            - **AVISO DE DISCREPANCIA**: Compara las fechas en 'datos_tecnicos_vigentes' con las fechas en 'noticias_aprobadas_recientes'. Si el técnico tiene un rezago mayor a 48 horas, genera la alerta correspondiente. Nota: Una diferencia de hasta 24 horas (ej. precios del día anterior vs noticias de hoy) es perfectamente normal y saludable si el mercado aún está operando y la rueda actual no ha cerrado; NO emitas alertas de discrepancia en este caso.
+         6. AUDITORÍA DE BRECHA CAMBIARIA (CCL):
            - Analiza el campo 'CCL_IMPLICITO' en 'datos_tecnicos_vigentes'. 
            - Calcula la brecha (tipo de cambio implícito) promedio del mercado. Si algún activo se desvía más de un 2.5% del promedio (presentando un CCL significativamente alto/caro o bajo/barato relativo), genera una alerta:
              Acción: 'Luis, el CEDEAR de X cotiza localmente con un sobreprecio cambiario de Y% respecto a la media de mercado. Se sugiere evitar compras locales temporales'.
@@ -224,8 +224,21 @@ def ejecutar_supervisor():
            - Acción: 'Luis, el activo X fue bloqueado por seguridad (Escala 15x). Verifica si hay un error de carga o un split no procesado'.
         9. ALERTAS DE SILENCIO: Activos que suben/bajan fuerte pero nuestro radar de noticias no sabe por qué. Acción: 'Luis, busca manualmente en Twitter o Google qué pasó con X'.
         10. OPTIMIZACIÓN DE PROMPTS: 
-            - Si el fallo es de criterio financiero: Sugiere cambio en 'Instrucciones_Fijas'.
-            - Si el fallo es de descarte de noticias: Sugiere cambio en 'Prompt_Triage_Noticias'.
+            - Si el fallo es de criterio financiero: Sugiere un cambio para 'Instrucciones_Fijas'. Debes especificar de forma obligatoria la sección exacta donde se debe acoplar el cambio (por ejemplo, '[SECCIÓN 3: LÍMITES TÉCNICOS Y GUARDRAILS DE SCORE]').
+            - Si el fallo es de descarte de noticias: Sugiere un cambio para 'Prompt_Triage_Noticias'. Debes especificar de forma obligatoria la sección exacta donde se debe acoplar el cambio (por ejemplo, '[SECCIÓN 2: CRITERIOS DE APROBACIÓN Y FILTRO GENERAL]').
+            
+            Las secciones lógicas estructuradas en el sistema para 'Instrucciones_Fijas' son:
+            - [SECCIÓN 1: ROL, MISIÓN Y HORIZONTE]
+            - [SECCIÓN 2: CONFLUENCIA TÉCNICA Y DE CONTEXTO]
+            - [SECCIÓN 3: LÍMITES TÉCNICOS Y GUARDRAILS DE SCORE]
+            - [SECCIÓN 4: REGLAS DE OPERATORIA LOCAL Y BRECHA CAMBIARIA]
+            - [SECCIÓN 5: FORMATO DE SALIDA OBLIGATORIO]
+
+            Las secciones lógicas estructuradas en el sistema para 'Prompt_Triage_Noticias' son:
+            - [SECCIÓN 1: MISIÓN Y FORMATO JSON]
+            - [SECCIÓN 2: CRITERIOS DE APROBACIÓN Y FILTRO GENERAL]
+            - [SECCIÓN 3: TRATAMIENTO DE EMISORES Y CAMBIOS CORPORATIVOS]
+            - [SECCIÓN 4: REGLAS ADICIONALES]
  
         ESTRUCTURA DEL INFORME:
         - 💰 ESTRATEGIA DE CARTERA (Rebalanceo de Cartera, órdenes de compra/venta y cotizaciones)
@@ -235,7 +248,7 @@ def ejecutar_supervisor():
         - 📏 ERRORES DE ESCALA (Activos bloqueados por seguridad 15x)
         - 🕒 SINCRONIZACIÓN DE DATOS (Avisos de discrepancia de fechas)
         - ⚠️ ALERTAS Y CALIDAD (Anomalías detectadas y ajustes de IA)
-        - ⚙️ OPTIMIZACIÓN DE INSTRUCCIONES IA (Sugerencias para 'Instrucciones_Fijas')
+        - ⚙️ OPTIMIZACIÓN DE INSTRUCCIONES IA (Sugerencias estructuradas detallando el prompt, la sección sugerida exacta y la regla a insertar)
 
         REGLA DE FORMATO CRÍTICA: Comienza directamente con el encabezado de nivel 2 '## 💰 ESTRATEGIA DE CARTERA'. No incluyas ningún título de nivel 1 (#) ni preámbulos introductorios, ya que tu informe será concatenado a un encabezado estructurado por el sistema.
         """

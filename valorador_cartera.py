@@ -61,6 +61,13 @@ def ejecutar_valoracion():
             except Exception:
                 return 0.0
 
+        def fmt_sheets(val):
+            if pd.isna(val) or str(val).strip() == "": return ""
+            try:
+                return str(val).replace('.', ',')
+            except:
+                return str(val)
+
         if not df_trans.empty:
             df_trans['CANTIDAD'] = df_trans['CANTIDAD'].apply(clean_num)
             df_trans['PRECIO_UNITARIO'] = df_trans['PRECIO_UNITARIO'].apply(clean_num)
@@ -187,8 +194,8 @@ def ejecutar_valoracion():
                         rent_porc = (rent_nom / (cant_neta * costo_promedio)) * 100 if costo_promedio > 0 else 0.0
                         
                         filas_valoracion.append([
-                            prop, t, cant_neta, round(costo_promedio, 2), round(valor_actual, 2),
-                            "", round(rent_nom, 2), f"{round(rent_porc, 2)}%", mon, ahora_str
+                            prop, t, fmt_sheets(cant_neta), fmt_sheets(round(costo_promedio, 2)), fmt_sheets(round(valor_actual, 2)),
+                            "", fmt_sheets(round(rent_nom, 2)), f"{round(rent_porc, 2)}%".replace('.', ','), mon, ahora_str
                         ])
                         
                     # Añadir la fila -CASH- (efectivo actual)
@@ -196,8 +203,8 @@ def ejecutar_valoracion():
                     aportes_n = aportes_netos.get((prop, mon), 0.0)
                     
                     filas_valoracion.append([
-                        prop, "-CASH-", 1, 1, round(efectivo_disp, 2),
-                        round(aportes_n, 2), 0.0, "0.0%", mon, ahora_str
+                        prop, "-CASH-", "1", "1", fmt_sheets(round(efectivo_disp, 2)),
+                        fmt_sheets(round(aportes_n, 2)), "0", "0,0%", mon, ahora_str
                     ])
                     
                     # Añadir la fila -TOTAL- (Portafolio Consolidado)
@@ -209,8 +216,8 @@ def ejecutar_valoracion():
                     rent_total_porc = (rent_total_nom / aportes_ref) * 100 if aportes_ref != 0.0 else 0.0
                     
                     filas_valoracion.append([
-                        prop, "-TOTAL-", "", "", round(valor_total_portafolio, 2),
-                        round(aportes_ref, 2), round(rent_total_nom, 2), f"{round(rent_total_porc, 2)}%", mon, ahora_str
+                        prop, "-TOTAL-", "", "", fmt_sheets(round(valor_total_portafolio, 2)),
+                        fmt_sheets(round(aportes_ref, 2)), fmt_sheets(round(rent_total_nom, 2)), f"{round(rent_total_porc, 2)}%".replace('.', ','), mon, ahora_str
                     ])
 
         # 3. Guardar en la hoja VALORACION_PORTAFOLIO
@@ -218,7 +225,7 @@ def ejecutar_valoracion():
             ws_val = sh.worksheet("VALORACION_PORTAFOLIO")
             ws_val.clear()
             headers_val = ['PROPIETARIO', 'TICKER', 'CANTIDAD', 'COSTO_PROMEDIO', 'VALOR_ACTUAL', 'APORTES_NETOS', 'RENTABILIDAD_NOMINAL', 'RENTABILIDAD_PORCENTAJE', 'MONEDA', 'ULTIMA_ACTUALIZACION']
-            ws_val.update(range_name='A1', values=[headers_val] + filas_valoracion)
+            ws_val.update(range_name='A1', values=[headers_val] + filas_valoracion, value_input_option='USER_ENTERED')
             
             resumen = f"Valuación completada. Se grabaron {len(filas_valoracion)} registros de cartera."
             logger.info(resumen)

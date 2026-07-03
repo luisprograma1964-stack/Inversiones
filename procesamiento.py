@@ -770,7 +770,22 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
             logger.info("    [-] Saltando limpieza de NOTICIAS_SISTEMA (ya ejecutada hoy)")
             return
 
-        data = ws_noticias.get_all_records()
+        # Lectura resiliente con reintentos ante cuota 429
+        data = None
+        for intento in range(8):
+            try:
+                data = ws_noticias.get_all_records()
+                break
+            except Exception as ex:
+                if "429" in str(ex):
+                    logger.warning(f"    [!] Cuota 429 al leer NOTICIAS_SISTEMA. Reintentando en 15s (Intento {intento+1}/8)...")
+                    time.sleep(15)
+                else:
+                    raise ex
+        if data is None:
+            logger.error("    [!] No se pudo leer NOTICIAS_SISTEMA tras 8 intentos. Saltando limpieza.")
+            return
+
         total_actual = len(data)
         
         # Solo limpiar si supera el umbral de filas

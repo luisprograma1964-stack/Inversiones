@@ -68,12 +68,47 @@ def ejecutar_sincronizacion():
         logger.info(f"\n[{datetime.now().strftime('%H:%M:%S')}] Procesando y guardando datos...")
 
         # 4. Procesamiento y escritura en VARIABLES_MERCADO
+        import requests
         ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        datos_actuales = ws_vars.get_all_records()
+        datos_actuales = ws_vars.get_all_values()
+        
+        # Mapeamos los nombres actuales en la hoja para saber en qué fila sobreescribir
+        headers_vars = [h.strip().upper() for h in datos_actuales[0]] if datos_actuales else []
+        filas_existentes = {str(row[0]).strip().upper(): idx for idx, row in enumerate(datos_actuales, start=1) if row}
 
+        # Consolidar los resultados procesados
+        variables_consolidadas = {}
+
+        # 4.1 Obtener Dólar MEP, Blue y Cripto con DolarApi de forma nativa e infalible (Compra y Venta)
+        endpoints_dolar = {
+            "Dólar MEP": "https://dolarapi.com/v1/dolares/mep",
+            "Dólar Blue": "https://dolarapi.com/v1/dolares/blue",
+            "Dólar Cripto": "https://dolarapi.com/v1/dolares/cripto"
+        }
+
+        for nombre_dolar, url in endpoints_dolar.items():
+            logger.info(f"Consultando cotización oficial en DolarApi para: {nombre_dolar}...")
+            try:
+                r = requests.get(url, timeout=10)
+                if r.status_code == 200:
+                    data = r.json()
+                    compra = float(data.get("compra", 0.0))
+                    venta = float(data.get("venta", 0.0))
+                    if compra > 0 and venta > 0:
+                        v_prom = round((compra + venta) / 2.0, 2)
+                        variables_consolidadas[nombre_dolar] = [nombre_dolar, compra, venta, v_prom, compra, venta, "0.0%", 1, ahora_str]
+                        logger.info(f"  [OK] {nombre_dolar} -> Compra: {compra} / Venta: {venta}")
+                        continue
+            except Exception as e:
+                logger.warning(f"Error consultando DolarApi para {nombre_dolar}: {e}. Se utilizará el raspado clásico de respaldo.")
+
+        # 4.2 Cargar el resto de las variables por el método tradicional
         for nombre, valores in resultados_agrupados.items():
+            # Si ya se procesó de forma nativa arriba, lo salteamos
+            if nombre in variables_consolidadas:
+                continue
+
             valores_limpios = procesamiento.filtrar_anomalias(nombre, valores, ws_log)
-            
             if not valores_limpios:
                 procesamiento.registrar_log(ws_log, "CRITICAL", f"Sin datos consistentes para {nombre}.")
                 continue
@@ -82,20 +117,22 @@ def ejecutar_sincronizacion():
             v_prom = round(sum(valores_limpios) / len(valores_limpios), 2)
             gap = f"{round(((v_max - v_min) / v_min) * 100, 2)}%" if v_min > 0 else "0%"
             
-            nueva_fila = [nombre, v_prom, v_min, v_max, gap, len(valores_limpios), ahora_str]
-            
-            encontrado = False
-            for i, fila_dict in enumerate(datos_actuales, start=2):
-                if str(fila_dict.get('DATO')).strip() == str(nombre).strip():
-                    ws_vars.update(values=[nueva_fila], range_name=f"A{i}:G{i}")
-                    encontrado = True
-                    break
-            
-            if not encontrado:
+            # Para variables no cambiarias, compra y venta es igual al valor promedio
+            variables_consolidadas[nombre] = [nombre, v_prom, v_prom, v_prom, v_min, v_max, gap, len(valores_limpios), ahora_str]
+
+        # 4.3 Escribir todos los resultados consolidados en VARIABLES_MERCADO
+        for nombre, nueva_fila in variables_consolidadas.items():
+            encontrado_idx = filas_existentes.get(nombre.upper())
+            if encontrado_idx:
+                # Escribimos las 9 columnas en el rango correspondiente de la fila i
+                ws_vars.update(values=[nueva_fila], range_name=f"A{encontrado_idx}:I{encontrado_idx}")
+                logger.info(f"Actualizada variable {nombre} en fila {encontrado_idx}")
+            else:
                 ws_vars.append_row(nueva_fila)
+                logger.info(f"Agregada variable nueva {nombre}")
 
         # 5. Finalización y Logs de éxito
-        resumen = f"OK: {len(resultados_agrupados)} variables procesadas."
+        resumen = f"OK: {len(variables_consolidadas)} variables procesadas."
         procesamiento.registrar_log(ws_log, "INFO", resumen)
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen, tiempo_ejecucion=duracion)
