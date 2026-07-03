@@ -189,7 +189,7 @@ def capturar_dato(url, campo_buscado):
 def ya_ejecutado_hoy(ws_status, nombre_proceso):
     """
     Consulta la tabla ESTADO_PROCESOS para verificar si un proceso específico
-    ya finalizó exitosamente ('OK' o '🟢 OK') en la fecha actual.
+    ya finalizó exitosamente ('OK') en la fecha actual.
     """
     try:
         hoy_str = datetime.now().strftime("%Y-%m-%d")
@@ -199,7 +199,7 @@ def ya_ejecutado_hoy(ws_status, nombre_proceso):
             nombre = str(fila.get('Nombre_Proceso', fila.get('Proceso_ID', '')))
             fecha = str(fila.get('Fecha/Hora', ''))
             estado = str(fila.get('Estado', '')).upper()
-            if nombre == nombre_proceso and hoy_str in fecha and ("OK" in estado or "🟢" in estado):
+            if nombre == nombre_proceso and hoy_str in fecha and "OK" in estado:
                 return True
     except Exception:
         pass
@@ -207,7 +207,7 @@ def ya_ejecutado_hoy(ws_status, nombre_proceso):
 
 def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, tiempo_ejecucion=None):
     """
-    Actualiza el estado de ejecución en la tabla ESTADO_PROCESOS en Google Sheets con semáforos visuales.
+    Actualiza el estado de ejecución en la tabla ESTADO_PROCESOS en Google Sheets con texto plano.
     
     Argumentos:
         ws_status (Worksheet): Objeto de la hoja de cálculo de estado de procesos.
@@ -219,16 +219,16 @@ def actualizar_estado_proceso(ws_status, estado, detalle, nombre_proceso=None, t
     """
     ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Mapear estados a semáforos visuales para AppSheet y visualización rápida
+    # Guardar estados limpios en texto plano
     estado_upper = str(estado).strip().upper()
     if "OK" in estado_upper:
-        estado_visual = "🟢 OK"
+        estado_visual = "OK"
     elif "ERROR" in estado_upper:
-        estado_visual = "🔴 ERROR"
+        estado_visual = "ERROR"
     elif "PROCESANDO" in estado_upper:
-        estado_visual = "🟡 PROCESANDO"
+        estado_visual = "PROCESANDO"
     else:
-        estado_visual = estado
+        estado_visual = estado_upper
 
     if nombre_proceso is None:
         try:

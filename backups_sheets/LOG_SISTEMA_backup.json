@@ -1,0 +1,2462 @@
+[
+  [
+    "FECHA",
+    "NIVEL",
+    "NOMBRE_PROCESO",
+    "MENSAJE"
+  ],
+  [
+    "2026-06-30 21:51:24",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-06-30 21:52:20",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-06-30 21:52:25",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-06-30 21:52:27",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-06-30 21:52:31",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-06-30 21:52:33",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-06-30 21:52:39",
+    "INFO",
+    "limpieza_historico",
+    "Limpieza completada. Se eliminaron 4097 filas. Quedan 3500 registros."
+  ],
+  [
+    "2026-06-30 21:52:41",
+    "CRITICAL",
+    "carga_fuentes",
+    "Error Bridge: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-06-30 21:52:43",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Falla: APIError: [429]: Quota exceeded for quota metric '"
+  ],
+  [
+    "2026-06-30 21:52:43",
+    "CRITICAL",
+    "logging_config",
+    "\n=================================================="
+  ],
+  [
+    "2026-06-30 21:52:44",
+    "CRITICAL",
+    "logging_config",
+    "[ERROR] PIPELINE CANCELADO EN CADENA. Motivo: Paso 2 (Bridge Histórico) falló"
+  ],
+  [
+    "2026-06-30 21:52:44",
+    "CRITICAL",
+    "logging_config",
+    "[*] Tiempo transcurrido: 1.37 min"
+  ],
+  [
+    "2026-06-30 21:52:44",
+    "CRITICAL",
+    "logging_config",
+    "=================================================="
+  ],
+  [
+    "2026-06-30 21:52:45",
+    "CRITICAL",
+    "ENSAMBLADOR",
+    "PIPELINE CANCELADO EN CADENA. Motivo: Paso 2 (Bridge Histórico) falló"
+  ],
+  [
+    "2026-06-30 21:56:56",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-06-30 21:57:50",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-06-30 21:57:55",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-06-30 21:57:58",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-06-30 21:58:06",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-06-30 21:58:08",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-06-30 21:58:10",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-06-30 22:00:19",
+    "WARNING",
+    "carga_fuentes",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-06-30 22:00:19",
+    "WARNING",
+    "logging_config",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-06-30 22:00:19",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-06-30 22:00:20",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-06-30 22:00:20",
+    "WARNING",
+    "carga_fuentes",
+    "WMT: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-06-30 22:00:20",
+    "WARNING",
+    "logging_config",
+    "        [!] WMT: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-06-30 22:00:23",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 4109 registros en 12 activos."
+  ],
+  [
+    "2026-06-30 22:00:27",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-06-30 22:00:35",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-06-30 22:04:34",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 25 procesadas (7 aprobadas, 18 descartadas)."
+  ],
+  [
+    "2026-06-30 22:04:43",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 7 registros de cartera."
+  ],
+  [
+    "2026-06-30 22:04:49",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-06-30 22:04:50",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-06-30 22:05:42",
+    "WARNING",
+    "logging_config",
+    "Contradicción registrada para LUIS_MODERADO"
+  ],
+  [
+    "2026-06-30 22:05:43",
+    "WARNING",
+    "logging_config",
+    "Contradicción registrada para LUIS_AGRESIVO"
+  ],
+  [
+    "2026-06-30 22:06:25",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 14. Procesados: 14."
+  ],
+  [
+    "2026-06-30 22:06:26",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ],
+  [
+    "2026-06-30 22:13:09",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-06-30 22:13:28",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-lite-latest)"
+  ],
+  [
+    "2026-07-01 19:47:32",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-01 19:48:00",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-01 19:48:05",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-01 19:48:07",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-01 19:48:15",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-01 19:48:16",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-01 19:48:23",
+    "INFO",
+    "limpieza_historico",
+    "Limpieza completada. Se eliminaron 4109 filas. Quedan 3500 registros."
+  ],
+  [
+    "2026-07-01 19:48:45",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:48:45",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:48:50",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:48:51",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:48:56",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:48:57",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:49:02",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:49:02",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:50:33",
+    "WARNING",
+    "carga_fuentes",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-07-01 19:50:33",
+    "WARNING",
+    "logging_config",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-07-01 19:50:34",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-01 19:50:34",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-01 19:50:35",
+    "WARNING",
+    "carga_fuentes",
+    "WMT: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-07-01 19:50:35",
+    "WARNING",
+    "logging_config",
+    "        [!] WMT: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-07-01 19:50:38",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 4108 registros en 12 activos."
+  ],
+  [
+    "2026-07-01 19:50:42",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-01 19:50:53",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-01 19:54:40",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 25 procesadas (11 aprobadas, 14 descartadas)."
+  ],
+  [
+    "2026-07-01 19:54:47",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 7 registros de cartera."
+  ],
+  [
+    "2026-07-01 19:54:51",
+    "ERROR",
+    "logging_config",
+    "Error crítico de conexión: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'.\nTraceback (most recent call last):\n  File \"C:\\Para mi\\Inversiones\\auth_google.py\", line 26, in conectar\n    sh = gc.open(config.SHEET_NAME)\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\client.py\", line 157, in open\n    return Spreadsheet(self.http_client, properties)\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\spreadsheet.py\", line 29, in __init__\n    metadata = self.fetch_sheet_metadata()\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\spreadsheet.py\", line 230, in fetch_sheet_metadata\n    return self.client.fetch_sheet_metadata(self.id, params=params)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\http_client.py\", line 305, in fetch_sheet_metadata\n    r = self.request(\"get\", url, params=params)\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\http_client.py\", line 128, in request\n    raise APIError(response)\ngspread.exceptions.APIError: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 19:54:52",
+    "CRITICAL",
+    "logging_config",
+    "ERROR CRÍTICO MOTOR IA: No se pudo conectar a Google Sheets con las credenciales configuradas."
+  ],
+  [
+    "2026-07-01 19:54:52",
+    "CRITICAL",
+    "logging_config",
+    "\n=================================================="
+  ],
+  [
+    "2026-07-01 19:54:52",
+    "CRITICAL",
+    "logging_config",
+    "[ERROR] PIPELINE CANCELADO EN CADENA. Motivo: Paso 4 (Motor IA) falló"
+  ],
+  [
+    "2026-07-01 19:54:53",
+    "CRITICAL",
+    "logging_config",
+    "[*] Tiempo transcurrido: 7.39 min"
+  ],
+  [
+    "2026-07-01 19:54:53",
+    "CRITICAL",
+    "logging_config",
+    "=================================================="
+  ],
+  [
+    "2026-07-01 19:54:53",
+    "CRITICAL",
+    "ENSAMBLADOR",
+    "PIPELINE CANCELADO EN CADENA. Motivo: Paso 4 (Motor IA) falló"
+  ],
+  [
+    "2026-07-01 20:14:03",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-01 20:14:35",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-01 20:14:58",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-01 20:15:00",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-01 20:15:08",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-01 20:15:09",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-01 20:15:17",
+    "INFO",
+    "limpieza_historico",
+    "Limpieza completada. Se eliminaron 1108 filas. Quedan 6500 registros."
+  ],
+  [
+    "2026-07-01 20:15:22",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:15:22",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:15:28",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:15:28",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:15:33",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:15:34",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:15:39",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:15:39",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 20:17:23",
+    "WARNING",
+    "carga_fuentes",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-07-01 20:17:24",
+    "WARNING",
+    "logging_config",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-07-01 20:17:24",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-01 20:17:24",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-01 20:17:24",
+    "WARNING",
+    "carga_fuentes",
+    "WMT: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-07-01 20:17:25",
+    "WARNING",
+    "logging_config",
+    "        [!] WMT: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-07-01 20:17:26",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-01 20:17:30",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-01 20:17:37",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-01 20:21:19",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 25 procesadas (11 aprobadas, 14 descartadas)."
+  ],
+  [
+    "2026-07-01 20:21:25",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 7 registros de cartera."
+  ],
+  [
+    "2026-07-01 20:21:31",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-07-01 20:21:32",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-01 20:22:22",
+    "WARNING",
+    "logging_config",
+    "Contradicción registrada para LUIS_MODERADO"
+  ],
+  [
+    "2026-07-01 20:22:23",
+    "WARNING",
+    "logging_config",
+    "Contradicción registrada para LUIS_AGRESIVO"
+  ],
+  [
+    "2026-07-01 20:23:05",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 14. Procesados: 14."
+  ],
+  [
+    "2026-07-01 20:23:07",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ],
+  [
+    "2026-07-01 21:03:04",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-01 21:03:24",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-lite-latest)"
+  ],
+  [
+    "2026-07-01 21:10:11",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-01 21:10:33",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-lite-latest)"
+  ],
+  [
+    "2026-07-01 21:14:07",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-01 21:28:16",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-01 21:44:25",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-01 21:44:56",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-01 21:45:00",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-01 21:45:02",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-01 21:45:10",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-01 21:45:12",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-01 21:45:16",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-01 21:45:19",
+    "WARNING",
+    "logging_config",
+    "    [!] Cuota 429 excedida al leer HISTORICO_VALORES. Reintentando en 3 segundos..."
+  ],
+  [
+    "2026-07-01 21:45:22",
+    "WARNING",
+    "logging_config",
+    "    [!] Cuota 429 excedida al leer HISTORICO_VALORES. Reintentando en 3 segundos..."
+  ],
+  [
+    "2026-07-01 21:45:26",
+    "WARNING",
+    "logging_config",
+    "    [!] Cuota 429 excedida al leer HISTORICO_VALORES. Reintentando en 3 segundos..."
+  ],
+  [
+    "2026-07-01 21:45:29",
+    "CRITICAL",
+    "carga_fuentes",
+    "Error Bridge: Error persistente de cuota 429 en hoja HISTORICO_VALORES"
+  ],
+  [
+    "2026-07-01 21:45:40",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Falla: Error persistente de cuota 429 en hoja HISTORICO_V"
+  ],
+  [
+    "2026-07-01 21:45:40",
+    "CRITICAL",
+    "logging_config",
+    "\n=================================================="
+  ],
+  [
+    "2026-07-01 21:45:40",
+    "CRITICAL",
+    "logging_config",
+    "[ERROR] PIPELINE CANCELADO EN CADENA. Motivo: Paso 2 (Bridge Histórico) falló"
+  ],
+  [
+    "2026-07-01 21:45:40",
+    "CRITICAL",
+    "logging_config",
+    "[*] Tiempo transcurrido: 1.3 min"
+  ],
+  [
+    "2026-07-01 21:45:41",
+    "CRITICAL",
+    "logging_config",
+    "=================================================="
+  ],
+  [
+    "2026-07-01 21:45:41",
+    "CRITICAL",
+    "ENSAMBLADOR",
+    "PIPELINE CANCELADO EN CADENA. Motivo: Paso 2 (Bridge Histórico) falló"
+  ],
+  [
+    "2026-07-01 21:48:46",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-01 21:49:13",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-01 21:49:17",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-01 21:49:19",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-01 21:49:27",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-01 21:49:29",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-01 21:49:33",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-01 21:49:44",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 21:49:44",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 21:49:50",
+    "WARNING",
+    "carga_fuentes",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 21:49:50",
+    "WARNING",
+    "logging_config",
+    "Error leyendo buffer: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-01 21:51:41",
+    "WARNING",
+    "carga_fuentes",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-07-01 21:51:41",
+    "WARNING",
+    "logging_config",
+    "Timeout polling GOOGLEFINANCE after 120s"
+  ],
+  [
+    "2026-07-01 21:51:41",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-01 21:51:41",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-01 21:51:42",
+    "WARNING",
+    "carga_fuentes",
+    "WMT: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-07-01 21:51:42",
+    "WARNING",
+    "logging_config",
+    "        [!] WMT: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NYSE:WMT' returned no data.))"
+  ],
+  [
+    "2026-07-01 21:51:43",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-01 21:51:47",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-01 21:51:56",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-01 21:54:34",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 16 procesadas (8 aprobadas, 8 descartadas)."
+  ],
+  [
+    "2026-07-01 21:54:41",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-01 21:54:47",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-07-01 21:54:48",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-01 21:54:59",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil '' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:54:59",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:00",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:06",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:06",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:07",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:14",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:14",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:14",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:21",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil '' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:22",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:22",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:30",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil '' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:30",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Inversor Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:30",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Inversor Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:37",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil '' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:38",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:38",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:45",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:45",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:46",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:52",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:52",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:53",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:55:59",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:00",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:00",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:07",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:07",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:07",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:14",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:14",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:14",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:21",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:21",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:22",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:28",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil '' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:29",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:29",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:37",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil '' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:37",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:38",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-01 21:56:43",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 14. Procesados: 14."
+  ],
+  [
+    "2026-07-01 21:56:44",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ],
+  [
+    "2026-07-01 22:02:10",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-01 22:02:30",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-lite-latest)"
+  ],
+  [
+    "2026-07-02 18:51:13",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-02 18:51:48",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-02 18:51:52",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-02 18:51:54",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-02 18:52:02",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-02 18:52:04",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-02 18:52:07",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 18:52:14",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=11. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-02 18:52:14",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 18:52:14",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 18:52:16",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 40 registros en 26 activos."
+  ],
+  [
+    "2026-07-02 18:52:22",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-02 18:52:32",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-02 18:53:04",
+    "ERROR",
+    "logging_config",
+    "Error técnico en limpieza de noticias aprobadas: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'.\nTraceback (most recent call last):\n  File \"C:\\Para mi\\Inversiones\\procesamiento.py\", line 773, in limpiar_noticias_sistema\n    data = ws_noticias.get_all_records()\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\worksheet.py\", line 562, in get_all_records\n    entire_sheet = self.get(\n        value_render_option=value_render_option,\n        pad_values=True,\n    )\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\worksheet.py\", line 958, in get\n    response = self.client.values_get(\n        self.spreadsheet_id, get_range_name, params=params\n    )\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\http_client.py\", line 236, in values_get\n    r = self.request(\"get\", url, params=params)\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\http_client.py\", line 128, in request\n    raise APIError(response)\ngspread.exceptions.APIError: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-02 18:53:05",
+    "ERROR",
+    "logging_config",
+    "ERROR: No se encontró la pestaña 'LOG_SISTEMA'. Hojas disponibles: ['TRANSACCIONES', 'MOVIMIENTOS_CAJA', 'CAJA_LIQUIDEZ', 'VARIABLES_MERCADO', 'ESTADO_PROCESOS', 'LOG_SISTEMA', 'HISTORICO_VALORES', 'MAESTRO_ACTIVOS', 'CONFIG_MAESTROS', 'CONFIG_FUENTES', 'CONFIG_IA_GENERAL', 'CONFIG_IA_USUARIO', 'REPORTE_IA', 'MATRIZ_RECOMENDACIONES', 'ANALISIS_TECNICO', 'DOWNLOAD_BUFFER', 'NOTICIAS_SISTEMA', 'NOTICIAS_DESCARTADAS', 'CONFIG_SINONIMOS', 'SUGERENCIAS_SINONIMOS', 'CONFIG_TELEGRAM_CHANNELS', 'PROGRAMA_CEDEARS', 'VALORACION_PORTAFOLIO']"
+  ],
+  [
+    "2026-07-02 18:53:05",
+    "CRITICAL",
+    "logging_config",
+    "ERROR CRÍTICO al cargar hojas de Google Sheets: ERROR: No se encontró la pestaña 'LOG_SISTEMA'. Hojas disponibles: ['TRANSACCIONES', 'MOVIMIENTOS_CAJA', 'CAJA_LIQUIDEZ', 'VARIABLES_MERCADO', 'ESTADO_PROCESOS', 'LOG_SISTEMA', 'HISTORICO_VALORES', 'MAESTRO_ACTIVOS', 'CONFIG_MAESTROS', 'CONFIG_FUENTES', 'CONFIG_IA_GENERAL', 'CONFIG_IA_USUARIO', 'REPORTE_IA', 'MATRIZ_RECOMENDACIONES', 'ANALISIS_TECNICO', 'DOWNLOAD_BUFFER', 'NOTICIAS_SISTEMA', 'NOTICIAS_DESCARTADAS', 'CONFIG_SINONIMOS', 'SUGERENCIAS_SINONIMOS', 'CONFIG_TELEGRAM_CHANNELS', 'PROGRAMA_CEDEARS', 'VALORACION_PORTAFOLIO']"
+  ],
+  [
+    "2026-07-02 18:53:06",
+    "CRITICAL",
+    "logging_config",
+    "\n=================================================="
+  ],
+  [
+    "2026-07-02 18:53:06",
+    "CRITICAL",
+    "logging_config",
+    "[ERROR] PIPELINE CANCELADO EN CADENA. Motivo: Paso 3.5 (Captura de Noticias) falló"
+  ],
+  [
+    "2026-07-02 18:53:06",
+    "CRITICAL",
+    "logging_config",
+    "[*] Tiempo transcurrido: 1.93 min"
+  ],
+  [
+    "2026-07-02 18:53:06",
+    "CRITICAL",
+    "logging_config",
+    "=================================================="
+  ],
+  [
+    "2026-07-02 18:53:07",
+    "CRITICAL",
+    "ENSAMBLADOR",
+    "PIPELINE CANCELADO EN CADENA. Motivo: Paso 3.5 (Captura de Noticias) falló"
+  ],
+  [
+    "2026-07-02 19:03:58",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-02 19:04:38",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-02 19:04:42",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-02 19:04:52",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-02 19:05:00",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-02 19:05:02",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-02 19:05:06",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 40 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 19:05:11",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=0. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-02 19:05:11",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 19:05:12",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 19:05:13",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-02 19:05:17",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-02 19:05:25",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-02 19:05:46",
+    "CRITICAL",
+    "logging_config",
+    "ERROR CRÍTICO al cargar hojas de Google Sheets: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-02 19:05:46",
+    "CRITICAL",
+    "captura_noticias",
+    "ERROR CRÍTICO al cargar hojas de Google Sheets: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-02 19:06:06",
+    "CRITICAL",
+    "logging_config",
+    "\n=================================================="
+  ],
+  [
+    "2026-07-02 19:06:06",
+    "CRITICAL",
+    "logging_config",
+    "[ERROR] PIPELINE CANCELADO EN CADENA. Motivo: Paso 3.5 (Captura de Noticias) falló"
+  ],
+  [
+    "2026-07-02 19:06:06",
+    "CRITICAL",
+    "logging_config",
+    "[*] Tiempo transcurrido: 2.19 min"
+  ],
+  [
+    "2026-07-02 19:06:07",
+    "CRITICAL",
+    "logging_config",
+    "=================================================="
+  ],
+  [
+    "2026-07-02 19:06:07",
+    "CRITICAL",
+    "ENSAMBLADOR",
+    "PIPELINE CANCELADO EN CADENA. Motivo: Paso 3.5 (Captura de Noticias) falló"
+  ],
+  [
+    "2026-07-02 19:16:40",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-02 19:18:00",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-02 19:18:05",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-02 19:18:07",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-02 19:18:15",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-02 19:18:16",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-02 19:18:20",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 40 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 19:18:25",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=0. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-02 19:18:25",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 19:18:25",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 19:18:26",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-02 19:18:31",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-02 19:18:39",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-02 19:18:42",
+    "ERROR",
+    "logging_config",
+    "Error crítico de conexión: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'.\nTraceback (most recent call last):\n  File \"C:\\Para mi\\Inversiones\\auth_google.py\", line 26, in conectar\n    sh = gc.open(config.SHEET_NAME)\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\client.py\", line 157, in open\n    return Spreadsheet(self.http_client, properties)\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\spreadsheet.py\", line 29, in __init__\n    metadata = self.fetch_sheet_metadata()\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\spreadsheet.py\", line 230, in fetch_sheet_metadata\n    return self.client.fetch_sheet_metadata(self.id, params=params)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\http_client.py\", line 305, in fetch_sheet_metadata\n    r = self.request(\"get\", url, params=params)\n  File \"C:\\Para mi\\Inversiones\\.venv\\Lib\\site-packages\\gspread\\http_client.py\", line 128, in request\n    raise APIError(response)\ngspread.exceptions.APIError: APIError: [429]: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:38475531899'."
+  ],
+  [
+    "2026-07-02 19:18:43",
+    "CRITICAL",
+    "logging_config",
+    "ERROR CRÍTICO CAPTURA NOTICIAS: No se pudo conectar a Google Sheets con las credenciales configuradas."
+  ],
+  [
+    "2026-07-02 19:18:43",
+    "CRITICAL",
+    "logging_config",
+    "\n=================================================="
+  ],
+  [
+    "2026-07-02 19:18:43",
+    "CRITICAL",
+    "logging_config",
+    "[ERROR] PIPELINE CANCELADO EN CADENA. Motivo: Paso 3.5 (Captura de Noticias) falló"
+  ],
+  [
+    "2026-07-02 19:18:44",
+    "CRITICAL",
+    "logging_config",
+    "[*] Tiempo transcurrido: 2.11 min"
+  ],
+  [
+    "2026-07-02 19:18:45",
+    "CRITICAL",
+    "logging_config",
+    "=================================================="
+  ],
+  [
+    "2026-07-02 19:18:45",
+    "CRITICAL",
+    "ENSAMBLADOR",
+    "PIPELINE CANCELADO EN CADENA. Motivo: Paso 3.5 (Captura de Noticias) falló"
+  ],
+  [
+    "2026-07-02 19:27:33",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-02 19:28:41",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-02 19:28:45",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-02 19:28:47",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-02 19:28:55",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-02 19:28:57",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-02 19:29:01",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 40 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 19:29:07",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=0. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-02 19:29:07",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 19:29:08",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 19:29:08",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-02 19:29:12",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-02 19:29:20",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-02 19:33:53",
+    "WARNING",
+    "logging_config",
+    "    [!] Cuota agotada en gemini-2.5-flash. Rotando a siguiente modelo..."
+  ],
+  [
+    "2026-07-02 19:35:22",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 25 procesadas (9 aprobadas, 16 descartadas)."
+  ],
+  [
+    "2026-07-02 19:35:29",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-02 19:35:35",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-07-02 19:35:36",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 19:35:44",
+    "ERROR",
+    "logging_config",
+    "Cuota agotada o servicio no disponible en gemini-2.5-flash."
+  ],
+  [
+    "2026-07-02 19:35:58",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Conservador' no reconocido en configuración."
+  ],
+  [
+    "2026-07-02 19:35:58",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Moderado' no reconocido en configuración."
+  ],
+  [
+    "2026-07-02 19:35:59",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil 'Agresivo' no reconocido en configuración."
+  ],
+  [
+    "2026-07-02 19:35:59",
+    "WARNING",
+    "logging_config",
+    "Bloque ignorado: Perfil '' no reconocido en configuración."
+  ],
+  [
+    "2026-07-02 19:36:04",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 14. Procesados: 1."
+  ],
+  [
+    "2026-07-02 19:36:05",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ],
+  [
+    "2026-07-02 19:58:32",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-02 19:59:47",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-02 19:59:52",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-02 19:59:53",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-02 20:00:01",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-02 20:00:03",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-02 20:00:06",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 40 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 20:00:12",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=0. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-02 20:00:12",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 20:00:12",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 20:00:13",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-02 20:00:17",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-02 20:00:26",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-02 20:06:11",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 25 procesadas (13 aprobadas, 12 descartadas)."
+  ],
+  [
+    "2026-07-02 20:06:19",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-02 20:06:25",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-07-02 20:06:26",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 20:08:24",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 14. Procesados: 14."
+  ],
+  [
+    "2026-07-02 20:08:25",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ],
+  [
+    "2026-07-02 21:28:17",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-02 21:34:57",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-02 21:35:23",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-lite-latest)"
+  ],
+  [
+    "2026-07-02 22:04:16",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-02 22:04:47",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-02 22:04:52",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-02 22:04:54",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-02 22:05:02",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-02 22:05:04",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-02 22:05:08",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 40 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 22:05:14",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=0. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-02 22:05:15",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 22:05:15",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-02 22:05:16",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-02 22:05:21",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-02 22:05:30",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-02 22:10:16",
+    "WARNING",
+    "logging_config",
+    "    [!] Error en modelo gemini-flash-lite-latest: 503 UNAVAILABLE. {'error': {'code': 503, 'message'"
+  ],
+  [
+    "2026-07-02 22:10:18",
+    "WARNING",
+    "logging_config",
+    "    [!] Error en modelo gemini-2.5-flash: 503 UNAVAILABLE. {'error': {'code': 503, 'message'"
+  ],
+  [
+    "2026-07-02 22:10:29",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 17 procesadas (13 aprobadas, 4 descartadas)."
+  ],
+  [
+    "2026-07-02 22:10:41",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-02 22:10:49",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-07-02 22:10:50",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-02 22:11:16",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:12:09",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:12:21",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:12:29",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:12:41",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:12:57",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:13:06",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:13:29",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-02 22:13:39",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 14. Procesados: 14."
+  ],
+  [
+    "2026-07-02 22:13:40",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ],
+  [
+    "2026-07-02 22:14:13",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-02 22:14:37",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-lite-latest)"
+  ],
+  [
+    "2026-07-02 22:16:42",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-02 22:16:50",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 14 activos."
+  ],
+  [
+    "2026-07-02 22:18:03",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-02 22:20:52",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-latest)"
+  ],
+  [
+    "2026-07-03 11:44:07",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-03 11:44:36",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-03 11:44:41",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-03 11:44:43",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-03 11:44:51",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-03 11:44:53",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-03 11:44:57",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 40 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-03 11:45:03",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=14. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-03 11:45:04",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-03 11:45:04",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-03 11:45:07",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 2567 registros en 26 activos."
+  ],
+  [
+    "2026-07-03 11:45:11",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-03 11:45:13",
+    "WARNING",
+    "logging_config",
+    "    [!] Descartando 1 registros por escala extrema en: ['MU'] (Rango: 1970-01-01 a 1970-01-01)"
+  ],
+  [
+    "2026-07-03 11:45:13",
+    "WARNING",
+    "analisis_tecnico",
+    "Descartando 1 registros por escala extrema en: ['MU'] (Rango: 1970-01-01 a 1970-01-01)"
+  ],
+  [
+    "2026-07-03 11:45:13",
+    "INFO",
+    "analisis_tecnico",
+    "Historial saneado en memoria"
+  ],
+  [
+    "2026-07-03 11:45:23",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 20 activos."
+  ],
+  [
+    "2026-07-03 11:47:32",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-03 11:47:58",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-03 11:48:03",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-03 11:48:05",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-03 11:48:13",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-03 11:48:14",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-03 11:48:25",
+    "INFO",
+    "limpieza_historico",
+    "Limpieza completada. Se eliminaron 625 filas. Quedan 8482 registros."
+  ],
+  [
+    "2026-07-03 11:48:32",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=0. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-03 11:48:32",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-03 11:48:32",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-03 11:48:34",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-03 11:48:39",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-03 11:48:48",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 20 activos."
+  ],
+  [
+    "2026-07-03 11:53:55",
+    "WARNING",
+    "logging_config",
+    "    [!] Cuota agotada en gemini-2.5-flash. Rotando a siguiente modelo..."
+  ],
+  [
+    "2026-07-03 11:54:35",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 25 procesadas (15 aprobadas, 10 descartadas)."
+  ],
+  [
+    "2026-07-03 11:54:43",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-03 11:54:49",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-07-03 11:54:50",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-03 11:54:58",
+    "ERROR",
+    "logging_config",
+    "Cuota agotada o servicio no disponible en gemini-2.5-flash."
+  ],
+  [
+    "2026-07-03 11:55:08",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 20. Procesados: 1."
+  ],
+  [
+    "2026-07-03 11:55:09",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ],
+  [
+    "2026-07-03 12:20:20",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-03 12:20:43",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-flash-lite-latest)"
+  ],
+  [
+    "2026-07-03 12:55:39",
+    "INFO",
+    "supervisor_del_sistema",
+    "Iniciando Supervisor del Sistema"
+  ],
+  [
+    "2026-07-03 12:57:30",
+    "INFO",
+    "SUPERVISOR",
+    "Informe de supervisión generado exitosamente (modelo: gemini-2.5-flash)"
+  ],
+  [
+    "2026-07-03 13:49:02",
+    "INFO",
+    "ENSAMBLADOR",
+    "Iniciando Pipeline Global de Inversiones"
+  ],
+  [
+    "2026-07-03 13:49:30",
+    "INFO",
+    "main",
+    "Iniciando sincronización periódica de mercado"
+  ],
+  [
+    "2026-07-03 13:49:34",
+    "ERROR",
+    "main",
+    "Variable: UVA | UVA no hallado en BCRA"
+  ],
+  [
+    "2026-07-03 13:49:37",
+    "INFO",
+    "main",
+    "OK: 3 variables procesadas."
+  ],
+  [
+    "2026-07-03 13:49:45",
+    "INFO",
+    "carga_fuentes",
+    "INICIO: Sincronización Bridge"
+  ],
+  [
+    "2026-07-03 13:49:47",
+    "INFO",
+    "limpieza_historico",
+    "Iniciando limpieza inteligente de HISTORICO_VALORES..."
+  ],
+  [
+    "2026-07-03 13:49:50",
+    "INFO",
+    "limpieza_historico",
+    "Saltando escritura de HISTORICO_VALORES: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-03 13:50:30",
+    "WARNING",
+    "logging_config",
+    "        [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=0. Marcado como error inmediato."
+  ],
+  [
+    "2026-07-03 13:50:30",
+    "WARNING",
+    "carga_fuentes",
+    "BCBA:DIS: No data from GOOGLEFINANCE (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-03 13:50:30",
+    "WARNING",
+    "logging_config",
+    "        [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))"
+  ],
+  [
+    "2026-07-03 13:50:31",
+    "INFO",
+    "carga_fuentes",
+    "FIN: Sincronizados 0 registros en 0 activos."
+  ],
+  [
+    "2026-07-03 13:50:35",
+    "INFO",
+    "analisis_tecnico",
+    "Iniciando Análisis Técnico"
+  ],
+  [
+    "2026-07-03 13:50:44",
+    "INFO",
+    "analisis_tecnico",
+    "Análisis técnico finalizado con éxito: 20 activos."
+  ],
+  [
+    "2026-07-03 13:54:49",
+    "INFO",
+    "captura_noticias",
+    "Finalizado: 25 procesadas (12 aprobadas, 13 descartadas)."
+  ],
+  [
+    "2026-07-03 13:54:56",
+    "INFO",
+    "valorador_cartera",
+    "Valuación completada. Se grabaron 22 registros de cartera."
+  ],
+  [
+    "2026-07-03 13:55:02",
+    "INFO",
+    "limpieza_ia",
+    "Iniciando limpieza de REPORTE_IA (100 días)..."
+  ],
+  [
+    "2026-07-03 13:55:02",
+    "INFO",
+    "limpieza_ia",
+    "Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50)."
+  ],
+  [
+    "2026-07-03 13:55:29",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-03 13:55:43",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-03 13:55:46",
+    "WARNING",
+    "logging_config",
+    "Contradicción registrada para LUIS"
+  ],
+  [
+    "2026-07-03 13:56:03",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-03 13:56:09",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-03 13:56:29",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-03 13:56:42",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-03 13:56:55",
+    "WARNING",
+    "logging_config",
+    "Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON..."
+  ],
+  [
+    "2026-07-03 13:57:22",
+    "INFO",
+    "decisor_con_ia",
+    "Motor completado. Activos: 20. Procesados: 20."
+  ],
+  [
+    "2026-07-03 13:57:23",
+    "INFO",
+    "ENSAMBLADOR",
+    "PIPELINE COMPLETADO CON ÉXITO"
+  ]
+]

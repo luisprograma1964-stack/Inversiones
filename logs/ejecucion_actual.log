@@ -1,24 +1,99 @@
---- INICIANDO EJECUCIÓN DE: TEST/homologador.py (13:59:09) ---
+--- INICIANDO EJECUCIÓN DE: supervisor_del_sistema.py (17:26:34) ---
+
+[*] Iniciando Supervisor del Sistema...
+Error generando informe con gemini-1.5-pro: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
+Error generando informe con gemini-2.0-flash: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 8.355685075s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '8s'}]}}. Intentando fallback...
+Error generando informe con gemini-1.5-flash: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
+
+[OK] Informe de supervisión guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260703_172702.md
 
 ============================================================
-[HOMOLOGADOR] INICIANDO AUDITORIA Y CONTROL DE DATOS DE IA
-============================================================
-[*] Ultimo archivo JSON detectado: IA_LOGS\req_XOM_20260703_135714.json
-[*] Fecha de modificacion: 2026-07-03 13:57:14
-[*] Conectando a Google Sheets...
-[OK] Conexion establecida con exito.
+INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA:
 
-[*] Leyendo datos vigentes en las hojas...
-[OK] Hojas leidas con exito.
-
-[*] Iniciando auditoria del ultimo JSON real...
-[*] Auditando Ticker del JSON: XOM
+[OK] Informe de supervision guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260703_172702.md
 
 ============================================================
-[RESULTADO] RESULTADO DE LA AUDITORIA DE HOMOLOGACION:
-   - Archivo auditado: req_XOM_20260703_135714.json
-   - Verificaciones realizadas: 10
-   - [STATUS] EXCELENTE (Integridad 100%). Los datos coinciden perfectamente entre Sheets y el JSON/Prompt.
-============================================================
+INFORME DE SUPERVISION Y MEJORA ESTRATEGICA (Safe Encoding):
+# INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA
 
-[OK] EJECUCIÓN FINALIZADA EXITOSAMENTE (13:59:17)
+## ? 1. ESTRUCTURA DE INPUTS DE LA IA DECISORA (AUDITORÍA)
+
+Este apartado detalla el catálogo completo de datos y campos que se inyectan dinámicamente en el prompt de la IA decisora (`decisor_con_ia.py`), agrupados por su origen de datos en Google Sheets:
+
+### ? Origen: `ANALISIS_TECNICO` (Datos Técnicos del Activo)
+Métricas matemáticas y de precio que definen la situación técnica de cada Ticker:
+* **Identificación**: `TICKER_ID`, `FECHA` (Fecha de cálculo).
+* **Indicadores Técnicos**: `RSI`, `MACD`, `TREND`, `PSAR`, `DMI`, `SMA_20`, `SMA_50`, `SMA_200`, `FIBO_RET`, `CCL_IMPLICITO`
+* **Valores de Control**: `ESTADO` (Debe ser `PENDIENTE` para procesar).
+
+### ? Origen: `NOTICIAS_SISTEMA` (Contexto Fundamental y Sentimiento)
+Noticias recolectadas en paralelo y filtradas por la IA. Se inyectan las 5 más recientes del Ticker y las 5 más recientes de contexto macroeconómico global (Ticker 9999):
+* **Campos por noticia**: `FECHA`, `TITULAR`, `RESUMEN_IA`, `SENTIMIENTO`, `FUENTE`.
+
+### ? Origen: `VALORACION_PORTAFOLIO` (Situación de Cartera)
+Tenencias y rentabilidades consolidadas por propietario calculadas en el Paso 3.8:
+* **Campos**: `PROPIETARIO`, `ACTIVO`, `CANTIDAD`, `PRECIO_PROMEDIO_COMPRA`, `VALORACION_MERCADO`, `RENTABILIDAD_NOMINAL`, `RENTABILIDAD_REAL_PERC`.
+
+### ? Origen: `CAJA_LIQUIDEZ` (Saldos Disponibles)
+Saldos líquidos por cuenta, propietario y moneda (ARS, USD, MEP):
+* **Campos**: `MONEDA`, `SALDO`, `TIPO_CUENTA`, `ULTIMA_ACTUALIZACION`, `PROPIETARIO`.
+
+### ? Origen: `VARIABLES_MERCADO` (Contexto de Referencia Financiera)
+Monitoreo de tipos de cambio de referencia e inflación:
+* **Campos**: `DATO`, `VALOR_PROM`, `VALOR_MIN`, `VALOR_MAX`, `GAP_PERC`.
+
+### ? Origen: `CONFIG_IA_USUARIO` (Perfiles y Reglas del Inversor)
+Define la política y ponderaciones que la IA debe contrastar:
+* **Campos**: `Usuario_ID`, `Perfil_Riesgo`, `Mix_Target`, `Tolerancia_Desvio`.
+
+---
+
+## ESTRATEGIA DE CARTERA
+
+- LUIS (Agresivo): Su tenencia actual está sobre-expuesta a CASH (ARS) y posee activos con alta rentabilidad negativa (AAPL, TSLA). Según el Mix_Target (60% Tech, 30% Cedears Estables, 10% Liquidez), debe reducir la posición de efectivo en pesos. Se recomienda: Vender 50% de la posición en efectivo ARS y adquirir activos tecnológicos de alta convicción.
+- LUIS_MODERADO: Posee una cartera concentrada en AMZN y KO con alta rentabilidad negativa. El Mix_Target requiere 50% ETF Indexados. Se recomienda rebalancear: Vender posición en KO (defensiva) y mover el exceso de efectivo hacia activos tipo SPY (si hubiera posición) o ETFs indexados para cumplir con el 50% target.
+- VICKY (Conservador): Actualmente mantiene AAPL y AMD (Tech volátil), lo cual contraviene su perfil (50% Dólar, 30% Plazo Fijo, 20% ON). Se ordena: Venta total de AAPL y AMD para rotar a ONs o instrumentos de renta fija/liquidez en USD.
+- ANTO (Conservador): Posee TSLA y AMZN. El perfil requiere 60% FCI, 30% Renta Fija, 10% Liquidez. Se ordena: Venta de TSLA y AMZN. El capital resultante debe asignarse a Fondos Comunes de Inversión (FCI) de Renta Fija.
+
+## MEJORA DE DATOS
+
+- SINÓNIMOS: Luis, tienes 1 sugerencia de sinónimo pendiente. Por favor revisa la hoja SUGERENCIAS_SINONIMOS y cambia su estado a APROBADO o RECHAZADO.
+- ACTIVACIÓN DE ACTIVOS: El activo SPY y QQQ tienen flujo de noticias recientes pero están INACTIVO/NO ACTIVO en tu maestro. Actívalos para permitir el cálculo de indicadores por el pipeline.
+- OPTIMIZACIÓN DE BÚSQUEDA: Los activos GLD y BTC presentan noticias frecuentes pero con sesgo de "ruido". Se recomienda cambiar el filtro de GLD a "Gold spot price central bank reserves" y de BTC a "Bitcoin institutional adoption regulatory framework" para mejorar la calidad del triage.
+
+## AUDITORIA DE NOTICIAS VS DECISION
+
+- Calidad del triage: Alta. Los descartes realizados (deportes, política local, curiosidades) son correctos y protegen al sistema de ruido informativo innecesario.
+- Integridad: Se detectó que noticias sobre el sector de semiconductores (MU) fueron correctamente capturadas para generar alertas de riesgo, lo que demuestra un buen acople entre el triage y el análisis técnico.
+
+## CONTRADICCIONES TECNICAS
+
+- BTC: Existe contradicción severa. La IA muestra sentimiento "BEARISH/CONTRADICCION" con score 2-4/10, mientras el mercado presenta volatilidad técnica de corto plazo. Se recomienda seguir el veredicto de la IA debido a la tendencia bajista de LP (SMA200).
+- META: El veredicto de la IA es "NEUTRAL" con score 5/10, mientras que técnicamente se encuentra operando bajo SMA200 y SMA50 (Bajista LP). Se recomienda al usuario priorizar la tendencia técnica bajista sobre el sentimiento alcista de corto plazo.
+
+## ERRORES DE ESCALA
+
+- No se detectaron activos con el error '15x' o 'Error (Escala)' en los datos vigentes. La carga de precios y promedios móviles parece estar íntegra.
+
+## SINCRONIZACION DE DATOS
+
+- Integridad: La fecha de los datos técnicos vigentes (2026-07-02) frente a la fecha actual del sistema (2026-07-03) indica un rezago de 24 horas, lo cual es normal y saludable dentro de los parámetros de operación del sistema. No se emiten alertas de discrepancia.
+
+## ALERTAS Y CALIDAD
+
+- AUDITORÍA CCL: Los activos AAPL, AMD, AMZN, ASML, META, TSLA, VIST, WMT y XOM presentan un sobreprecio cambiario CCL mayor al 2.5% respecto a la media (1525.3). Acción: Se recomienda suspender compras en pesos de estos activos hasta que la brecha se estabilice, ya que el costo de entrada es ineficiente en moneda local.
+- ALERTAS DE SILENCIO: VIST muestra movimientos técnicos erráticos sin drivers claros en el radar de noticias. Luis, busca manualmente en reportes sectoriales de energía o comunicados de Miguel Galuccio qué ocurrió con el activo.
+
+## OPTIMIZACION DE INSTRUCCIONES IA
+
+- Sugerencia para 'Instrucciones_Fijas':
+  Sección: [SECCIÓN 4: REGLAS DE OPERATORIA LOCAL Y BRECHA CAMBIARIA]
+  Regla: "Si el CCL implícito de un activo presenta una desviación mayor al 2.5% respecto al Dólar MEP oficial, el sistema debe emitir una advertencia de ineficiencia cambiaria y desaconsejar activamente la compra en pesos".
+- Sugerencia para 'Prompt_Triage_Noticias':
+  Sección: [SECCIÓN 2: CRITERIOS DE APROBACIÓN Y FILTRO GENERAL]
+  Regla: "Descartar automáticamente cualquier titular que contenga nombres de futbolistas, torneos deportivos o eventos climáticos si no mencionan explícitamente una repercusión en el precio de mercado o indicadores económicos".
+============================================================
+[OK] Supervisor finalizado exitosamente en 0.42 min.
+
+
+[OK] EJECUCIÓN FINALIZADA EXITOSAMENTE (17:27:03)

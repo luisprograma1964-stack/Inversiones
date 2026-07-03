@@ -1,0 +1,3359 @@
+[
+  [
+    "TICKER_ID",
+    "NOMBRE_LARGO",
+    "FILTRO_NOTICIAS",
+    "ULTIMA_ACTUALIZ",
+    "DIAS_KEEP_HIST",
+    "FUENTE_DATA",
+    "ESTADO"
+  ],
+  [
+    "AABA",
+    "ALTABA INC",
+    "stock:AABA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AAL",
+    "AMERICAN AIRLINES GROUP INC",
+    "stock:AAL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AAP",
+    "ADVANCE AUTO PARTS INC",
+    "stock:AAP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AAPL",
+    "Apple Inc.",
+    "AAPL stock, Apple earnings, Vision Pro, iPhone sales",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "ABBV",
+    "ABBVIE INC",
+    "stock:ABBV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ABEV",
+    "AMBEV S.A.",
+    "stock:ABEV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ABT",
+    "ABBOTT LABORATORIES",
+    "stock:ABT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ACN",
+    "ACCENTURE PLC",
+    "stock:ACN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ACWI",
+    "iShares MSCI ACWI ETF",
+    "stock:ACWI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ADBE",
+    "ADOBE INC",
+    "stock:ADBE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ADI",
+    "ANALOG DEVICES INC.",
+    "stock:ADI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ADP",
+    "AUTOMATIC DATA PROCESSING INC",
+    "stock:ADP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ADS",
+    "ADIDAS AG",
+    "stock:ADS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AEG",
+    "AEGON LTD NPV",
+    "stock:AEG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AEM",
+    "AGNICO EAGLE MINES LIMITED",
+    "stock:AEM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AGRO",
+    "ADECOAGRO S.A.",
+    "stock:AGRO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AI",
+    "C3.AI INC",
+    "stock:AI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AIG",
+    "AMERICAN INTERNATIONAL GROUP INC (AIG)",
+    "stock:AIG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AKO.B",
+    "EMBOTELLADORA ANDINA S.A.",
+    "stock:AKO.B",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "ALAB",
+    "ASTERA LABS INC",
+    "stock:ALAB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AMAT",
+    "APPLIED MATERIALS INC.",
+    "stock:AMAT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AMD",
+    "Advanced Micro Devices",
+    "AMD AI chips processors",
+    "2026-07-02 18:52:15",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "AMGN",
+    "AMGEN INC.",
+    "stock:AMGN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AMX",
+    "AMERICA MOVIL-SPN ADR",
+    "stock:AMX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AMZN",
+    "Amazon.com, Inc.",
+    "stock:AMZN",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "ANET",
+    "ARISTA NETWORKS INC.",
+    "stock:ANET",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ANF",
+    "ABERCROMBIE & FITCH CO.",
+    "stock:ANF",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ARCO",
+    "ARCOS DORADOS HOLDINGS INC.",
+    "stock:ARCO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ARKK",
+    "ARK Innovation ETF",
+    "stock:ARKK",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "ARM",
+    "ARM HOLDINGS PLC",
+    "stock:ARM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ASML",
+    "ASML Holding NV",
+    "chips litografía semiconductores",
+    "2026-07-03 11:45:05",
+    "250",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "ASR",
+    "GRUPO AEROPORTUARIO DEL SURESTE , S.A.B. de C.V.",
+    "stock:ASR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ASTS",
+    "AST SPACEMOBILE INC",
+    "stock:ASTS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ATAD",
+    "TATNEFT PAO",
+    "stock:ATAD",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "AVGO",
+    "BROADCOM INC",
+    "stock:AVGO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AVY",
+    "AVERY DENNISON CORPORATION",
+    "stock:AVY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AXIA",
+    "AXIA ENERGIA",
+    "stock:AXIA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AXP",
+    "AMERICAN EXPRESS Co.",
+    "stock:AXP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "AZN",
+    "ASTRAZENECA PLC",
+    "stock:AZN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "B",
+    "BARRICK MINING CORPORATION",
+    "stock:B",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BA",
+    "BOEING CO/THE",
+    "stock:BA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BABA",
+    "ALIBABA GROUP HOLDING LIMITED",
+    "stock:BABA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BAC",
+    "BANK OF AMERICA CORPORATION",
+    "stock:BAC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BAK",
+    "BRASKEM SA",
+    "stock:BAK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BAS GR",
+    "BASF SE",
+    "stock:BAS GR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BAYN GR",
+    "BAYER AG",
+    "stock:BAYN GR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BB",
+    "BLACKBERRY LIMITED",
+    "stock:BB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BBD",
+    "BANCO BRADESCO, S.A.",
+    "stock:BBD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BBVA",
+    "BANCO BILBAO VIZCAYA-SP ADR",
+    "stock:BBVA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BCS",
+    "BARCLAYS BANK plc ADR",
+    "stock:BCS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BG",
+    "BUNGE LIMITED",
+    "stock:BG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BHP",
+    "BHP GROUP LTD",
+    "stock:BHP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BIDU",
+    "BAIDU, INC.",
+    "stock:BIDU",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BIIB",
+    "BIOGEN INC.",
+    "stock:BIIB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BIOX",
+    "BIOCERES CROP SOLUTIONS CORP",
+    "stock:BIOX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BKNG",
+    "BOOKING HOLDINGS INC.",
+    "stock:BKNG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BKR",
+    "BAKER HUGHES CO.",
+    "stock:BKR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BMNR",
+    "BITMINE INMERSION TECHNOLOGIES, INC.",
+    "stock:BMNR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BMY",
+    "BRISTOL MYERS SQUIBB COMPANY",
+    "stock:BMY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BNY",
+    "BANK OF NEW YORK MELLON CORP",
+    "stock:BNY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BP",
+    "BP PLC-SPONS ADR",
+    "stock:BP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BRFS",
+    "BRF S.A.",
+    "stock:BRFS",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "BRK/B",
+    "BERKSHIRE HATHAWAY INC",
+    "stock:BRK/B",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BRKB",
+    "Berkshire Hathaway Inc. Class B",
+    "stock:BRKB",
+    "2026-06-20 11:50:22",
+    "200",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BSBR",
+    "BANCO SANTANDER (BRASIL) S.A.",
+    "stock:BSBR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "BSN GR",
+    "DANONE",
+    "stock:BSN GR",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "BTC",
+    "Bitcoin",
+    "halving, etf, sec",
+    "2026-07-03 11:45:05",
+    "730",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "BX",
+    "BLACKSTONE INC.",
+    "stock:BX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "C",
+    "Citigroup Inc.",
+    "stock:C",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "CAAP",
+    "CORP AMERICA AIRPORTS SA",
+    "stock:CAAP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CAH",
+    "CARDINAL HEALTH INC",
+    "stock:CAH",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CAR",
+    "AVIS BUDGET GROUP INC.",
+    "stock:CAR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CAT",
+    "CATERPILLAR Inc.",
+    "stock:CAT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CBDBY",
+    "COMPANHIA BRASILEIRA DE DISTRIBUIÇÃO",
+    "stock:CBDBY",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "CCJ",
+    "Cameco Corporation",
+    "stock:CCJ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CCJ;CAMECO CORPORATION;URANIO ENERGÍA NUCLEAR;2026-05-31 17:40:03;250;GF_BRIDGE;ACTIVO",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  [
+    "CCL",
+    "CARNIVAL CORP. LTD",
+    "stock:CCL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CDE",
+    "COEUR MINING INC",
+    "stock:CDE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CEG",
+    "CONSTELLATION ENERGY CORPORATION",
+    "stock:CEG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CL",
+    "COLGATE PALMOLIVE COMPANY",
+    "stock:CL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CLS",
+    "CELESTICA INC",
+    "stock:CLS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "COIN",
+    "COINBASE GLOBAL INC",
+    "stock:COIN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "COP",
+    "CONOCOPHILLIPS",
+    "stock:COP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "COPX",
+    "GLOBAL X COPPER MINERS ETF",
+    "stock:COPX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "COST",
+    "COSTCO WHOLSALE CORP",
+    "stock:COST",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CRM",
+    "SALESFORCE INC.",
+    "stock:CRM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CRWD",
+    "CROWDSTRIKE HOLDINGS, INC.",
+    "stock:CRWD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CRWV",
+    "COREWEAVE INC",
+    "stock:CRWV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CSCO",
+    "CISCO SYSTEMS INC",
+    "stock:CSCO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CVS",
+    "CVS HEALTH CORP.",
+    "stock:CVS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "CVX",
+    "Chevron Corp.",
+    "Chevron oil production energy",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "CX",
+    "CEMEX S.A. de C.V.",
+    "stock:CX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DAL",
+    "DELTA AIR LINES INC.",
+    "stock:DAL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DD",
+    "DUPONT DE NOMOURS INC",
+    "stock:DD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DE",
+    "DEERE & COMPANY",
+    "stock:DE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DECK",
+    "DECKERS OUTDOOR CORPORATION",
+    "stock:DECK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DEO",
+    "DIAGEO PLC ADR",
+    "stock:DEO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DHR",
+    "DANAHER CORP.",
+    "stock:DHR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DIS",
+    "The Walt Disney Company",
+    "stock:DIS",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "DISN",
+    "The Walt Disney Company",
+    "stock:DISN",
+    "2026-06-20 11:50:22",
+    "200",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DOCU",
+    "DOCUSIGN INC",
+    "stock:DOCU",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DOW",
+    "DOW INC",
+    "stock:DOW",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "DTEA GR",
+    "DEUTSCHE TELEKOM AG ADR",
+    "stock:DTEA GR",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "E",
+    "ENI SPA - ADR",
+    "stock:E",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "EA",
+    "ELECTRONIC ARTS INC",
+    "stock:EA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "EBAY",
+    "EBAY INC.",
+    "stock:EBAY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ECL",
+    "ECOLAB INC",
+    "stock:ECL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "EFA",
+    "iShares MSCI EAFE ETF",
+    "stock:EFA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "EFX",
+    "EQUIFAX INC",
+    "stock:EFX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ELPC",
+    "COMPANHIA PARANAENSE DE ENERGIA-COPEL",
+    "stock:ELPC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "EMBJ",
+    "EMBRAER-EMPRESA BRASILEIRA DE AERONÁUTICA S.A.",
+    "stock:EMBJ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "EOAN GR",
+    "E.ON SE",
+    "stock:EOAN GR",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "EQNR",
+    "EQUINOR ASA",
+    "stock:EQNR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ERIC",
+    "LM ERICSSON TELEPHONE Co. ADR",
+    "stock:ERIC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ESGU",
+    "ISHARES ESG AWARE MSCI USA ETF",
+    "stock:ESGU",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ETH",
+    "Ethereum",
+    "Criptomonedas",
+    "2026-06-20 11:50:22",
+    "730",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ETHA",
+    "iShares Ethereum Trust",
+    "Ethereum ETF, ETH spot price, SEC crypto approval",
+    "2026-06-20 11:50:22",
+    "200",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ETSY",
+    "ETSY INC",
+    "stock:ETSY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "EWJ",
+    "iShares MSCI JAPAN ETF",
+    "stock:EWJ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FCX",
+    "FREEPORT MCMORAN INC.",
+    "stock:FCX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FDX",
+    "FEDEX CORP",
+    "stock:FDX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FISV",
+    "Fiserv, Inc.",
+    "stock:FISV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FMX",
+    "FOMENTO ECONOMICO MEXICANO - FEMSA ADR",
+    "stock:FMX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FNMA",
+    "FED. NATL, MORT - FANNIE MAE",
+    "stock:FNMA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FREDDIE MAC",
+    "FREDDIE MAC (FEDERAL HOME LOAN MORTGAGE CORP.)",
+    "stock:FREDDIE MAC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FSLR",
+    "FIRST SOLAR INC.",
+    "stock:FSLR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "FXI",
+    "ISHARES CHINA LARGE-CAP ETF",
+    "stock:FXI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GDX",
+    "Van Eck Gold Miners ETF/USA",
+    "stock:GDX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GE",
+    "GE AEROSPACE.",
+    "stock:GE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GFI",
+    "GOLD FIELDS LTD.",
+    "stock:GFI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GGB",
+    "GERDAU S.A.",
+    "stock:GGB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GILD",
+    "GILEAD SCIENCES, INC.",
+    "stock:GILD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GLD",
+    "SPDR Gold Shares",
+    "Oro",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "GLNG",
+    "GOLAR LNG LTD.",
+    "stock:GLNG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GLOB",
+    "GLOBANT S.A.",
+    "stock:GLOB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GLW",
+    "CORNING INCORPORATED",
+    "stock:GLW",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GM",
+    "GENERAL MOTORS CO",
+    "stock:GM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GOOGL",
+    "ALPHABET INC-CL A",
+    "stock:GOOGL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GPRK",
+    "GEOPARK LTD",
+    "stock:GPRK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GRMN",
+    "GARMIN LTD.",
+    "stock:GRMN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GS",
+    "THE GOLDMAN SACHS GROUP, INC",
+    "stock:GS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GSK",
+    "GSK PLC",
+    "stock:GSK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "GT",
+    "GOODYEAR TIRE & RUBBER CO./THE",
+    "stock:GT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HAL",
+    "HALLIBURTON CO",
+    "stock:HAL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HD",
+    "HOME DEPOT INC.",
+    "stock:HD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HDB",
+    "HDFC BANK LIMITED",
+    "stock:HDB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HHPD LI",
+    "HON HAI PRECISION INDUSTRY CO. LTD.",
+    "stock:HHPD LI",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "HIMS",
+    "Hims & Hers Health, Inc.",
+    "stock:HIMS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HL",
+    "HECLA MINING CO",
+    "stock:HL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HMC",
+    "HONDA MOTOR  CO. LTD",
+    "stock:HMC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HMY",
+    "HARMONY GOLD MINING COMPANY LTD.",
+    "stock:HMY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HOG",
+    "HARLEY DAVIDSON INC.",
+    "stock:HOG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HON",
+    "HONEYWELL INTERNATIONAL INC",
+    "stock:HON",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HOOD",
+    "ROBINHOOD MARKETS INC",
+    "stock:HOOD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HPQ",
+    "HP Inc",
+    "stock:HPQ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HSBC",
+    "HSBC HOLDINGS plc ADR",
+    "stock:HSBC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HSY",
+    "THE HERSHEY COMPANY",
+    "stock:HSY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "HWM",
+    "HOWMET AEROSPACE INC",
+    "stock:HWM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IBB",
+    "iShares Nasdaq Biotechnology Cedears Shares",
+    "stock:IBB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IBIT",
+    "ISHARES BITCOIN TRUST",
+    "stock:IBIT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IBM",
+    "IBM Corp.",
+    "stock:IBM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IBN",
+    "ICICI BANK LTD",
+    "stock:IBN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IEMG",
+    "iShares Core MSCI Emerging Markets ETF",
+    "stock:IEMG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IEUR",
+    "iShares Core MSCI Europe Cedears Shares",
+    "stock:IEUR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IFF",
+    "INTERNATIONAL FLAVORS & FRAGRANCE INC.",
+    "stock:IFF",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IJH",
+    "iShares CORE S&P MID-CAP ETF",
+    "stock:IJH",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ILF",
+    "ISHARES LATIN AMERICA 40 ETF",
+    "stock:ILF",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "INFY",
+    "INFOSYS LIMITED",
+    "stock:INFY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ING",
+    "ING Group NV ADR",
+    "stock:ING",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "INTC",
+    "INTEL  Corporation",
+    "stock:INTC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IP",
+    "INTERNATIONAL PAPER Co.",
+    "stock:IP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IREN",
+    "IREN LTD",
+    "stock:IREN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ISRG",
+    "INTUITIVE SURGICAL INC.",
+    "stock:ISRG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ITUB",
+    "ITAÚ UNIBANCO HOLDING S.A.",
+    "stock:ITUB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IVE",
+    "iShares S&P 500 Value Cedears Shares",
+    "stock:IVE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IVV",
+    "ISHARES CORE S&P 500 ETF",
+    "stock:IVV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IVW",
+    "iShares S&P 500 Growth Cedears Shares",
+    "stock:IVW",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "IWDA LN",
+    "iShares Core MSCI World UCITS ETF",
+    "stock:IWDA LN",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "JCI",
+    "JOHNSON CONTROLS INTERNATIONAL",
+    "stock:JCI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "JD",
+    "JD.COM, INC.",
+    "stock:JD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "JNJ",
+    "JOHNSON & JOHNSON",
+    "stock:JNJ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "JOYY",
+    "JOYY Inc.",
+    "stock:JOYY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "JPM",
+    "J.P. MORGAN & CHASE Co.",
+    "stock:JPM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "KB",
+    "KB FINANCIAL GROUP INC.",
+    "stock:KB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "KEP",
+    "KOREA ELECTRIC POWER CORP.",
+    "stock:KEP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "KGC",
+    "KINROSS GOLD CORP.",
+    "stock:KGC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "KMB",
+    "KIMBERLY CLARK CORPORATION",
+    "stock:KMB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "KO",
+    "Coca-Cola Co.",
+    "Coca-Cola earnings consumer demand",
+    "2026-07-02 18:52:15",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "KOF",
+    "COCA-COLA FEMSA, S.A.B DE CV",
+    "stock:KOF",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LAC",
+    "LITHIUM AMERICAS CORP",
+    "stock:LAC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LAR",
+    "LITHIUM ARGENTINA AG.",
+    "stock:LAR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LKOD",
+    "LUKOIL PJSC",
+    "stock:LKOD",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "LLY",
+    "ELI LILLY AND COMPANY",
+    "stock:LLY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LMT",
+    "LOCKHEED MARTIN CORPORATION",
+    "stock:LMT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LND",
+    "BRASILAGRO - CO BRASILEIRA DE PROPRIEDADES AGRICOLAS",
+    "stock:LND",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LRCX",
+    "LAM RESEARCH CORP",
+    "stock:LRCX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LVS",
+    "LAS VEGAS SANDS CORP.",
+    "stock:LVS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "LYG",
+    "LLOYDS BANKING GROUP plc.",
+    "stock:LYG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MA",
+    "MASTERCARD INC",
+    "stock:MA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MBG GR",
+    "MERCEDES-BENZ AG",
+    "stock:MBG GR",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "MBT",
+    "MOBILE TELESYSTEMS",
+    "stock:MBT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MCD",
+    "Mc DONALD'S Corp.",
+    "stock:MCD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MDLZ",
+    "MONDELEZ INTERNATIONAL, INC.",
+    "stock:MDLZ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MDT",
+    "MEDTRONIC PLC",
+    "stock:MDT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MELI",
+    "MERCADOLIBRE INC.",
+    "stock:MELI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "META",
+    "Meta Platforms, Inc.",
+    "stock:META",
+    "2026-07-02 18:52:15",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "MFG",
+    "MIZUHO FINANCIAL GROUP",
+    "stock:MFG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MMM",
+    "3M COMPANY",
+    "stock:MMM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MO",
+    "ALTRIA GROUP, INC",
+    "stock:MO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MP",
+    "MP Materials Corp.",
+    "stock:MP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MRK",
+    "MERCK & Co. Inc.",
+    "stock:MRK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MRNA",
+    "MODERNA INC.",
+    "stock:MRNA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MRSH",
+    "MARSH",
+    "stock:MRSH",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MRVL",
+    "MARVELL TECHNOLOGY INC",
+    "stock:MRVL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MSFT",
+    "MICROSOFT CORPORATION",
+    "stock:MSFT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MSI",
+    "MOTOROLA SOLUTIONS Inc.",
+    "stock:MSI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MU",
+    "Micron Technology",
+    "Micron DRAM memory chips",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "MUFG",
+    "MITSUBISHI UFJ FINANCIAL GROUP",
+    "stock:MUFG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "MUX",
+    "MCEWEN INC",
+    "stock:MUX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NBIS",
+    "Nebius Group N.V.",
+    "stock:NBIS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NEC1 GR",
+    "NEC CORPORATION",
+    "stock:NEC1 GR",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "NEE",
+    "NextEra Energy, Inc.",
+    "stock:NEE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NEM",
+    "NEWMONT  CORPORATION",
+    "stock:NEM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NFLX",
+    "NETFLIX INC",
+    "stock:NFLX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NG",
+    "NOVAGOLD RESOURCES INC.",
+    "stock:NG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NGG",
+    "NATIONAL GRID PLC-SP  ADR",
+    "stock:NGG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NIO",
+    "NIO INC",
+    "stock:NIO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NKE",
+    "Nike, Inc.",
+    "stock:NKE",
+    "2026-07-02 18:52:15",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "NLMK LI",
+    "NOVOLIPETSK STEEL PJSC",
+    "stock:NLMK LI",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "NMR",
+    "NOMURA HOLDINGS INC.",
+    "stock:NMR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NOK",
+    "NOKIA CORPORATION ADR",
+    "stock:NOK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NOW",
+    "SERVICENOW INC",
+    "stock:NOW",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NSANY",
+    "NISSAN MOTOR CO.",
+    "stock:NSANY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NTES",
+    "NETEASE, INC.",
+    "stock:NTES",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NU",
+    "NU HOLDINGS LTD/CAYMAN ISLANDS",
+    "stock:NU",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NUE",
+    "NUCOR CORPORATION",
+    "stock:NUE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NVDA",
+    "NVIDIA CORPORATION",
+    "stock:NVDA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NVO",
+    "NOVO NORDISK A/S",
+    "stock:NVO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NVS",
+    "NOVARTIS AG - ADR",
+    "stock:NVS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "NXE",
+    "NEXGEN ENERGY LTD",
+    "stock:NXE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "O",
+    "REALTY INCOME CORP.",
+    "stock:O",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "OGZD",
+    "GAZPROM PJSC",
+    "stock:OGZD",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "OKLO",
+    "OKLO INC",
+    "stock:OKLO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ONDS",
+    "ONDAS HOLDINGS INC.",
+    "stock:ONDS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ORANY",
+    "ORANGE",
+    "stock:ORANY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ORCL",
+    "ORACLE CORPORATION",
+    "stock:ORCL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ORLY",
+    "O'REILLY AUTOMOTIVE INC.",
+    "stock:ORLY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PAAS",
+    "PAN AMERICAN SILVER CORP",
+    "stock:PAAS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PAC",
+    "GRUPO AEROPORTUARIO DEL PACIFICO, S.A.B. de C.V.",
+    "stock:PAC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PAGS",
+    "PAGSEGURO DIGITAL LTD",
+    "stock:PAGS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PATH",
+    "UIPATH INC",
+    "stock:PATH",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PBI",
+    "PITNEY BOWES INC",
+    "stock:PBI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PBR",
+    "PETROLEO BRASILEIRO - PETROBRAS (ADR)",
+    "stock:PBR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PCAR",
+    "PACCAR INC",
+    "stock:PCAR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PDD",
+    "PDD HOLDINGS INC",
+    "stock:PDD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PEP",
+    "PEPSICO INC",
+    "stock:PEP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PFE",
+    "PFIZER INC",
+    "stock:PFE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PG",
+    "PROCTER & GAMBLE Co.",
+    "stock:PG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PHG",
+    "KONINKLIJKE PHILIPS N.V",
+    "stock:PHG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PINS",
+    "PINTEREST INC.",
+    "stock:PINS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PKX",
+    "POSCO HOLDINGS INC",
+    "stock:PKX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PLTR",
+    "PALANTIR TECHNOLOGIES INC",
+    "stock:PLTR",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PM",
+    "PHILIP MORRIS INTERNATIONAL INC.",
+    "stock:PM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PSO",
+    "PEARSON PLC.",
+    "stock:PSO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PSQ",
+    "PROSHARES SHORT QQQ",
+    "stock:PSQ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PSX",
+    "PHILLIPS 66",
+    "stock:PSX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "PYPL",
+    "PAYPAL HOLDINGS, INC.",
+    "stock:PYPL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "QCOM",
+    "QUALCOMM INCORPORATED",
+    "stock:QCOM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "QQQ",
+    "Invesco QQQ Trust (Nasdaq)",
+    "Tecnología USA",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "RACE",
+    "FERRARI NV",
+    "stock:RACE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "RGTI",
+    "RIGETTI COMPUTING INC",
+    "stock:RGTI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "RIO",
+    "RIO TINTO PLC - ADR",
+    "stock:RIO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "RIOT",
+    "RIOT PLATFORMS INC.",
+    "stock:RIOT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "RKLB",
+    "ROCKET LAB CORP",
+    "stock:RKLB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ROKU",
+    "ROKU INC.",
+    "stock:ROKU",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ROST",
+    "ROSS STORES, INC.",
+    "stock:ROST",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "RTX",
+    "RTX CORPORATION",
+    "stock:RTX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SAN",
+    "BANCO SANTANDER  S.A. (ADR)",
+    "stock:SAN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SAP",
+    "SAP SE",
+    "stock:SAP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SBS",
+    "COMPANHIA DE SANEAMENTO BÁSICO DO ESTADO DE SÃO PAULO–SABESP",
+    "stock:SBS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SBUX",
+    "STARBUCKS CORPORATION",
+    "stock:SBUX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SCCO",
+    "SOUTHERN COPPER CORP.",
+    "stock:SCCO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SCHW",
+    "CHARLES SCHWAB CORP.",
+    "stock:SCHW",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SDA",
+    "SUNCAR TECHNOLOGY GROUP INC",
+    "stock:SDA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SE",
+    "SEA LTD",
+    "stock:SE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SHEL",
+    "SHELL PLC",
+    "stock:SHEL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SHOP",
+    "SHOPIFY INC",
+    "stock:SHOP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SHPWQ",
+    "SHAPEWAYS HOLDINGS INC**",
+    "stock:SHPWQ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SID",
+    "COMPANHIA SIDERÚRGICA NACIONAL",
+    "stock:SID",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SIEGY",
+    "SIEMENS AG ADR",
+    "stock:SIEGY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SLB",
+    "SLB LTD",
+    "stock:SLB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SLV",
+    "iShares SILVER TRUST",
+    "stock:SLV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SMSN LI",
+    "SAMSUNG ELECTRONICS CO. LTD.",
+    "stock:SMSN LI",
+    "2026-06-20 11:50:22",
+    "250",
+    "",
+    "INACTIVO"
+  ],
+  [
+    "SNA",
+    "SNAP-ON INCORPORATED",
+    "stock:SNA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SNAP",
+    "SNAP INC.",
+    "stock:SNAP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SNDK",
+    "Sandisk Corporation",
+    "stock:SNDK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SNOW",
+    "SNOWFLAKE INC",
+    "stock:SNOW",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SONY",
+    "SONY GROUP CORPORATION",
+    "stock:SONY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SPCE",
+    "VIRGIN GALACTIC HOLDINGS INC.",
+    "stock:SPCE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SPCX",
+    "SPACE EXPLORATION TECHNOLOGIES CORP.",
+    "stock:SPCX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SPGI",
+    "S&P GLOBAL INC",
+    "stock:SPGI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SPGY",
+    "SPDR Portfolio S&P 500 Growth ETF",
+    "stock:SPGY",
+    "2026-05-26 16:57:54",
+    "200",
+    "",
+    "NO ACTIVO"
+  ],
+  [
+    "SPHQ",
+    "Invesco S&P 500 Quality ETF",
+    "stock:SPHQ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SPOT",
+    "SPOTIFY TECHNOLOGY SA",
+    "stock:SPOT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SPY",
+    "SPDR S&P 500 ETF Trust",
+    "Mercado USA",
+    "2026-06-20 11:50:22",
+    "200",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SPYG",
+    "SPDR Portfolio S&P 500 Growth ETF",
+    "SPYG ETF, growth stocks, S&P 500 Growth Index",
+    "2026-06-20 11:50:22",
+    "200",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "STLA",
+    "STELLANTIS NV",
+    "stock:STLA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "STNE",
+    "STONECO LTD",
+    "stock:STNE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SUZ",
+    "SUZANO SA",
+    "stock:SUZ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SWKS",
+    "SKYWORKS SOLUTIONS INC.",
+    "stock:SWKS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "SYY",
+    "SYSCO CORPORATION",
+    "stock:SYY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "T",
+    "AT&T INC",
+    "stock:T",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TCOM",
+    "TRIP.COM Group Ltd.",
+    "stock:TCOM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TEAM",
+    "ATLASSIAN CORPORATION",
+    "stock:TEAM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TELFY",
+    "TELEFONICA S.A. ADR",
+    "stock:TELFY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TEM",
+    "TEMPUS AI INC",
+    "stock:TEM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TGT",
+    "TARGET CORPORATION",
+    "stock:TGT",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TIIAY",
+    "TELECOM ITALIA SPA ADR",
+    "stock:TIIAY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TIMB",
+    "TIM PARTICIPAÇÕES S.A.",
+    "stock:TIMB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TJX",
+    "TJX COMPANIES INC./THE",
+    "stock:TJX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TM",
+    "TOYOTA MOTOR CORPORATION ADR",
+    "stock:TM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TMO",
+    "THERMO FISHER SCIENTIFIC INC.",
+    "stock:TMO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TMUS",
+    "T-MOBILE US INC.",
+    "stock:TMUS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TRIP",
+    "TRIPADVISOR, INC.",
+    "stock:TRIP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TRV",
+    "The Travelers Companies, Inc.",
+    "stock:TRV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TS",
+    "TENARIS S.A. (ADS)",
+    "stock:TS",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TSLA",
+    "Tesla Inc.",
+    "Tesla EV deliveries Elon Musk",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "TSM",
+    "TAIWAN SEMICONDUCTOR MANUFACTURING",
+    "stock:TSM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TTE",
+    "TotalEnergies SE - ADR",
+    "stock:TTE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TV",
+    "GRUPO TELEVISA S.A. ADR",
+    "stock:TV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TWLO",
+    "TWILIO INC",
+    "stock:TWLO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TX",
+    "TERNIUM S.A.",
+    "stock:TX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "TXN",
+    "TEXAS INSTRUMENTS INCORPORATED",
+    "stock:TXN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "UGP",
+    "ULTRAPAR PARTICIPAÇÕES S.A.",
+    "stock:UGP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "UL",
+    "UNILEVER PLC-SPONSORED ADR",
+    "stock:UL",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "UNH",
+    "UNITEDHEALTH GROUP INC",
+    "stock:UNH",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "UNP",
+    "UNION PACIFIC CORP",
+    "stock:UNP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "URBN",
+    "URBAN OUTFITTERS, INC.",
+    "stock:URBN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "USB",
+    "U.S. BANCORP",
+    "stock:USB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "USDARS",
+    "Dólar Oficial Arg",
+    "Dolar Blue, CCL, MEP, BCRA reservas, brecha cambiaria",
+    "2026-07-02 18:52:15",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "USO",
+    "United States Oil Fund, LP",
+    "stock:USO",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "V",
+    "VISA INC",
+    "stock:V",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VALE",
+    "VALE S.A.",
+    "stock:VALE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VEA",
+    "Vanguard FTSE Developed Markets Cedears Shares",
+    "stock:VEA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VIG",
+    "VANGUARD DIVIDEND APPRECIATION",
+    "stock:VIG",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VIST",
+    "Vista Energy, S.A.B. de C.V.",
+    "Vista Energy, Vaca Muerta, Miguel Galuccio",
+    "2026-07-02 18:52:15",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "VIV",
+    "TELEFÔNICA BRASIL S.A.",
+    "stock:VIV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VOD",
+    "VODAFONE GROUP plc. ADR",
+    "stock:VOD",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VRSN",
+    "VERISIGN, INC.",
+    "stock:VRSN",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VRTX",
+    "VERTEX PHARMACEUTICALS INC",
+    "stock:VRTX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VST",
+    "VISTRA CORPORATION",
+    "stock:VST",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "VZ",
+    "VERIZON COMMUNICATIONS INC.",
+    "stock:VZ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "WB",
+    "WEIBO CORPORATION",
+    "stock:WB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "WBA",
+    "WALGREENS BOOTS ALLIANCE INC",
+    "stock:WBA",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "WFC",
+    "WELLS FARGO & COMPANY",
+    "stock:WFC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "WMT",
+    "Walmart Inc.",
+    "stock:WMT",
+    "2026-07-03 11:45:05",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "XLB",
+    "State Street Materials Select Sector SPDR ETF",
+    "stock:XLB",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XLC",
+    "State Street Communication Services Select Sector SPDR ETF",
+    "stock:XLC",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XLI",
+    "State Street Industrials Select Sector SPDR ETF",
+    "stock:XLI",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XLK",
+    "State Street Technology Select Sector SPDR ETF",
+    "stock:XLK",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XLP",
+    "State Street Consumer Staples Select Sector SPDR ETF",
+    "stock:XLP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XLRE",
+    "State Street Real Estate Select Sector SPDR ETF",
+    "stock:XLRE",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XLV",
+    "State Street Health Care Select Sector SPDR ETF",
+    "stock:XLV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XLY",
+    "State Street Consumer Discretionary Select Sector SPDR ETF",
+    "stock:XLY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XOM",
+    "Exxon Mobil Corp.",
+    "Exxon Mobil quarterly results oil",
+    "2026-07-02 18:52:15",
+    "200",
+    "GF_BRIDGE",
+    "ACTIVO"
+  ],
+  [
+    "XP",
+    "XP INC",
+    "stock:XP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XPEV",
+    "XPENG INC",
+    "stock:XPEV",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XRX",
+    "XEROX HOLDING CORPORATION",
+    "stock:XRX",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "XYZ",
+    "BLOCK, INC",
+    "stock:XYZ",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "YELP",
+    "YELP INC.",
+    "stock:YELP",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "YZCAY",
+    "YANKUANG ENERGY GROUP CO. LTD.",
+    "stock:YZCAY",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ],
+  [
+    "ZM",
+    "ZOOM COMMUNICATIONS INC",
+    "stock:ZM",
+    "2026-06-20 11:50:22",
+    "250",
+    "GF_BRIDGE",
+    "INACTIVO"
+  ]
+]

@@ -1,0 +1,12 @@
+[
+  [
+    "FECHA_HORA",
+    "TICKER",
+    "PRECIO_ARS",
+    "PRECIO_USD",
+    "BRECHA_PERC",
+    "SENTIMIENTO_IA",
+    "VEREDICTO_IA",
+    "RECOMENDACION_DETALLE"
+  ]
+]

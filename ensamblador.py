@@ -14,6 +14,7 @@ import auth_google
 import procesamiento
 import config
 import logging_config
+import notificador_telegram
 
 logger = logging_config.get_logger(__name__)
 
@@ -34,6 +35,8 @@ def ejecutar_pipeline():
     logger.info("[+] INICIANDO PIPELINE DE INVERSIONES")
     logger.info(f"[*] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("==================================================")
+    
+    notificador_telegram.enviar_mensaje_telegram("🚀 *[Ensamblador]* Iniciando Pipeline Global de Inversiones...")
     
     # Pre-flight check: Verificar conexión a Sheets
     sh = auth_google.conectar()
@@ -213,6 +216,7 @@ def ejecutar_pipeline():
     logger.info(f"==================================================")
     
     procesamiento.registrar_log(ws_log, "INFO", resumen_final, "ENSAMBLADOR")
+    notificador_telegram.enviar_mensaje_telegram(f"✅ *[Ensamblador]* Pipeline completado con éxito en {tiempo_str}.")
     # Ahora pasamos el tiempo total a la tabla de estados
     procesamiento.actualizar_estado_proceso(ws_status, "OK", resumen_final, tiempo_ejecucion=tiempo_str)
     return True
@@ -231,6 +235,7 @@ def cancelar_pipeline(ws_log, ws_status, razon, t_inicio=None):
     logger.critical(f"==================================================")
     
     procesamiento.registrar_log(ws_log, "CRITICAL", msg, "ENSAMBLADOR")
+    notificador_telegram.enviar_mensaje_telegram(f"❌ *[Ensamblador]* Pipeline cancelado. Motivo: {razon[:150]}")
     procesamiento.actualizar_estado_proceso(ws_status, "ERROR", msg[:100], tiempo_ejecucion=duracion)
     return False
 

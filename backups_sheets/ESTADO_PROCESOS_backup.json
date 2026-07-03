@@ -1,0 +1,114 @@
+[
+  [
+    "Nombre_Proceso",
+    "Ultima_Corrida",
+    "Estado",
+    "Detalle",
+    "Tiempo_Ejecucion"
+  ],
+  [
+    "ensamblador",
+    "2026-07-03 13:57:24",
+    "🟢 OK",
+    "PIPELINE COMPLETADO CON ÉXITO",
+    "8.39 min"
+  ],
+  [
+    "main",
+    "2026-07-03 13:49:37",
+    "🟢 OK",
+    "OK: 3 variables procesadas.",
+    "0.21 min"
+  ],
+  [
+    "main_tecnico",
+    "2026-07-03 13:50:44",
+    "🟢 OK",
+    "Análisis técnico finalizado con éxito: 20 activos.",
+    "0.2 min"
+  ],
+  [
+    "decisor_con_ia",
+    "2026-07-03 13:57:22",
+    "🟢 OK",
+    "Recs: 20",
+    "2.42 min"
+  ],
+  [
+    "carga_historica_bridge",
+    "2026-07-03 13:50:31",
+    "🟢 OK",
+    "Sincronizados 0 registros en 0 activos.",
+    "0.83 min"
+  ],
+  [
+    "limpieza_log",
+    "2026-07-03 13:49:29",
+    "🟢 OK",
+    "Sin cambios significativos (0 filas)",
+    "0.02 min"
+  ],
+  [
+    "limpieza_historico",
+    "2026-07-03 13:49:51",
+    "🟢 OK",
+    "Sin cambios significativos (0 filas)",
+    "0.07 min"
+  ],
+  [
+    "limpieza_ia",
+    "2026-07-03 13:55:03",
+    "🟢 OK",
+    "Sin cambios significativos (0 filas)",
+    "0.03 min"
+  ],
+  [
+    "captura_noticias",
+    "2026-07-03 13:54:49",
+    "🟢 OK",
+    "Finalizado: 25 procesadas (12 aprobadas, 13 descartadas).",
+    "4.07 min"
+  ],
+  [
+    "limpieza_sugerencias_sinonimos",
+    "2026-07-03 13:50:51",
+    "🟢 OK",
+    "Sin cambios significativos (33 filas)",
+    "0.02 min"
+  ],
+  [
+    "supervisor_del_sistema",
+    "2026-07-03 12:57:31",
+    "🟢 OK",
+    "Informe generado (gemini-2.5-flash)",
+    "1.93 min"
+  ],
+  [
+    "captura_cedears",
+    "2026-06-20 11:42:50",
+    "🟢 OK",
+    "Sincronización de CEDEARs Comafi exitosa. 358 activos registrados.",
+    "0.21 min"
+  ],
+  [
+    "mantenimiento_maestro",
+    "2026-06-21 18:52:15",
+    "🟢 OK",
+    "Sincronización Maestro OK. Desactivados: 0. Agregados: 0. Total: 372.",
+    "0.13 min"
+  ],
+  [
+    "valorador_cartera",
+    "2026-07-03 13:54:56",
+    "🟢 OK",
+    "Valuación completada. Se grabaron 22 registros de cartera.",
+    "0.11 min"
+  ],
+  [
+    "limpieza_noticias_sistema",
+    "2026-07-02 18:52:44",
+    "🔴 ERROR",
+    "APIError: [429]: Quota exceeded for quota metric '",
+    "0.00 min"
+  ]
+]

@@ -241,16 +241,16 @@ def ejecutar_supervisor():
             - [SECCIÓN 4: REGLAS ADICIONALES]
  
         ESTRUCTURA DEL INFORME:
-        - 💰 ESTRATEGIA DE CARTERA (Rebalanceo de Cartera, órdenes de compra/venta y cotizaciones)
-        - 🧠 MEJORA DE DATOS (Filtros de búsqueda, nuevos Tickers y Sinónimos)
-        - 📊 AUDITORÍA DE NOTICIAS VS DECISIÓN (Calidad del Triage)
-        - 📉 CONTRADICCIONES TÉCNICAS (Veredicto IA vs Indicadores)
-        - 📏 ERRORES DE ESCALA (Activos bloqueados por seguridad 15x)
-        - 🕒 SINCRONIZACIÓN DE DATOS (Avisos de discrepancia de fechas)
-        - ⚠️ ALERTAS Y CALIDAD (Anomalías detectadas y ajustes de IA)
-        - ⚙️ OPTIMIZACIÓN DE INSTRUCCIONES IA (Sugerencias estructuradas detallando el prompt, la sección sugerida exacta y la regla a insertar)
+        - ESTRATEGIA DE CARTERA (Rebalanceo de Cartera, órdenes de compra/venta y cotizaciones)
+        - MEJORA DE DATOS (Filtros de búsqueda, nuevos Tickers y Sinónimos)
+        - AUDITORIA DE NOTICIAS VS DECISION (Calidad del Triage)
+        - CONTRADICCIONES TECNICAS (Veredicto IA vs Indicadores)
+        - ERRORES DE ESCALA (Activos bloqueados por seguridad 15x)
+        - SINCRONIZACION DE DATOS (Avisos de discrepancia de fechas)
+        - ALERTAS Y CALIDAD (Anomalías detectadas y ajustes de IA)
+        - OPTIMIZACION DE INSTRUCCIONES IA (Sugerencias estructuradas detallando el prompt, la sección sugerida exacta y la regla a insertar)
 
-        REGLA DE FORMATO CRÍTICA: Comienza directamente con el encabezado de nivel 2 '## 💰 ESTRATEGIA DE CARTERA'. No incluyas ningún título de nivel 1 (#) ni preámbulos introductorios, ya que tu informe será concatenado a un encabezado estructurado por el sistema.
+        REGLA DE FORMATO CRÍTICA: Comienza directamente con el encabezado de nivel 2 '## ESTRATEGIA DE CARTERA'. No incluyas ningún título de nivel 1 (#) ni preámbulos introductorios, ya que tu informe será concatenado a un encabezado estructurado por el sistema. No uses emojis ni caracteres gráficos en los encabezados ni en el contenido del informe.
         """
 
         # 4. CONSULTA A GEMINI (Usamos Pro si está disponible para máxima calidad estratégica, con rotación en caso de error)

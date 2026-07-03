@@ -15,6 +15,7 @@ from pathlib import Path
 import ia_utils
 import auth_google
 import logging_config
+import notificador_telegram
 
 logger = logging_config.get_logger(__name__)
 
@@ -139,6 +140,7 @@ def ejecutar_decisor():
         ws_gen = {k.strip(): v for k, v in gen_data.items()}
         ws_reporte = sh.worksheet(config.WS_REPORTE_IA)
         ws_matriz = sh.worksheet(config.WS_MATRIZ_RECOMENDACIONES)
+        ws_historial = sh.worksheet(config.WS_HISTORIAL_VEREDICTOS)
 
         # --- CONTEXTO FINANCIERO INTEGRAL ---
         def get_df_raw(ws_name):
@@ -348,6 +350,14 @@ def ejecutar_decisor():
                                             detalle = f"{detalle} [Alerta MEP: Compra penalizada por sobreprecio cambiario de +{desvio_mep_pct:.1f}% respecto al Dólar MEP (${dolar_mep:.1f}). CCL Implícito: ${ccl_activo:.1f}]"
                                         else:
                                             detalle = f"{detalle} [Alerta MEP: Brecha cambiaria alta de +{desvio_mep_pct:.1f}% respecto al Dólar MEP (CCL: {ccl_activo:.1f} vs MEP: {dolar_mep:.1f})]"
+                                    elif desvio_mep <= 0.015:
+                                        if "BULL" in sentimiento or "COMPR" in sentimiento:
+                                            msg_tele = (
+                                                f"⚡ *[Oportunidad]* El CEDEAR *{ticker.upper()}* presenta brecha cambiaria baja del "
+                                                f"{desvio_mep * 100:.1f}% respecto al MEP de referencia (${dolar_mep:.1f}) y "
+                                                f"sentimiento alcista ({sentimiento}) para el perfil *{usuario_final}*."
+                                            )
+                                            notificador_telegram.enviar_mensaje_telegram(msg_tele)
 
                                 # 2. Desvío clásico contra la media de Cedears (para confluencia de mercado)
                                 if ccl_promedio > 0:
@@ -362,14 +372,14 @@ def ejecutar_decisor():
                                             detalle = f"{detalle} [Alerta CCL: El CEDEAR cotiza con un sobreprecio del +{desvio_pct:.1f}% respecto a la media de Cedears (CCL: {ccl_activo:.1f} vs Promedio: {ccl_promedio:.1f})]"
 
                         # Unificamos el formato: siempre mostramos la confluencia de noticias
-                        prefix = "⚠️ CONTRADICCIÓN TÉCNICA: " if "CONTRADICCION" in sentimiento else ""
+                        prefix = "CONTRADICCION TECNICA: " if "CONTRADICCION" in sentimiento else ""
                         veredicto_final = (
-                            f"🎯 HORIZONTE: {horiz.upper()}\n"
-                            f"🧠 CONVICCIÓN: {conviccion}\n"
-                            f"📊 SCORE: {score}/10\n"
-                            f"⚠️ RIESGO: {riesgo.upper()}\n"
-                            f"📰 CONFLUENCIA NOTICIAS: {conflu}\n"
-                            f"📝 ANÁLISIS: {prefix}{detalle}"
+                            f"HORIZONTE: {horiz.upper()}\n"
+                            f"CONVICCION: {conviccion}\n"
+                            f"SCORE: {score}/10\n"
+                            f"RIESGO: {riesgo.upper()}\n"
+                            f"CONFLUENCIA NOTICIAS: {conflu}\n"
+                            f"ANALISIS: {prefix}{detalle}"
                         )
                         
                         if "CONTRADICCION" in sentimiento:
@@ -445,6 +455,11 @@ def ejecutar_decisor():
         
         if reporte_acumulado:
             ws_reporte.append_rows(reporte_acumulado)
+            try:
+                ws_historial.append_rows(reporte_acumulado)
+                logger.info("[+] Historial de veredictos guardado en HISTORIAL_VEREDICTOS.")
+            except Exception as e_h:
+                logger.error(f"[-] No se pudo guardar historial de veredictos: {e_h}")
             
         if matriz_modificada:
             # Reordenar columnas para asegurar consistencia con el encabezado antes de grabar

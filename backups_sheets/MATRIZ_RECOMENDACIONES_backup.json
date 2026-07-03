@@ -1,0 +1,513 @@
+[
+  [
+    "FECHA",
+    "TICKER",
+    "PERFIL",
+    "SENTIMIENTO",
+    "VEREDICTO_IA"
+  ],
+  [
+    "2026-06-18 21:18:51",
+    "BRKB",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ No existen noticias específicas sobre Berkshire Hathaway (BRKB). El contexto macro local es irrelevante para este activo estadounidense. ALERTA DE MOMENTO SIN DRIVER.\n📝 ANÁLISIS: Mantener: El activo muestra una tendencia alcista técnica sólida y se encuentra cerca de su media móvil de 200 periodos (resistencia estructural). Dado que no hay noticias que impulsen el precio, es mejor conservar la posición y esperar a que confirme una ruptura clara sobre los 33.149."
+  ],
+  [
+    "2026-06-18 21:18:51",
+    "BRKB",
+    "LUIS_AGRESIVO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ No existen noticias específicas sobre Berkshire Hathaway (BRKB). Las señales técnicas son positivas (MACD alcista, PSAR alcista), pero el ADX indica una tendencia débil. ALERTA DE MOMENTO SIN DRIVER.\n📝 ANÁLISIS: Mantener: Aunque los indicadores técnicos de corto plazo son favorables, la falta de noticias y la proximidad a la resistencia técnica de la SMA200 sugieren cautela. No es momento de aumentar exposición hasta ver mayor volumen o una noticia catalizadora."
+  ],
+  [
+    "2026-06-18 21:19:24",
+    "DISN",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ No existen noticias específicas para el activo DISN (Disney); el contexto macro es irrelevante para este ticker. Existe una divergencia técnica entre el corto plazo alcista y la tendencia bajista de largo plazo.\n📝 ANÁLISIS: Esperar: El activo muestra señales técnicas contradictorias (rebote de corto plazo frente a una tendencia estructural bajista por debajo de la SMA200). Falta un catalizador fundamental específico que justifique una entrada. Nota: Análisis condicionado a la falta de noticias propias del activo."
+  ],
+  [
+    "2026-06-18 21:19:24",
+    "DISN",
+    "LUIS_AGRESIVO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ Sin noticias específicas para DISN. El indicador ADX sugiere una tendencia débil, lo que invalida la fuerza del movimiento alcista actual. Se observa una posición técnica frágil bajo la SMA200 (13331.47).\n📝 ANÁLISIS: Esperar: El activo se encuentra en una zona de indecisión técnica. Aunque el PSAR y el MACD sugieren un intento de recuperación, la tendencia de largo plazo es bajista y el mercado carece de volumen o noticias que confirmen un cambio de dirección. No arriesgar capital sin un driver claro."
+  ],
+  [
+    "2026-06-18 21:19:30",
+    "ETH",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Las señales técnicas (PSAR, MACD, DMI) son alcistas, pero el precio se encuentra significativamente por debajo de la SMA200 (tendencia bajista de largo plazo) y el RSI muestra debilidad. Las noticias locales positivas sobre impuestos compensan parcialmente la incertidumbre macro global.\n📝 ANÁLISIS: Esperar: Aunque hay noticias favorables para el sector cripto en Argentina, la tendencia estructural a largo plazo sigue siendo bajista y el activo no logra superar sus medias móviles clave. Es prudente aguardar una confirmación de ruptura al alza sobre la SMA20 antes de tomar posición."
+  ],
+  [
+    "2026-06-18 21:19:30",
+    "ETH",
+    "LUIS_AGRESIVO",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 6/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ✅ Las noticias recientes sobre la eliminación de impuestos para criptomonedas actúan como un catalizador positivo que se alinea con la configuración técnica de corto plazo (PSAR alcista y DMI con fuerza compradora).\n📝 ANÁLISIS: Comprar: Dada la mejora en el contexto regulatorio local y las señales técnicas de corto plazo, se puede tomar una posición especulativa. Advertencia: El activo opera debajo de la SMA200 (26.93), lo que implica que el riesgo de reversión sigue siendo elevado. Mantenga un stop-loss estricto."
+  ],
+  [
+    "2026-06-18 21:19:37",
+    "ETHA",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Los indicadores técnicos muestran señales alcistas de corto plazo (PSAR, MACD), pero el activo se encuentra operando significativamente por debajo de su SMA200 (21.54) y SMA50 (15.93), lo que marca una tendencia estructural bajista. Las noticias positivas sobre regulación cripto local intentan compensar la debilidad técnica, pero no son suficientes para revertir la estructura de largo plazo.\n📝 ANÁLISIS: Esperar: El activo muestra signos de rebote técnico, pero la estructura de precios sigue siendo débil. Dado que cotiza lejos de su media de 200 días, es prudente aguardar una consolidación sobre la SMA20 (13.88) antes de considerar una entrada, para evitar quedar atrapado en una tendencia bajista de fondo."
+  ],
+  [
+    "2026-06-18 21:19:37",
+    "ETHA",
+    "LUIS_AGRESIVO",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 7/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ✅ Existe una clara alineación entre los indicadores de corto plazo (PSAR, MACD, DMI alcista) y las noticias recientes de desregulación impositiva para el sector cripto en Argentina. El contexto macro local actúa como un catalizador positivo que podría impulsar el precio hacia la SMA20, a pesar de que la tendencia estructural de largo plazo (SMA200) sigue siendo bajista.\n📝 ANÁLISIS: Comprar: Aprovechar el momentum generado por la mejora regulatoria y la señal de compra del PSAR. Es una operación de alto riesgo enfocada en el corto plazo; se recomienda establecer un stop-loss estricto por debajo del mínimo reciente para proteger capital ante la tendencia bajista estructural que aún persiste."
+  ],
+  [
+    "2026-06-18 21:20:24",
+    "SPY",
+    "LUIS_MODERADO",
+    "CONTRADICCION",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: 🛑 Las noticias recientes (17/06) reportan un desplome en Wall Street, lo cual contradice la estructura técnica de largo plazo (SMA200 alcista y DMI fuerte). La incertidumbre actual invalida la continuidad del impulso previo.\n📝 ANÁLISIS: ⚠️ CONTRADICCIÓN TÉCNICA: Mantener: Ante la contradicción entre la fortaleza estructural de largo plazo y la reciente caída del mercado, es prudente no incrementar posiciones. Esperar a que la volatilidad se estabilice y el precio confirme un soporte firme por encima de la SMA50."
+  ],
+  [
+    "2026-06-18 21:20:24",
+    "SPY",
+    "LUIS_AGRESIVO",
+    "CONTRADICCION",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: 🛑 Existe una divergencia clara: mientras los indicadores técnicos (PSAR, DMI) sugieren una tendencia alcista, las noticias del 17/06 indican un desplome que pone a prueba los niveles técnicos. El mercado se encuentra en un punto de inflexión crítico.\n📝 ANÁLISIS: ⚠️ CONTRADICCIÓN TÉCNICA: Esperar: El MACD bajista junto con la noticia de desplome reciente sugiere un posible cambio de tendencia a corto plazo. No es momento de abrir posiciones largas agresivas hasta que el RSI supere su zona de indecisión y se confirme si el soporte de la SMA50 se mantiene."
+  ],
+  [
+    "2026-06-18 21:20:30",
+    "SPYG",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ No existen noticias específicas para el ETF SPYG (Growth) que actúen como driver directo; la tendencia técnica es alcista de fondo pero con señales de corto plazo mixtas.\n📝 ANÁLISIS: Mantener: El activo muestra fortaleza estructural por encima de sus medias móviles, pero la falta de noticias específicas y el PSAR bajista sugieren cautela. Es una ALERTA DE MOMENTO SIN DRIVER."
+  ],
+  [
+    "2026-06-18 21:20:30",
+    "SPYG",
+    "LUIS_AGRESIVO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de noticias relevantes para el sector tecnológico/growth que justifiquen una entrada agresiva inmediata. La contradicción entre el DMI (fuerza compradora) y el MACD/PSAR (señales bajistas) genera incertidumbre.\n📝 ANÁLISIS: Esperar: Dado que el MACD y el PSAR están en contra de la tendencia principal, no es momento de abrir posiciones. Se recomienda esperar a que el precio supere la resistencia técnica cercana o que el MACD revierta su señal."
+  ],
+  [
+    "2026-07-03 13:55:12",
+    "AAPL",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ No existen noticias específicas para AAPL que actúen como catalizador. La divergencia entre la tendencia técnica alcista y el DMI (fuerza vendedora) genera incertidumbre.\n📝 ANÁLISIS: Mantener: El activo muestra una tendencia técnica alcista de largo plazo, pero la fuerza vendedora actual en el DMI y la falta de noticias específicas sugieren cautela. Evitar compras adicionales bajo el actual CCL implícito. [Alerta MEP: Brecha cambiaria alta de +3.2% respecto al Dólar MEP (CCL: 1573.4 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:12",
+    "AAPL",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ Contexto macro irrelevante para el driver específico de la acción. La SMA200 (270.69) actúa como soporte, pero el RSI (60.26) no ofrece una señal clara de entrada.\n📝 ANÁLISIS: Mantener: No se observan señales de compra contundentes. La estructura técnica es estable, pero la falta de momentum positivo y la brecha cambiaria local desaconsejan incrementar la exposición en pesos en este momento. [Alerta MEP: Brecha cambiaria alta de +3.2% respecto al Dólar MEP (CCL: 1573.4 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:12",
+    "AAPL",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de drivers fundamentales. La alta volatilidad del mercado local y la divergencia técnica obligan a la prudencia.\n📝 ANÁLISIS: Esperar: El activo se encuentra por encima de sus medias móviles de 50 y 200 días, lo que es positivo, pero la inconsistencia entre el MACD alcista y la presión de venta en el DMI sugiere esperar una mayor consolidación. No comprar bajo las condiciones actuales de brecha cambiaria. [Alerta MEP: Brecha cambiaria alta de +3.2% respecto al Dólar MEP (CCL: 1573.4 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:19",
+    "AMD",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Señal técnica mixta: tendencia de largo plazo alcista respaldada por SMA200, pero DMI indica fuerza vendedora y MACD bajista. Noticias de producto son positivas pero no suficientes para revertir la inercia técnica actual.\n📝 ANÁLISIS: Esperar: El activo se encuentra en una zona de indecisión técnica. El alto CCL implícito penaliza la compra en pesos. Aguarde a que el MACD gire a alcista o el precio consolide por encima de la SMA20 antes de aumentar exposición. [Alerta MEP: Brecha cambiaria alta de +2.6% respecto al Dólar MEP (CCL: 1565.7 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:19",
+    "AMD",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚠️ El contexto técnico muestra debilidad (DMI bajista) que contradice la visión de largo plazo. El sobreprecio local (CCL) desaconseja la entrada en este momento para perfiles que buscan preservar capital.\n📝 ANÁLISIS: Mantener: No es momento de incrementar posiciones. El mercado presenta volatilidad y el arbitraje local es desfavorable. Mantenga su posición actual y supervise el soporte de la SMA200 (278.19) como referencia de valor estructural. [Alerta MEP: Brecha cambiaria alta de +2.6% respecto al Dólar MEP (CCL: 1565.7 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:19",
+    "AMD",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Existe una divergencia clara entre la tendencia de largo plazo y el momentum bajista actual. La inestabilidad cambiaria local y la falta de una señal técnica de compra clara hacen que el activo no cumpla con los requisitos de seguridad.\n📝 ANÁLISIS: Mantener: Evite realizar nuevas compras. La estructura técnica muestra señales de agotamiento y el diferencial de precio local (CCL) sugiere un sobrecosto innecesario. Priorice activos con menor volatilidad y mayor claridad tendencial. [Alerta MEP: Brecha cambiaria alta de +2.6% respecto al Dólar MEP (CCL: 1565.7 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:25",
+    "AMZN",
+    "LUIS",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ✅ Las señales técnicas (DMI, MACD, PSAR) confirman la tendencia alcista, respaldadas por noticias positivas sobre el Prime Day y la expansión en IA, aunque con cautela por los costos de hardware.\n📝 ANÁLISIS: Comprar: El activo muestra fuerza técnica clara. Dada la alta liquidez y el contexto favorable de los fundamentos de Amazon, se recomienda incrementar posición, vigilando la SMA20 como soporte dinámico. [Alerta MEP: Compra penalizada por sobreprecio cambiario de +3.9% respecto al Dólar MEP ($1525.3). CCL Implícito: $1584.4]"
+  ],
+  [
+    "2026-07-03 13:55:25",
+    "AMZN",
+    "LUIS_MODERADO",
+    "BULLISH",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ✅ La tendencia alcista estructural está confirmada por el precio por encima de la SMA200. Las noticias recientes mantienen un equilibrio entre expansión estratégica y costos, lo cual es saludable.\n📝 ANÁLISIS: Mantener: El activo se encuentra en una zona técnica sólida. Se recomienda mantener posiciones actuales y no ampliar hasta observar una estabilización de los costos operativos mencionados en las noticias más recientes. [Alerta MEP: Compra penalizada por sobreprecio cambiario de +3.9% respecto al Dólar MEP ($1525.3). CCL Implícito: $1584.4]"
+  ],
+  [
+    "2026-07-03 13:55:25",
+    "AMZN",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ La tendencia es alcista, pero la incertidumbre en los costos de las GPU y la volatilidad macro global sugieren prudencia. El RSI (48.7) indica que no hay sobrecompra, pero tampoco una señal de entrada obligatoria.\n📝 ANÁLISIS: Esperar: Aunque la tendencia de fondo es positiva, la falta de un catalizador de baja volatilidad y el impacto de los costos de IA invitan a esperar una consolidación más clara o un retroceso hacia la SMA200 antes de comprometer capital conservador. [Alerta MEP: Brecha cambiaria alta de +3.9% respecto al Dólar MEP (CCL: 1584.4 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:33",
+    "ARKK",
+    "LUIS",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 6/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ Sin noticias específicas que actúen como catalizador; la tendencia técnica es alcista pero el DMI muestra presión vendedora.\n📝 ANÁLISIS: Mantener: El activo muestra una tendencia técnica favorable por encima de sus medias clave, pero el RSI en 63.52 limita el potencial de compra agresiva. No se observa un driver fundamental claro, por lo que es preferible esperar una consolidación antes de incrementar posiciones."
+  ],
+  [
+    "2026-07-03 13:55:33",
+    "ARKK",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de noticias relevantes para el activo ARKK; la estructura técnica es sólida pero carece de confirmación fundamental.\n📝 ANÁLISIS: Mantener: La cotización se encuentra por encima de la SMA200 (8.26), lo que brinda soporte estructural, pero la divergencia en el DMI (fuerza vendedora) sugiere cautela. No es momento para nuevas entradas dado el entorno de incertidumbre macroeconómica global."
+  ],
+  [
+    "2026-07-03 13:55:33",
+    "ARKK",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ Sin drivers macroeconómicos que justifiquen una entrada conservadora en un activo de alta volatilidad como ARKK.\n📝 ANÁLISIS: Esperar: El activo se mantiene técnicamente sobre sus medias móviles, pero el perfil conservador debe priorizar la preservación del capital ante la falta de noticias positivas y la señal de alerta del DMI. Mantener la liquidez actual es la estrategia más prudente."
+  ],
+  [
+    "2026-07-03 13:55:39",
+    "ASML",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚠️ El contexto de noticias sobre TeraFab es positivo, pero el análisis técnico muestra una divergencia bajista con un MACD bajista y una fuerte presión vendedora en el DMI. La brecha cambiaria local actual penaliza la compra en pesos.\n📝 ANÁLISIS: Esperar: No es momento de abrir posiciones debido a la debilidad técnica de corto plazo y el sobreprecio en la cotización local. Aguardar a una normalización de la brecha y una señal de giro en el MACD. [Alerta MEP: Brecha cambiaria alta de +3.5% respecto al Dólar MEP (CCL: 1578.6 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:39",
+    "ASML",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚠️ La tendencia estructural de largo plazo sigue siendo alcista por la SMA200, pero la presión vendedora actual y la incertidumbre macroeconómica europea (BCE) invalidan una entrada en este punto.\n📝 ANÁLISIS: Mantener: Si ya posee el activo, mantenga su posición apoyado en la tendencia de fondo. Si busca comprar, la prudencia sugiere esperar a que la presión vendedora disminuya. Falta confirmación de soporte estructural sólido. [Alerta MEP: Brecha cambiaria alta de +3.5% respecto al Dólar MEP (CCL: 1578.6 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:39",
+    "ASML",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Los indicadores de corto plazo (MACD/DMI) muestran demasiada volatilidad y presión vendedora. La inestabilidad en la política monetaria europea añade un riesgo que no compensa la entrada para un perfil conservador.\n📝 ANÁLISIS: Esperar: El activo presenta riesgos técnicos significativos. Dado el alto valor del CCL implícito, comprar en pesos resulta ineficiente. No se recomienda la entrada hasta que el precio se consolide cerca de sus promedios móviles clave y disminuya la brecha cambiaria. [Alerta MEP: Brecha cambiaria alta de +3.5% respecto al Dólar MEP (CCL: 1578.6 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:46",
+    "BTC",
+    "LUIS",
+    "CONTRADICCION",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚠️ El DMI muestra fuerza compradora, pero el PSAR y la tendencia de largo plazo son bajistas. Las noticias negativas recientes (cierre de cajeros en España) chocan con la narrativa de adopción institucional.\n📝 ANÁLISIS: ⚠️ CONTRADICCIÓN TÉCNICA: Mantener: El activo se encuentra bajo la SMA200 (37.37), lo que indica debilidad estructural. Con un RSI de 41, no hay sobreventa clara para una entrada agresiva. Evite nuevas posiciones hasta que recupere la SMA20."
+  ],
+  [
+    "2026-07-03 13:55:46",
+    "BTC",
+    "LUIS_MODERADO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: 🛑 La tendencia técnica principal es bajista y el precio cotiza por debajo de todas las medias móviles relevantes (SMA20, 50, 200). El contexto regulatorio europeo añade incertidumbre que anula el optimismo de los futuros.\n📝 ANÁLISIS: Esperar: La estructura de mercado es bajista. No se recomienda exposición en este momento debido a la falta de soportes sólidos y la presión regulatoria internacional."
+  ],
+  [
+    "2026-07-03 13:55:46",
+    "BTC",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: 🛑 Existe una clara divergencia entre la volatilidad regulatoria y la tendencia bajista de largo plazo. El activo no ha demostrado capacidad de sostener soportes críticos.\n📝 ANÁLISIS: Vender: La tendencia bajista de largo plazo (SMA200) y el cierre de cajeros en Europa sugieren un entorno desfavorable para perfiles conservadores. Manténgase alejado de la volatilidad cripto hasta que la tendencia de largo plazo se revierta."
+  ],
+  [
+    "2026-07-03 13:55:52",
+    "C",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Existe una divergencia técnica: mientras el DMI confirma fuerza compradora a largo plazo, el MACD bajista y el PSAR sobre el precio sugieren una corrección técnica en el corto plazo que contradice el optimismo fundamental de la reestructuración.\n📝 ANÁLISIS: Esperar: El activo muestra una estructura técnica mixta. El CCL implícito sugiere una sobrevaloración local, por lo que no es momento de comprar en pesos. Aguarde a que el precio supere la SMA20 para confirmar el fin de la corrección actual. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1570.0 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:52",
+    "C",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Divergencia técnica: Los indicadores de tendencia de corto plazo (MACD/PSAR) son bajistas, lo que anula la señal de compra que podría desprenderse de la fortaleza estructural a largo plazo.\n📝 ANÁLISIS: Mantener: No aumente posiciones. El activo se encuentra en una zona de indecisión técnica. La falta de alineación entre los indicadores de corto y largo plazo desaconseja nuevas entradas en este momento. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1570.0 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:52",
+    "C",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Los indicadores de corto plazo (MACD/PSAR) son bajistas y el valor actual se encuentra operando bajo la SMA20, lo que aumenta la volatilidad innecesaria para un perfil conservador.\n📝 ANÁLISIS: Esperar: Priorice la preservación del capital. El activo muestra señales de debilidad técnica a corto plazo y el arbitraje cambiario local no favorece la compra. Manténgase líquido hasta ver una consolidación clara sobre la SMA50. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1570.0 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:59",
+    "CVX",
+    "LUIS",
+    "BEARISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ Sin noticias específicas de CVX que alteren la tendencia técnica bajista de largo plazo. El RSI en 35.49 sugiere margen para mayor caída antes de llegar a zona de sobreventa.\n📝 ANÁLISIS: Esperar: La tendencia es claramente bajista (MACD y PSAR confirmando). A pesar de la fuerza de los compradores en el DMI, la posición debajo de la SMA20 y SMA50 desaconseja compras hasta ver una ruptura de la SMA200 o un cambio en la estructura técnica. [Alerta MEP: Brecha cambiaria alta de +3.2% respecto al Dólar MEP (CCL: 1574.5 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:59",
+    "CVX",
+    "LUIS_MODERADO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de drivers fundamentales. La proximidad a la SMA200 (172.42) es el único soporte estructural relevante.\n📝 ANÁLISIS: Mantener/Esperar: No es momento de incrementar exposición en CVX. La estructura de precios se encuentra deteriorada y no presenta una base sólida para acumulación. La SMA200 actúa como última línea de defensa estructural. [Alerta MEP: Brecha cambiaria alta de +3.2% respecto al Dólar MEP (CCL: 1574.5 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:55:59",
+    "CVX",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 1/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ El contexto macro es irrelevante para la operatoria técnica actual de CVX. El activo está bajo presión vendedora.\n📝 ANÁLISIS: Esperar: El activo se encuentra en una tendencia bajista de largo plazo. Para un perfil conservador, la volatilidad actual y la falta de soportes claros por encima de la SMA200 hacen que cualquier entrada sea prematura y de riesgo innecesario. \n\n*Nota sobre operatoria local: El CCL implícito de 1574.47 debe monitorearse; si este valor supera la brecha de mercado habitual, se recomienda evitar la compra en pesos para no convalidar sobreprecios.* [Alerta MEP: Brecha cambiaria alta de +3.2% respecto al Dólar MEP (CCL: 1574.5 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:05",
+    "DIS",
+    "LUIS",
+    "BEARISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ Neutralidad en noticias no logra compensar la tendencia bajista técnica.\n📝 ANÁLISIS: Esperar: La acción cotiza por debajo de sus medias móviles clave (SMA20, SMA50 y SMA200), lo que confirma una estructura bajista. No hay catalizadores alcistas en las noticias actuales para justificar una entrada especulativa."
+  ],
+  [
+    "2026-07-03 13:56:05",
+    "DIS",
+    "LUIS_MODERADO",
+    "BEARISH",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ Falta de drivers positivos ante una estructura técnica de debilidad.\n📝 ANÁLISIS: Mantener/Esperar: El activo se encuentra en una tendencia bajista de largo plazo. La ausencia de señales de reversión y la posición debajo de la SMA200 sugieren que no es momento de incrementar exposición. Se requiere ver una consolidación por encima de los 106.33 USD (SMA200)."
+  ],
+  [
+    "2026-07-03 13:56:05",
+    "DIS",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 1/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de fundamentos alcistas que validen una inversión defensiva.\n📝 ANÁLISIS: Esperar: El perfil técnico actual es desfavorable y carece de soporte estructural sólido. Dado que el MACD es bajista y el precio está por debajo de las medias críticas, no cumple con los criterios de seguridad para capital conservador. Evitar posiciones hasta ver un cambio de tendencia confirmado."
+  ],
+  [
+    "2026-07-03 13:56:12",
+    "GLD",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Las noticias locales sobre la importancia del oro son positivas, pero la tendencia técnica es bajista de largo plazo (precio bajo SMA200 y SMA50) y el PSAR confirma presión vendedora.\n📝 ANÁLISIS: Mantener: El activo muestra debilidad estructural al cotizar por debajo de sus promedios clave de 50 y 200 días. No es momento de incrementar exposición hasta que supere la resistencia de la SMA200 (409.9)."
+  ],
+  [
+    "2026-07-03 13:56:12",
+    "GLD",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚠️ El contexto de mercado es incierto y la divergencia entre el optimismo sectorial del oro y la tendencia técnica bajista de largo plazo sugiere cautela extrema.\n📝 ANÁLISIS: Esperar: La estructura técnica es bajista y el precio está lejos de sus niveles de soporte estructural. Falta confirmación de reversión de tendencia en el marco semanal."
+  ],
+  [
+    "2026-07-03 13:56:12",
+    "GLD",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚠️ La tendencia técnica es bajista (SMA200 descendente) y el precio se encuentra en una zona de debilidad técnica sin catalizadores macro que justifiquen una entrada defensiva en este momento.\n📝 ANÁLISIS: Esperar: El activo no cumple con los criterios de seguridad para perfiles conservadores. Manténgase en liquidez o activos refugio de menor volatilidad hasta que el precio logre consolidar por encima de la SMA200."
+  ],
+  [
+    "2026-07-03 13:56:19",
+    "KO",
+    "LUIS",
+    "BULLISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ✅ La tendencia técnica alcista (SMA200 y PSAR) es sólida y consistente con la estabilidad macro esperada. No hay noticias negativas que afecten el sector de consumo masivo.\n📝 ANÁLISIS: Mantener: El activo muestra fuerza estructural. Dado que el RSI está en 63.61, aún tiene recorrido antes de la sobrecompra. No incremente posiciones en pesos actualmente debido a que el CCL implícito presenta un desvío que encarece la entrada local. [Alerta MEP: Compra penalizada por sobreprecio cambiario de +2.9% respecto al Dólar MEP ($1525.3). CCL Implícito: $1570.0]"
+  ],
+  [
+    "2026-07-03 13:56:19",
+    "KO",
+    "LUIS_MODERADO",
+    "BULLISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ✅ La tendencia alcista confirmada por las medias móviles (SMA20/50/200) respalda la posición. El contexto macro es estable, lo que beneficia a una empresa defensiva como KO.\n📝 ANÁLISIS: Mantener: La posición es sólida y técnicamente saludable. Se recomienda no realizar compras adicionales por el momento para evitar el sobreprecio derivado del arbitraje cambiario local (CCL). Espere una normalización de la brecha para promediar a la baja si fuera necesario. [Alerta MEP: Compra penalizada por sobreprecio cambiario de +2.9% respecto al Dólar MEP ($1525.3). CCL Implícito: $1570.0]"
+  ],
+  [
+    "2026-07-03 13:56:19",
+    "KO",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de catalizadores específicos (noticias propias de la empresa). La tendencia es alcista pero el RSI se acerca a zona de cautela (70), lo que limita el margen de seguridad para un perfil conservador.\n📝 ANÁLISIS: Mantener: El activo se encuentra operando por encima de su SMA200, lo que es una señal de fortaleza. Sin embargo, dada la volatilidad cambiaria local y el costo de entrada (CCL), la estrategia óptima es esperar a que el precio corrija hacia el soporte de la SMA20 antes de considerar cualquier nueva exposición. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1570.0 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:25",
+    "META",
+    "LUIS",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ✅ Las noticias de monetización de IA y paridad tecnológica con OpenAI actúan como catalizador alcista, superando la nota negativa sobre retrasos en agentes. La estructura técnica muestra un momentum de recuperación (PSAR/MACD) aunque limitado por la resistencia de la SMA200.\n📝 ANÁLISIS: Comprar: Aprovechar el impulso positivo de las noticias de corto plazo. Mantener stop-loss ajustado por debajo de la SMA20. La brecha cambiaria actual no penaliza la entrada, pero monitorear el arbitraje local. [Alerta MEP: Compra penalizada por sobreprecio cambiario de +3.7% respecto al Dólar MEP ($1525.3). CCL Implícito: $1581.1]"
+  ],
+  [
+    "2026-07-03 13:56:25",
+    "META",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Existe una clara contradicción entre el impulso de las noticias de IA y la estructura técnica de largo plazo (BAJISTA L.P. y precio por debajo de SMA200/SMA50). La volatilidad operativa sugiere prudencia.\n📝 ANÁLISIS: Mantener: No es momento de aumentar exposición. El activo lucha por recuperar niveles estructurales clave (SMA200 en 646.51). Esperar a que el precio confirme ruptura sostenida de la media de 50 periodos antes de considerar nuevas posiciones. [Alerta MEP: Brecha cambiaria alta de +3.7% respecto al Dólar MEP (CCL: 1581.1 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:25",
+    "META",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚠️ El contexto de noticias es volátil y contradictorio. Técnicamente, el activo opera por debajo de sus medias móviles de largo plazo (SMA50 y SMA200), lo cual es una señal de alerta para perfiles que priorizan la preservación del capital.\n📝 ANÁLISIS: Esperar: Evitar compras en este momento. La tendencia de largo plazo sigue siendo bajista y la volatilidad derivada de los anuncios de IA no compensa el riesgo técnico. Aguardar una consolidación sobre la SMA200 para reducir el riesgo de capital. [Alerta MEP: Brecha cambiaria alta de +3.7% respecto al Dólar MEP (CCL: 1581.1 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:32",
+    "MU",
+    "LUIS",
+    "BEARISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: 🛑 Las noticias recientes de demandas antimonopolio (RAMpocalipsis) invalidan la tendencia alcista de largo plazo, alineándose con el DMI que muestra una fuerza vendedora dominante.\n📝 ANÁLISIS: Vender: El entorno legal es hostil y la presión vendedora es clara. Evitar posiciones hasta que se aclare la situación judicial. SMA200 confirmada como soporte estructural lejano."
+  ],
+  [
+    "2026-07-03 13:56:32",
+    "MU",
+    "LUIS_MODERADO",
+    "BEARISH",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: 🛑 El contexto negativo de litigios regulatorios sobrepasa cualquier estructura técnica, sugiriendo una corrección necesaria.\n📝 ANÁLISIS: Mantener/Vender: No es momento de ingresar. La incertidumbre legal genera demasiada volatilidad para un perfil que busca estabilidad. Aguardar noticias favorables."
+  ],
+  [
+    "2026-07-03 13:56:32",
+    "MU",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 1/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: 🛑 Riesgo sistémico por litigios y debilidad técnica reciente. La confluencia de factores negativos desaconseja cualquier exposición.\n📝 ANÁLISIS: Esperar: Evitar totalmente. El activo presenta riesgos legales significativos que comprometen el valor a largo plazo. Mantenerse fuera del mercado en este ticker."
+  ],
+  [
+    "2026-07-03 13:56:38",
+    "NKE",
+    "LUIS",
+    "BEARISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: 🛑 Las noticias negativas sobre recortes de bonos y pérdida de competitividad frente a rivales (Adidas/On) invalidan el pequeño intento de rebote del PSAR.\n📝 ANÁLISIS: Vender: La tendencia técnica de largo plazo es bajista y cotiza muy por debajo de su SMA200 (57.32). No hay fundamentos para sostener la posición ante el deterioro operativo. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1569.1 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:38",
+    "NKE",
+    "LUIS_MODERADO",
+    "BEARISH",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: 🛑 La estructura técnica es débil y el contexto de noticias es consistentemente negativo. La brecha con la SMA200 es demasiado amplia para buscar un rebote técnico.\n📝 ANÁLISIS: Vender: El activo se encuentra en una tendencia bajista estructural. La falta de catalizadores positivos y el recorte de costos sugieren que el valor seguirá presionado. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1569.1 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:38",
+    "NKE",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 1/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: 🛑 La confluencia es nula para una estrategia conservadora. La acción opera por debajo de sus medias móviles clave (SMA20, 50, 200), lo que confirma una tendencia de fondo negativa.\n📝 ANÁLISIS: Esperar: No es momento de tomar exposición en Nike. La empresa atraviesa una reestructuración interna y pérdida de cuota de mercado. Falta de datos sobre la SMA200 como soporte confiable dado el quiebre actual. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1569.1 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:44",
+    "QQQ",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ No existen noticias específicas para QQQ que actúen como catalizador; la tendencia técnica muestra debilidad y falta de fuerza direccional clara.\n📝 ANÁLISIS: Mantener: El activo carece de momentum fuerte (DMI débil). No hay razones técnicas ni fundamentales para aumentar exposición en este momento. La SMA200 está presente, pero el precio actual no ofrece una entrada técnica atractiva."
+  ],
+  [
+    "2026-07-03 13:56:44",
+    "QQQ",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de drivers noticiosos que confirmen la tendencia alcista de largo plazo. El mercado se encuentra en una fase de consolidación técnica.\n📝 ANÁLISIS: Mantener: Dada la incertidumbre macroeconómica global y el indicador MACD bajista, la prudencia es la mejor estrategia. No opere hasta que el precio supere con fuerza la resistencia de corto plazo."
+  ],
+  [
+    "2026-07-03 13:56:44",
+    "QQQ",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ El contexto de noticias es mayormente irrelevante o de impacto indirecto para el QQQ. La señal técnica es insuficiente para justificar una compra conservadora.\n📝 ANÁLISIS: Esperar: El activo no presenta condiciones de seguridad. La falta de una tendencia clara y la debilidad del DMI sugieren que el capital debe permanecer en liquidez o activos de menor volatilidad hasta que el panorama se aclare."
+  ],
+  [
+    "2026-07-03 13:56:51",
+    "TSLA",
+    "LUIS",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ✅ Las noticias recientes (aumento de ventas y compra de ARK) confirman el giro alcista del PSAR y el MACD, superando la tendencia bajista de largo plazo.\n📝 ANÁLISIS: Comprar: Aprovechar el momentum positivo reciente. La acción está por debajo de su media de 200 días (418.61), lo que presenta una oportunidad de recuperación técnica. Vigilar que el CCL no se dispare excesivamente al operar en pesos. [Alerta MEP: Compra penalizada por sobreprecio cambiario de +2.9% respecto al Dólar MEP ($1525.3). CCL Implícito: $1570.0]"
+  ],
+  [
+    "2026-07-03 13:56:51",
+    "TSLA",
+    "LUIS_MODERADO",
+    "BULLISH",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ✅ El contexto de noticias es favorable y el RSI (46.77) indica espacio para subir sin estar sobrecomprado. La tendencia técnica está mejorando.\n📝 ANÁLISIS: Mantener: Si ya posee la acción, mantenga la posición ante la mejora en los fundamentales. Si busca entrar, hágalo con cautela esperando una confirmación de ruptura por encima de la SMA20 (399.16). [Alerta MEP: Compra penalizada por sobreprecio cambiario de +2.9% respecto al Dólar MEP ($1525.3). CCL Implícito: $1570.0]"
+  ],
+  [
+    "2026-07-03 13:56:51",
+    "TSLA",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚠️ Aunque hay noticias positivas, el precio sigue por debajo de las SMA 20, 50 y 200, lo que denota debilidad estructural.\n📝 ANÁLISIS: Esperar: No es momento de exposición para perfiles conservadores. La acción sigue en una zona de resistencia técnica compleja (debajo de la media de 200 días). Se recomienda esperar a que el precio consolide niveles por encima de los 420 USD antes de considerar una entrada. [Alerta MEP: Brecha cambiaria alta de +2.9% respecto al Dólar MEP (CCL: 1570.0 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:56:57",
+    "USDARS",
+    "LUIS",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: 🛑 El RSI en 100 indica una sobreextensión extrema que anula cualquier señal alcista técnica. Las noticias macro son mixtas y no justifican la euforia técnica.\n📝 ANÁLISIS: Esperar: El activo presenta una sobrecompra técnica absoluta (RSI 100). No es momento de comprar; se debe aguardar una corrección técnica hacia la SMA20 para buscar un punto de entrada razonable."
+  ],
+  [
+    "2026-07-03 13:56:57",
+    "USDARS",
+    "LUIS_MODERADO",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 1/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: 🛑 El RSI en 100 es una señal de alerta roja por agotamiento de tendencia. Existe una contradicción técnica severa entre la fuerza de los vendedores (DMI) y la tendencia alcista.\n📝 ANÁLISIS: Esperar: Evitar posiciones nuevas. El mercado está técnicamente sobrecalentado y cualquier entrada ahora implica un riesgo de caída abrupta por reversión a la media."
+  ],
+  [
+    "2026-07-03 13:56:57",
+    "USDARS",
+    "ANTO",
+    "BULLISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 0/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: 🛑 El indicador RSI en 100 invalida cualquier estrategia de inversión prudente. La falta de datos sobre el CCL implícito aumenta la incertidumbre operativa en pesos.\n📝 ANÁLISIS: Mantener: No realizar compras. La situación técnica actual es de riesgo extremo. Se recomienda preservar el capital y esperar a que los indicadores de sobrecompra se normalicen antes de evaluar cualquier movimiento."
+  ],
+  [
+    "2026-07-03 13:57:04",
+    "VIST",
+    "LUIS",
+    "BULLISH",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 5/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ✅ El RSI en 24.22 indica una sobreventa extrema (capitulación), lo que técnicamente favorece un rebote de alta convexidad, alineado con noticias positivas del sector energético.\n📝 ANÁLISIS: Comprar: Aprovechar la sobreventa extrema para entrar en posiciones de rebote técnico, dado que el activo está lejos de su valor de soporte estructural (SMA200). Advertencia: Alta volatilidad esperada. [Alerta MEP: Compra penalizada por sobreprecio cambiario de +3.6% respecto al Dólar MEP ($1525.3). CCL Implícito: $1580.5]"
+  ],
+  [
+    "2026-07-03 13:57:04",
+    "VIST",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ✅ RSI en zona de pánico limita el score; aunque el contexto es positivo, el MACD bajista y el PSAR sugieren que la tendencia de corto plazo aún no ha girado.\n📝 ANÁLISIS: Esperar: Evitar compras en este momento; el activo muestra señales de agotamiento vendedor pero no ha confirmado una reversión alcista clara. Se recomienda aguardar a que el precio supere la SMA20. [Alerta MEP: Brecha cambiaria alta de +3.6% respecto al Dólar MEP (CCL: 1580.5 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:57:04",
+    "VIST",
+    "ANTO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ El activo cotiza significativamente por encima de su media de 200 días (tendencia alcista estructural), pero los indicadores de corto plazo muestran una debilidad peligrosa.\n📝 ANÁLISIS: Mantener: No incrementar exposición. El activo presenta una divergencia entre su salud estructural (SMA200) y su momentum actual. Esperar a que el mercado estabilice su tendencia antes de considerar nuevas posiciones. [Alerta MEP: Brecha cambiaria alta de +3.6% respecto al Dólar MEP (CCL: 1580.5 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:57:10",
+    "WMT",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ No existen noticias específicas para WMT que validen la tendencia técnica bajista actual. El activo muestra divergencia entre el DMI (fuerza compradora) y el resto de indicadores bajistas.\n📝 ANÁLISIS: Esperar: El activo se encuentra en una zona técnica confusa con el precio cotizando cerca de su media móvil de 200 días. Dada la alta brecha cambiaria y el RSI en zona de debilidad, no es momento de asignar capital. [Alerta MEP: Brecha cambiaria alta de +3.8% respecto al Dólar MEP (CCL: 1582.9 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:57:10",
+    "WMT",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de drivers fundamentales. El contexto macro es ruidoso y no afecta directamente al negocio de retail de WMT.\n📝 ANÁLISIS: Mantener: No hay señales claras para incrementar exposición. El precio está operando por debajo de la SMA20 y SMA50, lo que sugiere presión vendedora predominante. Falta confirmación de soporte sólido en la SMA200. [Alerta MEP: Brecha cambiaria alta de +3.8% respecto al Dólar MEP (CCL: 1582.9 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:57:10",
+    "WMT",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ El contexto técnico es predominantemente bajista (PSAR y MACD) y no hay noticias que actúen como catalizador positivo para revertir la tendencia.\n📝 ANÁLISIS: Esperar: Evitar posiciones en WMT bajo las condiciones actuales. El activo presenta un riesgo de caída adicional mientras se mantenga bajo las medias móviles de corto y mediano plazo. La volatilidad cambiaria local desaconseja cualquier compra en pesos en este momento. [Alerta MEP: Brecha cambiaria alta de +3.8% respecto al Dólar MEP (CCL: 1582.9 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:57:16",
+    "XOM",
+    "LUIS",
+    "NEUTRAL",
+    "🎯 HORIZONTE: CORTO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 4/10\n⚠️ RIESGO: ALTO\n📰 CONFLUENCIA NOTICIAS: ⚪ No hay noticias específicas sobre XOM que validen la tendencia técnica bajista de corto plazo (PSAR/MACD).\n📝 ANÁLISIS: Esperar: El activo muestra una tendencia bajista de corto plazo con indicadores de momentum débiles. La confluencia técnica es insuficiente para una entrada agresiva. [Alerta MEP: Brecha cambiaria alta de +3.0% respecto al Dólar MEP (CCL: 1570.5 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:57:16",
+    "XOM",
+    "LUIS_MODERADO",
+    "NEUTRAL",
+    "🎯 HORIZONTE: MEDIO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 3/10\n⚠️ RIESGO: MEDIO\n📰 CONFLUENCIA NOTICIAS: ⚪ Ausencia de catalizadores macro o corporativos que compensen el quiebre bajista del PSAR y la debilidad del MACD.\n📝 ANÁLISIS: Mantener: El activo cotiza por encima de su SMA200 (soporte estructural), pero la presión bajista de corto plazo sugiere prudencia. No aumentar exposición actualmente. [Alerta MEP: Brecha cambiaria alta de +3.0% respecto al Dólar MEP (CCL: 1570.5 vs MEP: 1525.3)]"
+  ],
+  [
+    "2026-07-03 13:57:16",
+    "XOM",
+    "ANTO",
+    "BEARISH",
+    "🎯 HORIZONTE: LARGO PLAZO\n🧠 CONVICCIÓN: Basada en indicadores técnicos\n📊 SCORE: 2/10\n⚠️ RIESGO: BAJO\n📰 CONFLUENCIA NOTICIAS: ⚪ El RSI en zona de debilidad (36.68) y la falta de noticias positivas hacen que el activo sea poco atractivo para perfiles conservadores.\n📝 ANÁLISIS: Esperar: Evitar compras en este nivel. El activo necesita estabilizarse y recuperar la SMA20 antes de considerar una posición. La brecha cambiaria local actual (CCL) sugiere esperar a una mejor ventana de entrada para evitar sobreprecios. [Alerta MEP: Brecha cambiaria alta de +3.0% respecto al Dólar MEP (CCL: 1570.5 vs MEP: 1525.3)]"
+  ]
+]
