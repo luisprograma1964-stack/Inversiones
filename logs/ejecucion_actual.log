@@ -1,99 +1,291 @@
---- INICIANDO EJECUCIÓN DE: supervisor_del_sistema.py (17:26:34) ---
+--- INICIANDO EJECUCIÓN DE: ensamblador.py (17:35:51) ---
 
-[*] Iniciando Supervisor del Sistema...
-Error generando informe con gemini-1.5-pro: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
-Error generando informe con gemini-2.0-flash: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 8.355685075s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '8s'}]}}. Intentando fallback...
-Error generando informe con gemini-1.5-flash: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}. Intentando fallback...
-
-[OK] Informe de supervisión guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260703_172702.md
-
+gemini-2.5-flash-preview-tts | ERROR      | N/A        | 400 INVALID_ARGUMENT. {'e...
+gemini-2.5-flash-native-audio-latest | ERROR      | N/A        | 404 NOT_FOUND. {'error': ...
+gemini-2.5-flash-native-audio-preview-09-2025 | ERROR      | N/A        | 404 NOT_FOUND. {'error': ...
+gemini-2.5-flash-native-audio-preview-12-2025 | ERROR      | N/A        | 404 NOT_FOUND. {'error': ...
+gemini-3.5-live-translate-preview | ERROR      | N/A        | 404 NOT_FOUND. {'error': ...
+[*] Iniciando proceso de captura de CEDEARs Comafi...
+[OK] Sincronización de CEDEARs Comafi exitosa. 356 activos registrados. (0.1 min)
+    [!] Cuota 429 al abrir Spreadsheet 'Inversiones'. Reintentando en 15s (Intento 1/8)...
+2026-07-04 17:37:18,641 INFO [*] Iniciando limpieza inteligente de HISTORICO_VALORES...
+2026-07-04 17:37:22,151 INFO     [-] Saltando escritura de HISTORICO_VALORES: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50).
+2026-07-04 17:37:27,147 INFO     [*] BCBA:DIS: Historial insuficiente (0/200). Forzando recarga desde 2025-01-30...
+2026-07-04 17:37:27,723 INFO     [*] Preparando descarga en paralelo para 33 tickers...
+2026-07-04 17:37:27,998 INFO     [*] Enviadas fórmulas. Iniciando polling (timeout 120s)...
+2026-07-04 17:37:28,459 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:AAPL' returned no data.)' para job idx=0. Marcado como error inmediato.
+2026-07-04 17:37:28,750 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:AMD' returned no data.)' para job idx=2. Marcado como error inmediato.
+2026-07-04 17:37:28,985 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:AMZN' returned no data.)' para job idx=4. Marcado como error inmediato.
+2026-07-04 17:37:29,230 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:ASML' returned no data.)' para job idx=7. Marcado como error inmediato.
+2026-07-04 17:37:29,470 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BTC' returned no data.)' para job idx=9. Marcado como error inmediato.
+2026-07-04 17:37:29,695 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'C' returned no data.)' para job idx=10. Marcado como error inmediato.
+2026-07-04 17:37:29,931 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'CVX' returned no data.)' para job idx=12. Marcado como error inmediato.
+2026-07-04 17:37:30,162 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'DIS' returned no data.)' para job idx=14. Marcado como error inmediato.
+2026-07-04 17:37:30,407 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.)' para job idx=15. Marcado como error inmediato.
+2026-07-04 17:37:30,656 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'GLD' returned no data.)' para job idx=16. Marcado como error inmediato.
+2026-07-04 17:37:30,895 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'KO' returned no data.)' para job idx=17. Marcado como error inmediato.
+2026-07-04 17:37:31,671 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:META' returned no data.)' para job idx=19. Marcado como error inmediato.
+2026-07-04 17:37:31,895 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:MU' returned no data.)' para job idx=21. Marcado como error inmediato.
+2026-07-04 17:37:32,141 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NKE' returned no data.)' para job idx=22. Marcado como error inmediato.
+2026-07-04 17:37:32,373 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:QQQ' returned no data.)' para job idx=24. Marcado como error inmediato.
+2026-07-04 17:37:32,661 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:TSLA' returned no data.)' para job idx=25. Marcado como error inmediato.
+2026-07-04 17:37:32,910 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'VIST' returned no data.)' para job idx=27. Marcado como error inmediato.
+2026-07-04 17:37:33,151 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'WMT' returned no data.)' para job idx=29. Marcado como error inmediato.
+2026-07-04 17:37:33,416 WARNING         [!] GOOGLEFINANCE devolvió '#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'XOM' returned no data.)' para job idx=31. Marcado como error inmediato.
+2026-07-04 17:37:33,981 WARNING         [!] AAPL: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:AAPL' returned no data.))
+2026-07-04 17:37:34,229 INFO         [OK] BCBA:AAPL: 1 filas nuevas preparadas.
+2026-07-04 17:37:34,485 WARNING         [!] AMD: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:AMD' returned no data.))
+2026-07-04 17:37:34,734 INFO         [OK] BCBA:AMD: 1 filas nuevas preparadas.
+2026-07-04 17:37:34,985 WARNING         [!] AMZN: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:AMZN' returned no data.))
+2026-07-04 17:37:35,246 INFO         [OK] BCBA:AMZN: 1 filas nuevas preparadas.
+2026-07-04 17:37:35,246 INFO         [OK] ARKK: 1 filas nuevas preparadas.
+2026-07-04 17:37:35,499 WARNING         [!] ASML: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:ASML' returned no data.))
+2026-07-04 17:37:35,743 INFO         [OK] BCBA:ASML: 1 filas nuevas preparadas.
+2026-07-04 17:37:36,032 WARNING         [!] BTC: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BTC' returned no data.))
+2026-07-04 17:37:36,524 WARNING         [!] C: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'C' returned no data.))
+2026-07-04 17:37:36,807 INFO         [OK] BCBA:C: 1 filas nuevas preparadas.
+2026-07-04 17:37:37,063 WARNING         [!] CVX: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'CVX' returned no data.))
+2026-07-04 17:37:37,315 INFO         [OK] BCBA:CVX: 1 filas nuevas preparadas.
+2026-07-04 17:37:37,943 WARNING         [!] DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'DIS' returned no data.))
+2026-07-04 17:37:38,448 WARNING         [!] BCBA:DIS: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'BCBA:DIS' returned no data.))
+2026-07-04 17:37:38,984 WARNING         [!] GLD: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'GLD' returned no data.))
+2026-07-04 17:37:39,476 WARNING         [!] KO: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'KO' returned no data.))
+2026-07-04 17:37:39,714 INFO         [OK] BCBA:KO: 1 filas nuevas preparadas.
+2026-07-04 17:37:39,947 WARNING         [!] META: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:META' returned no data.))
+2026-07-04 17:37:40,183 INFO         [OK] BCBA:META: 1 filas nuevas preparadas.
+2026-07-04 17:37:40,419 WARNING         [!] MU: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:MU' returned no data.))
+2026-07-04 17:37:40,884 WARNING         [!] NKE: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NKE' returned no data.))
+2026-07-04 17:37:41,133 INFO         [OK] BCBA:NKE: 1 filas nuevas preparadas.
+2026-07-04 17:37:41,378 WARNING         [!] QQQ: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:QQQ' returned no data.))
+2026-07-04 17:37:41,853 WARNING         [!] TSLA: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'NASDAQ:TSLA' returned no data.))
+    [!] gspread 429 detectado al ejecutar 'append_rows'. Reintentando en 15s (Intento 1/8)...
+    [!] gspread 429 detectado al ejecutar 'append_rows'. Reintentando en 18s (Intento 2/8)...
+    [!] gspread 429 detectado al ejecutar 'append_rows'. Reintentando en 21s (Intento 3/8)...
+2026-07-04 17:38:36,664 INFO         [OK] BCBA:TSLA: 1 filas nuevas preparadas.
+2026-07-04 17:38:36,896 WARNING         [!] VIST: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'VIST' returned no data.))
+2026-07-04 17:38:37,130 INFO         [OK] BCBA:VIST: 1 filas nuevas preparadas.
+2026-07-04 17:38:37,389 WARNING         [!] WMT: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'WMT' returned no data.))
+2026-07-04 17:38:37,636 INFO         [OK] BCBA:WMT: 1 filas nuevas preparadas.
+2026-07-04 17:38:37,875 WARNING         [!] XOM: No se obtuvieron datos (#N/A (When evaluating GOOGLEFINANCE, the query for the symbol: 'XOM' returned no data.))
+2026-07-04 17:38:38,111 INFO         [OK] BCBA:XOM: 1 filas nuevas preparadas.
+2026-07-04 17:38:38,112 INFO [17:38:38] Grabando 16 registros en HISTORICO_VALORES...
+2026-07-04 17:38:39,035 INFO     [*] Maestro actualizado en lote (15 activos).
+2026-07-04 17:38:39,759 INFO >>> Sincronizados 16 registros en 15 activos.
+2026-07-04 17:38:39,762 INFO [OK] PASO 2 COMPLETADO EN 1.49 min
+2026-07-04 17:38:39,762 INFO 
+[PASO 3/4] Calculando Indicadores de Análisis Técnico...
+2026-07-04 17:38:39,762 INFO [17:38:39] >>> Iniciando Módulo Técnico...
+2026-07-04 17:38:50,642 WARNING     [*] Aviso: USDARS es un activo plano o sin volatilidad. Usando RSI neutral (50.0).
+2026-07-04 17:38:51,696 INFO     [*] Validando integridad técnica de AAPL (RSI: 60.26)
+2026-07-04 17:38:51,699 INFO     [*] Validando integridad técnica de AMD (RSI: 52.25)
+2026-07-04 17:38:51,703 INFO     [*] Validando integridad técnica de AMZN (RSI: 48.7)
+2026-07-04 17:38:51,707 INFO     [*] Validando integridad técnica de ARKK (RSI: 63.16)
+2026-07-04 17:38:51,711 INFO     [*] Validando integridad técnica de ASML (RSI: 49.73)
+2026-07-04 17:38:51,714 INFO     [*] Validando integridad técnica de BTC (RSI: 41.23)
+2026-07-04 17:38:51,718 INFO     [*] Validando integridad técnica de C (RSI: 55.89)
+2026-07-04 17:38:51,722 INFO     [*] Validando integridad técnica de CVX (RSI: 35.49)
+2026-07-04 17:38:51,726 INFO     [*] Validando integridad técnica de DIS (RSI: 47.72)
+2026-07-04 17:38:51,731 INFO     [*] Validando integridad técnica de GLD (RSI: 42.03)
+2026-07-04 17:38:51,735 INFO     [*] Validando integridad técnica de KO (RSI: 63.61)
+2026-07-04 17:38:51,736 INFO     [*] Validando integridad técnica de META (RSI: 49.6)
+2026-07-04 17:38:51,738 INFO     [*] Validando integridad técnica de MU (RSI: 48.47)
+2026-07-04 17:38:51,740 INFO     [*] Validando integridad técnica de NKE (RSI: 52.93)
+2026-07-04 17:38:51,742 INFO     [*] Validando integridad técnica de QQQ (RSI: 48.12)
+2026-07-04 17:38:51,744 INFO     [*] Validando integridad técnica de TSLA (RSI: 46.77)
+2026-07-04 17:38:51,746 INFO     [*] Validando integridad técnica de USDARS (RSI: 50.0)
+2026-07-04 17:38:51,748 INFO     [*] Validando integridad técnica de VIST (RSI: 24.22)
+2026-07-04 17:38:51,749 INFO     [*] Validando integridad técnica de WMT (RSI: 35.56)
+2026-07-04 17:38:51,751 INFO     [*] Validando integridad técnica de XOM (RSI: 36.68)
+2026-07-04 17:38:52,699 INFO [17:38:52] Análisis técnico finalizado con éxito: 20 activos.
+2026-07-04 17:38:52,717 INFO [OK] PASO 3 COMPLETADO EN 0.22 min
+2026-07-04 17:38:52,717 INFO 
+[PASO 3.5] Capturando noticias y sentimiento de mercado...
+2026-07-04 17:38:52,717 INFO [17:38:52] Iniciando Captura de Noticias...
+2026-07-04 17:38:57,357 INFO     [-] Saltando limpieza de noticias descartadas (Filas: 426 < 500)
+2026-07-04 17:38:58,757 INFO [*] Iniciando limpieza de SUGERENCIAS_SINONIMOS (30 días)...
+2026-07-04 17:38:59,548 INFO     [-] Saltando escritura de SUGERENCIAS_SINONIMOS: solo se identificaron 33 filas viejas para borrar.
+2026-07-04 17:39:01,310 INFO     [-] Saltando limpieza de noticias aprobadas (Filas: 318 < 500)
+2026-07-04 17:39:13,004 INFO [*] 90 sinónimos cargados desde la planilla (formato agrupado).
+2026-07-04 17:39:13,507 INFO [*] Iniciando recolección paralela de fuentes...
+2026-07-04 17:39:49,512 INFO [*] 25 noticias nuevas para Triage (de 99 encontradas).
+2026-07-04 17:39:50,481 INFO     [-] DESCARTADA [9999] (Región: GLOBAL): The World Cup sends prediction market volumes soar... -> Motivo: El impacto es sobre una actividad de apuestas/entretenimiento sin relevancia en política monetaria o económica.
+2026-07-04 17:39:57,522 INFO     [+] APROBADA [9999_AR] (Región: ARGENTINA): El Ministerio de Economía enfrenta vencimientos po...
+2026-07-04 17:40:05,260 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): El fiscal rechazó la detención de Manuel Adorni: c... -> Motivo: La noticia se refiere a un proceso judicial de carácter político sin consecuencias económicas directas.
+2026-07-04 17:40:12,343 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Crujen los oficialismos provinciales: fugas e inte... -> Motivo: Ruido político electoral sin impacto directo en indicadores macroeconómicos o regulatorios financieros.
+2026-07-04 17:40:20,228 INFO     [+] APROBADA [ARS] (Región: ARGENTINA): La inflación desacelera, pero la city enciende ala...
+2026-07-04 17:40:27,986 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): En Misiones, Karina puso la mira en 2027 y llamó a... -> Motivo: El titular se refiere a estrategia política electoral, careciendo de impacto en variables macroeconómicas reales.
+2026-07-04 17:40:34,990 INFO     [-] DESCARTADA [9999] (Región: GLOBAL): Canadá vs Marruecos y Paraguay vs Francia por el M... -> Motivo: El titular trata sobre un evento deportivo, careciendo de relevancia para el análisis financiero.
+2026-07-04 17:40:42,730 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): La Justicia prohibió la salida del país sin autori... -> Motivo: El titular trata sobre una medida judicial personal que no afecta la política económica ni el riesgo país.
+2026-07-04 17:40:50,445 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Echaron al titular de FAdeA: la crisis política de... -> Motivo: Noticia corporativa con impacto limitado a una empresa estatal sin trascendencia en mercados financieros.
+2026-07-04 17:40:57,455 INFO     [+] APROBADA [YPFD] (Región: ARGENTINA): Empresas familiares: de vender sábanas en Neuquén ...
+2026-07-04 17:41:05,219 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Elecciones en Santiago del Estero: la pelea de dos... -> Motivo: La noticia trata sobre política local de bajo impacto sistémico en los activos financieros.
+2026-07-04 17:41:12,280 INFO     [+] APROBADA [9999] (Región: GLOBAL): Asfixia Financiera: el colapso del ingreso disponi...
+2026-07-04 17:41:19,316 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Ni La Boca ni Núñez: el precio inmobiliario de la ... -> Motivo: La noticia es de interés general o curiosidad y carece de impacto en mercados financieros.
+2026-07-04 17:41:27,045 INFO     [-] DESCARTADA [9999] (Región: USA): Donald Trump inauguró los festejos por los 250 año... -> Motivo: El contenido es retórica política sin medidas económicas concretas o cambios en política monetaria.
+2026-07-04 17:41:34,818 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Argentina ganó un partido para el infarto ante Cab... -> Motivo: La noticia es de índole deportiva y carece de relevancia económica o financiera.
+2026-07-04 17:41:42,580 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Florencia Camerano, rectora de la UEAN: "La inteli... -> Motivo: La noticia es una declaración de índole académica/filosófica sin impacto en política económica o mercados.
+2026-07-04 17:41:49,445 INFO     [+] APROBADA [9999_AR] (Región: ARGENTINA): Reforma de la Carta Orgánica del BCRA: el punto cl...
+2026-07-04 17:41:57,128 INFO     [-] DESCARTADA [9999] (Región: GLOBAL): El autismo no es una moda: "Recibir el diagnóstico... -> Motivo: La noticia no tiene relevancia en el ámbito de la macroeconomía ni mercados financieros.
+2026-07-04 17:42:04,895 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Selección argentina, EN VIVO: la jornada del sábad... -> Motivo: La noticia trata sobre un evento deportivo (Mundial 2026) sin relevancia financiera o macroeconómica.
+2026-07-04 17:42:12,559 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Las perlitas de Argentina-Cabo Verde: la bandera d... -> Motivo: El contenido es de naturaleza recreativa/deportiva y carece de relevancia para el análisis financiero.
+2026-07-04 17:42:19,833 INFO     [-] DESCARTADA [9999] (Región: GLOBAL): Anthropic negocia con Samsung su chip propio Anthr... -> Motivo: La noticia es de carácter corporativo/tecnológico y no tiene impacto en la macroeconomía global.
+2026-07-04 17:42:27,749 INFO     [-] DESCARTADA [9999] (Región: GLOBAL): Anthropic con chip propio: la estrategia de Claude... -> Motivo: Es una noticia de estrategia corporativa sectorial, no un evento macroeconómico de impacto general.
+2026-07-04 17:42:35,475 INFO     [-] DESCARTADA [9999] (Región: GLOBAL): Price to earnings forward de Cherry SE O.N.KONV – ... -> Motivo: Es una métrica de valoración individual sin impacto en macroeconomía o contexto global.
+2026-07-04 17:42:43,194 INFO     [-] DESCARTADA [9999] (Región: ARGENTINA): Fortalecen la logística de medicamentos con un sis... -> Motivo: Noticia de carácter técnico-operativo sectorial sin impacto macroeconómico o en valor de activos financieros.
+2026-07-04 17:42:50,844 INFO     [-] DESCARTADA [C] (Región: GLOBAL): Enterprise value to EBIT forward de Cell C Holding... -> Motivo: El activo Cell C Holdings no pertenece al mercado de interés ni tiene relevancia macro.
+2026-07-04 17:42:59,424 INFO     [+] 5 noticias guardadas en sistema.
+2026-07-04 17:43:00,090 INFO     [-] 20 noticias enviadas a descartes.
+2026-07-04 17:43:01,417 INFO [17:43:01] Finalizado: 25 procesadas (5 aprobadas, 20 descartadas). (Tiempo: 4.12 min)
+2026-07-04 17:43:01,424 INFO [OK] NOTICIAS CAPTURADAS EN 4.15 min
+2026-07-04 17:43:01,424 INFO 
+[PASO 3.8] Calculando tenencias y rentabilidad de cartera...
+2026-07-04 17:43:01,424 INFO ============================================================
+2026-07-04 17:43:01,424 INFO VALUACIÓN DE CARTERA | 17:43:01
+2026-07-04 17:43:01,424 INFO ============================================================
+2026-07-04 17:43:08,098 INFO Valuación completada. Se grabaron 22 registros de cartera.
+[OK] Valuación completada. Se grabaron 22 registros de cartera.
+2026-07-04 17:43:08,783 INFO [OK] CARTERA VALORIZADA EN 0.12 min
+2026-07-04 17:43:08,783 INFO 
+[PASO 4/4] Ejecutando Motor de IA sobre los resultados...
+2026-07-04 17:43:08,783 INFO 
 ============================================================
-INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA:
+2026-07-04 17:43:08,783 INFO MOTOR IA - ANÁLISIS TÉCNICO PROFESIONAL | 17:43:08
+2026-07-04 17:43:08,783 INFO ============================================================
+2026-07-04 17:43:13,529 INFO [*] Iniciando limpieza de REPORTE_IA (100 días)...
+2026-07-04 17:43:14,367 INFO     [-] Saltando escritura de REPORTE_IA: solo se identificaron 0 filas viejas para borrar (umbral mínimo: 50).
+2026-07-04 17:43:17,572 INFO [*] Total activos pendientes y activos en el maestro a procesar: 20
+2026-07-04 17:43:17,572 INFO [*] Tipo de cambio CCL Promedio de Mercado: 1574.65 ARS (basado en 13 activos)
+2026-07-04 17:43:20,400 INFO [*] Analizando confluencia en AAPL...
+2026-07-04 17:43:20,400 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:43:20,400 INFO Descargando noticias desde NOTICIAS_SISTEMA...
+2026-07-04 17:43:21,035 INFO Contexto recuperado: 0 específicas, 5 macro.
+2026-07-04 17:43:21,035 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:43:24,243 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:43:24,243 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:43:28,244 INFO [*] Analizando confluencia en AMD...
+2026-07-04 17:43:28,245 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:43:28,260 INFO Contexto recuperado: 2 específicas, 5 macro.
+2026-07-04 17:43:28,261 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:43:30,793 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:43:30,794 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:43:34,795 INFO [*] Analizando confluencia en AMZN...
+2026-07-04 17:43:34,796 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:43:34,818 INFO Contexto recuperado: 4 específicas, 5 macro.
+2026-07-04 17:43:34,819 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:43:37,100 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:43:37,100 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:43:41,101 INFO [*] Analizando confluencia en ARKK...
+2026-07-04 17:43:41,101 WARNING Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON...
+2026-07-04 17:43:41,864 INFO Contexto recuperado: 1 específicas, 5 macro.
+2026-07-04 17:43:41,865 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:43:43,739 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:43:43,740 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:43:47,740 INFO [*] Analizando confluencia en ASML...
+2026-07-04 17:43:47,741 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:43:47,754 INFO Contexto recuperado: 1 específicas, 5 macro.
+2026-07-04 17:43:47,755 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:43:49,839 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:43:49,840 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:43:53,840 INFO [*] Analizando confluencia en BTC...
+2026-07-04 17:43:53,840 WARNING Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON...
+2026-07-04 17:43:54,124 INFO Contexto recuperado: 5 específicas, 5 macro.
+2026-07-04 17:43:54,125 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:43:56,206 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:43:56,206 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:00,207 INFO [*] Analizando confluencia en C...
+2026-07-04 17:44:00,207 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:44:00,222 INFO Contexto recuperado: 1 específicas, 5 macro.
+2026-07-04 17:44:00,223 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:02,237 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:02,237 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:06,238 INFO [*] Analizando confluencia en CVX...
+2026-07-04 17:44:06,238 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:44:06,253 INFO Contexto recuperado: 0 específicas, 5 macro.
+2026-07-04 17:44:06,254 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:08,382 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:08,382 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:12,383 INFO [*] Analizando confluencia en DIS...
+2026-07-04 17:44:12,383 WARNING Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON...
+2026-07-04 17:44:13,071 INFO Contexto recuperado: 2 específicas, 5 macro.
+2026-07-04 17:44:13,072 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:15,228 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:15,228 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:19,230 INFO [*] Analizando confluencia en GLD...
+2026-07-04 17:44:19,231 WARNING Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON...
+2026-07-04 17:44:19,550 INFO Contexto recuperado: 2 específicas, 5 macro.
+2026-07-04 17:44:19,551 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:21,920 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:21,921 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:25,921 INFO [*] Analizando confluencia en KO...
+2026-07-04 17:44:25,922 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:44:25,951 INFO Contexto recuperado: 0 específicas, 5 macro.
+2026-07-04 17:44:25,952 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:28,139 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:28,139 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:32,141 INFO [*] Analizando confluencia en META...
+2026-07-04 17:44:32,142 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:44:32,182 INFO Contexto recuperado: 5 específicas, 5 macro.
+2026-07-04 17:44:32,183 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:34,609 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:34,609 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:38,610 INFO [*] Analizando confluencia en MU...
+2026-07-04 17:44:38,611 WARNING Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON...
+2026-07-04 17:44:38,868 INFO Contexto recuperado: 2 específicas, 5 macro.
+2026-07-04 17:44:38,869 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:41,284 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:41,284 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:45,285 INFO [*] Analizando confluencia en NKE...
+2026-07-04 17:44:45,286 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:44:45,320 INFO Contexto recuperado: 5 específicas, 5 macro.
+2026-07-04 17:44:45,321 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:47,446 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:47,446 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:51,447 INFO [*] Analizando confluencia en QQQ...
+2026-07-04 17:44:51,448 WARNING Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON...
+2026-07-04 17:44:51,744 INFO Contexto recuperado: 0 específicas, 5 macro.
+2026-07-04 17:44:51,745 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:44:54,038 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:44:54,039 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:44:58,040 INFO [*] Analizando confluencia en TSLA...
+2026-07-04 17:44:58,040 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:44:58,075 INFO Contexto recuperado: 3 específicas, 5 macro.
+2026-07-04 17:44:58,076 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:45:00,161 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:45:00,162 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:45:04,163 INFO [*] Analizando confluencia en USDARS...
+2026-07-04 17:45:04,163 WARNING Advertencia: Faltan datos para ['CCL_IMPLICITO']. Verificando JSON...
+2026-07-04 17:45:04,490 INFO Contexto recuperado: 5 específicas, 5 macro.
+2026-07-04 17:45:04,490 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:45:07,247 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:45:07,247 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:45:11,248 INFO [*] Analizando confluencia en VIST...
+2026-07-04 17:45:11,249 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:45:11,284 INFO Contexto recuperado: 1 específicas, 5 macro.
+2026-07-04 17:45:11,285 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:45:13,545 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:45:13,545 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:45:17,546 INFO [*] Analizando confluencia en WMT...
+2026-07-04 17:45:17,547 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:45:17,580 INFO Contexto recuperado: 0 específicas, 5 macro.
+2026-07-04 17:45:17,581 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:45:19,762 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:45:19,762 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:45:23,763 INFO [*] Analizando confluencia en XOM...
+2026-07-04 17:45:23,764 INFO Datos técnicos cargados: 10 indicadores.
+2026-07-04 17:45:23,796 INFO Contexto recuperado: 0 específicas, 5 macro.
+2026-07-04 17:45:23,797 INFO Probando modelo: gemini-flash-lite-latest...
+2026-07-04 17:45:26,145 INFO ACEPTADO: 3/3 perfiles generados.
+2026-07-04 17:45:26,145 INFO Esperando 4 segundos para cuidar cuota (15 RPM free tier)...
+2026-07-04 17:45:30,146 INFO Sincronizando resultados con Google Sheets...
+2026-07-04 17:45:31,384 INFO [+] Historial de veredictos guardado en HISTORIAL_VEREDICTOS.
+2026-07-04 17:45:32,052 INFO Motor completado. Activos: 20. Procesados: 20.
+2026-07-04 17:45:33,327 INFO Tiempo total de ejecución: 2.4 min
+2026-07-04 17:45:33,342 INFO [OK] PASO 4 COMPLETADO EN 2.41 min
+2026-07-04 17:45:33,342 INFO 
+==================================================
+2026-07-04 17:45:33,343 INFO [OK] PIPELINE COMPLETADO CON ÉXITO | Tiempo: 9.59 min
+2026-07-04 17:45:33,343 INFO [*] 2026-07-04 17:45:33
+2026-07-04 17:45:33,343 INFO ==================================================
+    [!] gspread 429 detectado al ejecutar 'get'. Reintentando en 15s (Intento 1/8)...
 
-[OK] Informe de supervision guardado en: ESTRATEGIA_REPORTS\Supervision_Sistema_20260703_172702.md
-
-============================================================
-INFORME DE SUPERVISION Y MEJORA ESTRATEGICA (Safe Encoding):
-# INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA
-
-## ? 1. ESTRUCTURA DE INPUTS DE LA IA DECISORA (AUDITORÍA)
-
-Este apartado detalla el catálogo completo de datos y campos que se inyectan dinámicamente en el prompt de la IA decisora (`decisor_con_ia.py`), agrupados por su origen de datos en Google Sheets:
-
-### ? Origen: `ANALISIS_TECNICO` (Datos Técnicos del Activo)
-Métricas matemáticas y de precio que definen la situación técnica de cada Ticker:
-* **Identificación**: `TICKER_ID`, `FECHA` (Fecha de cálculo).
-* **Indicadores Técnicos**: `RSI`, `MACD`, `TREND`, `PSAR`, `DMI`, `SMA_20`, `SMA_50`, `SMA_200`, `FIBO_RET`, `CCL_IMPLICITO`
-* **Valores de Control**: `ESTADO` (Debe ser `PENDIENTE` para procesar).
-
-### ? Origen: `NOTICIAS_SISTEMA` (Contexto Fundamental y Sentimiento)
-Noticias recolectadas en paralelo y filtradas por la IA. Se inyectan las 5 más recientes del Ticker y las 5 más recientes de contexto macroeconómico global (Ticker 9999):
-* **Campos por noticia**: `FECHA`, `TITULAR`, `RESUMEN_IA`, `SENTIMIENTO`, `FUENTE`.
-
-### ? Origen: `VALORACION_PORTAFOLIO` (Situación de Cartera)
-Tenencias y rentabilidades consolidadas por propietario calculadas en el Paso 3.8:
-* **Campos**: `PROPIETARIO`, `ACTIVO`, `CANTIDAD`, `PRECIO_PROMEDIO_COMPRA`, `VALORACION_MERCADO`, `RENTABILIDAD_NOMINAL`, `RENTABILIDAD_REAL_PERC`.
-
-### ? Origen: `CAJA_LIQUIDEZ` (Saldos Disponibles)
-Saldos líquidos por cuenta, propietario y moneda (ARS, USD, MEP):
-* **Campos**: `MONEDA`, `SALDO`, `TIPO_CUENTA`, `ULTIMA_ACTUALIZACION`, `PROPIETARIO`.
-
-### ? Origen: `VARIABLES_MERCADO` (Contexto de Referencia Financiera)
-Monitoreo de tipos de cambio de referencia e inflación:
-* **Campos**: `DATO`, `VALOR_PROM`, `VALOR_MIN`, `VALOR_MAX`, `GAP_PERC`.
-
-### ? Origen: `CONFIG_IA_USUARIO` (Perfiles y Reglas del Inversor)
-Define la política y ponderaciones que la IA debe contrastar:
-* **Campos**: `Usuario_ID`, `Perfil_Riesgo`, `Mix_Target`, `Tolerancia_Desvio`.
-
----
-
-## ESTRATEGIA DE CARTERA
-
-- LUIS (Agresivo): Su tenencia actual está sobre-expuesta a CASH (ARS) y posee activos con alta rentabilidad negativa (AAPL, TSLA). Según el Mix_Target (60% Tech, 30% Cedears Estables, 10% Liquidez), debe reducir la posición de efectivo en pesos. Se recomienda: Vender 50% de la posición en efectivo ARS y adquirir activos tecnológicos de alta convicción.
-- LUIS_MODERADO: Posee una cartera concentrada en AMZN y KO con alta rentabilidad negativa. El Mix_Target requiere 50% ETF Indexados. Se recomienda rebalancear: Vender posición en KO (defensiva) y mover el exceso de efectivo hacia activos tipo SPY (si hubiera posición) o ETFs indexados para cumplir con el 50% target.
-- VICKY (Conservador): Actualmente mantiene AAPL y AMD (Tech volátil), lo cual contraviene su perfil (50% Dólar, 30% Plazo Fijo, 20% ON). Se ordena: Venta total de AAPL y AMD para rotar a ONs o instrumentos de renta fija/liquidez en USD.
-- ANTO (Conservador): Posee TSLA y AMZN. El perfil requiere 60% FCI, 30% Renta Fija, 10% Liquidez. Se ordena: Venta de TSLA y AMZN. El capital resultante debe asignarse a Fondos Comunes de Inversión (FCI) de Renta Fija.
-
-## MEJORA DE DATOS
-
-- SINÓNIMOS: Luis, tienes 1 sugerencia de sinónimo pendiente. Por favor revisa la hoja SUGERENCIAS_SINONIMOS y cambia su estado a APROBADO o RECHAZADO.
-- ACTIVACIÓN DE ACTIVOS: El activo SPY y QQQ tienen flujo de noticias recientes pero están INACTIVO/NO ACTIVO en tu maestro. Actívalos para permitir el cálculo de indicadores por el pipeline.
-- OPTIMIZACIÓN DE BÚSQUEDA: Los activos GLD y BTC presentan noticias frecuentes pero con sesgo de "ruido". Se recomienda cambiar el filtro de GLD a "Gold spot price central bank reserves" y de BTC a "Bitcoin institutional adoption regulatory framework" para mejorar la calidad del triage.
-
-## AUDITORIA DE NOTICIAS VS DECISION
-
-- Calidad del triage: Alta. Los descartes realizados (deportes, política local, curiosidades) son correctos y protegen al sistema de ruido informativo innecesario.
-- Integridad: Se detectó que noticias sobre el sector de semiconductores (MU) fueron correctamente capturadas para generar alertas de riesgo, lo que demuestra un buen acople entre el triage y el análisis técnico.
-
-## CONTRADICCIONES TECNICAS
-
-- BTC: Existe contradicción severa. La IA muestra sentimiento "BEARISH/CONTRADICCION" con score 2-4/10, mientras el mercado presenta volatilidad técnica de corto plazo. Se recomienda seguir el veredicto de la IA debido a la tendencia bajista de LP (SMA200).
-- META: El veredicto de la IA es "NEUTRAL" con score 5/10, mientras que técnicamente se encuentra operando bajo SMA200 y SMA50 (Bajista LP). Se recomienda al usuario priorizar la tendencia técnica bajista sobre el sentimiento alcista de corto plazo.
-
-## ERRORES DE ESCALA
-
-- No se detectaron activos con el error '15x' o 'Error (Escala)' en los datos vigentes. La carga de precios y promedios móviles parece estar íntegra.
-
-## SINCRONIZACION DE DATOS
-
-- Integridad: La fecha de los datos técnicos vigentes (2026-07-02) frente a la fecha actual del sistema (2026-07-03) indica un rezago de 24 horas, lo cual es normal y saludable dentro de los parámetros de operación del sistema. No se emiten alertas de discrepancia.
-
-## ALERTAS Y CALIDAD
-
-- AUDITORÍA CCL: Los activos AAPL, AMD, AMZN, ASML, META, TSLA, VIST, WMT y XOM presentan un sobreprecio cambiario CCL mayor al 2.5% respecto a la media (1525.3). Acción: Se recomienda suspender compras en pesos de estos activos hasta que la brecha se estabilice, ya que el costo de entrada es ineficiente en moneda local.
-- ALERTAS DE SILENCIO: VIST muestra movimientos técnicos erráticos sin drivers claros en el radar de noticias. Luis, busca manualmente en reportes sectoriales de energía o comunicados de Miguel Galuccio qué ocurrió con el activo.
-
-## OPTIMIZACION DE INSTRUCCIONES IA
-
-- Sugerencia para 'Instrucciones_Fijas':
-  Sección: [SECCIÓN 4: REGLAS DE OPERATORIA LOCAL Y BRECHA CAMBIARIA]
-  Regla: "Si el CCL implícito de un activo presenta una desviación mayor al 2.5% respecto al Dólar MEP oficial, el sistema debe emitir una advertencia de ineficiencia cambiaria y desaconsejar activamente la compra en pesos".
-- Sugerencia para 'Prompt_Triage_Noticias':
-  Sección: [SECCIÓN 2: CRITERIOS DE APROBACIÓN Y FILTRO GENERAL]
-  Regla: "Descartar automáticamente cualquier titular que contenga nombres de futbolistas, torneos deportivos o eventos climáticos si no mencionan explícitamente una repercusión en el precio de mercado o indicadores económicos".
-============================================================
-[OK] Supervisor finalizado exitosamente en 0.42 min.
-
-
-[OK] EJECUCIÓN FINALIZADA EXITOSAMENTE (17:27:03)
+[OK] EJECUCIÓN FINALIZADA EXITOSAMENTE (17:45:54)
