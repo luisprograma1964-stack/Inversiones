@@ -189,6 +189,17 @@ Registro de auditoría para mejorar la calidad del filtrado.
 - **E.** `SUBMODULO`
 
 ### `REPORTE_IA`
+Salida de IA general.
+
+### `REPORTE_SUPERVISOR`
+Almacena el output del script Supervisor del Sistema en formato de base de datos para consumo de Streamlit, reemplazando los antiguos archivos `.md`.
+- **A.** `FECHA_HORA` (Timestamp de la ejecución)
+- **B.** `RESUMEN_EJECUTIVO` (Texto clave)
+- **C.** `ALERTAS_CRITICAS` (Alertas detectadas)
+- **D.** `EVALUACION_RIESGO` (Evaluación de riesgo general)
+- **E.** `CUERPO_COMPLETO` (El Markdown completo generado por la IA)
+
+### `HISTORIAL_REPORTE_IA`
 El historial acumulado de todas las recomendaciones generadas.
 - **A.** `FECHA` (YYYY-MM-DD HH:MM:SS)
 - **B.** `TICKER`

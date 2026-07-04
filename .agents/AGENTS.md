@@ -3,30 +3,23 @@
 Este archivo contiene las directrices obligatorias para el asistente de IA (Antigravity). Estas reglas se cargan automáticamente en cada sesión.
 
 ## 1. Reglas Críticas de Interacción y Modificación
-- **Autorización Obligatoria**: Queda terminantemente prohibido modificar, crear o eliminar cualquier archivo de código o configuración sin el consentimiento explícito ("ok") del usuario. Cada vez que solicites autorización para modificar o ejecutar algo, debes explicar detalladamente para qué sirve y qué impacto tiene, para evitar que el usuario autorice a ciegas.
-- **Visualización de Planes de Implementación**: Dado que el panel lateral de la interfaz de Antigravity no funciona en el entorno del usuario, es OBLIGATORIO que siempre que se cree o proponga un Plan de Implementación (o cualquier artefacto relevante), se muestre, resuma y explique de forma detallada y directa en el panel de chat principal, en lugar de depender de la vista lateral del artefacto.
-- **Cero Suposiciones**: Si una petición, prompt o tarea es ambigua, incompleta o no define claramente los casos borde (edge cases), el asistente tiene la obligación de detenerse y hacer las preguntas necesarias para aclarar la duda antes de actuar.
-- **Rol de Ingeniero Experto**: Actuar como un ingeniero de software experto. Analizar activamente el sistema para sugerir mejoras arquitectónicas, optimizaciones de procesamiento, modificaciones constructivas y detectar vulnerabilidades de seguridad o bugs.
-- **Estilo de Comunicación**: Respuestas cortas, directas y al grano. Evitar adulaciones, cumplidos y saludos redundantes.
+- **Autorización Obligatoria**: Queda terminantemente prohibido modificar, crear o eliminar sin consentimiento. Explicar el impacto detalladamente.
+- **Visualización de Planes**: Es OBLIGATORIO que los Planes de Implementación se muestren y expliquen en el chat principal.
+- **Cero Suposiciones**: Si una petición es ambigua, detenerse y preguntar.
+- **Rol de Ingeniero Experto**: Analizar el sistema para sugerir mejoras arquitectónicas, optimizaciones y detectar bugs.
 
 ## 2. Estándares del Código (Python 3.10+)
-- **Encapsulación**: Toda la lógica principal de un script debe residir en una función (ej: `def ejecutar_proceso():`) y ejecutarse mediante el bloque:
-  ```python
-  if __name__ == "__main__":
-      ejecutar_proceso()
-  ```
-- **Configuración Centralizada**: Ningún string correspondiente a nombres de hojas, archivos o constantes del sistema debe estar hardcodeado en los scripts. Todo debe cargarse de `config.py`.
-- **Manejo de Errores**: Usar bloques `try/except` en procesos principales y consultas externas (APIs, Google Finance), registrando las excepciones como `ERROR` o `CRITICAL` en el log.
-- **Formateo y Tipado**: Añadir anotaciones de tipos cuando sea práctico y respetar el formateo estandarizado.
+- **Encapsulación**: La lógica principal debe residir en funciones ejecutables.
+- **Configuración Centralizada**: Ningún string harcodeado de Google Sheets. Todo va a `config.py`.
+- **Manejo de Errores**: Usar bloques `try/except` en APIs externas y loguear.
 
-## 3. Integración con Google Sheets y AppSheet
-- **Validación Estricta**: Antes de escribir, leer o modificar cualquier código que interactúe con Google Sheets, consultar obligatoriamente `ESTRUCTURA_SHEETS.md` para garantizar que se respetan las columnas, su orden y sus formatos.
-- **Fechas**: Usar estrictamente el formato ISO `YYYY-MM-DD` (o `YYYY-MM-DD HH:MM:SS` para marcas temporales). Prohibido usar barras (`/`) o formatos alternativos.
-- **Claves Primarias para AppSheet**: Está prohibido usar columnas de fecha/timestamp como claves únicas (Key) de una tabla en AppSheet. Se debe utilizar siempre una columna física explícita de `ID` en la primera posición (Columna A) que contenga valores únicos cortos (vía `uuid.uuid4()[:8]` en Python) para evitar colisiones por concurrencia o por la truncación a segundos que realiza AppSheet.
-- **Logs y Estado**: 
-  - Registrar eventos importantes usando `procesamiento.registrar_log` (hoja `LOG_SISTEMA`).
-  - Actualizar el semáforo de estado con `procesamiento.actualizar_estado_proceso` (hoja `ESTADO_PROCESOS`).
+## 3. Integración con Google Sheets y Streamlit (Performance)
+- **Validación Estricta**: Consultar `ESTRUCTURA_SHEETS.md` antes de modificar bases de datos.
+- **Performance Web (Caché Obligatorio)**: Para evitar bloqueos, es imperativo usar `@st.cache_data` o `@st.cache_resource` al interactuar con Sheets. Queda prohibido usar `st.cache_data.clear()` a nivel global; se exige la limpieza granular (ej: `cargar_datos_hoja.clear("LOG_SISTEMA")`).
+- **Renderizado Eficiente**: No abusar de `st.rerun()`. Utilizar `@st.fragment` (si Streamlit 1.37+) para actualizar métricas en tiempo real sin recargar la página entera.
+- **Íconos y Formatos**: Usar etiquetas de Streamlit (`:material/...:`) SOLO en el frontend. Si se guardan datos en Sheets, logs `.txt`, reportes `.md` o `.json`, utilizar estricamente Emojis Unicode (`✅`, `🤖`, `📊`) para evitar errores de parseo externo.
+- **Archivos Temporales y Git**: Los reportes generados o logs en JSON deben depositarse en directorios que estén ignorados por `.gitignore` (ej: `ESTRATEGIA_REPORTS/`) para no inflar el repositorio. Además, las tablas de sistema no formales deben limpiarse periódicamente.
 
 ## 4. Gestión de Commits y Secretos
-- **Commits**: Usar el formato corto y descriptivo: `tipo: descripción breve` (ej. `fix: corregir cálculo de rsi`).
-- **Seguridad**: Nunca subir secretos o credenciales (como el archivo `.env`) al repositorio. Usar `.env.example` y el script de GitHub Secrets para despliegues.
+- **Commits**: Usar el formato: `tipo: descripción breve`.
+- **Seguridad**: Nunca subir secretos o `.env` al repositorio.

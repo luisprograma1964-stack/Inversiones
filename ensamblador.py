@@ -26,6 +26,7 @@ import captura_noticias
 import valorador_cartera
 import decisor_con_ia
 import pre_mantenimiento
+import captura_cedears
 from TEST.test_ia import descubrir_modelos
 
 def ejecutar_pipeline():
@@ -132,6 +133,24 @@ def ejecutar_pipeline():
             logger.warning("[!] El mantenimiento previo reportó un error, pero el pipeline continuará.")
         duracion_p05 = (time.time() - t05) / 60
         logger.info(f"[OK] PASO 0.5 COMPLETADO EN {duracion_p05:.2f} min")
+
+        # ==================================================
+        # PASO 0.7: Sincronización de CEDEARs Comafi
+        # ==================================================
+        t07 = time.time()
+        logger.info("\n[PASO 0.7] Sincronizando programas de CEDEARs Comafi...")
+        try:
+            captura_cedears.ejecutar_captura_cedears()
+        except Exception as e:
+            logger.warning(f"[!] Falló la captura de CEDEARs, pero el pipeline continuará: {e}")
+        duracion_p07 = (time.time() - t07) / 60
+        logger.info(f"[OK] PASO 0.7 COMPLETADO EN {duracion_p07:.2f} min")
+        
+        # También llamamos a la limpieza del supervisor
+        try:
+            procesamiento.limpiar_reporte_supervisor(sh)
+        except:
+            pass
 
         # ==================================================
         # PASO 1: Variables de Mercado General

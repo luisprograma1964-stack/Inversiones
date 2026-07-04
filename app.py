@@ -224,10 +224,22 @@ def hash_password(password):
     salt = "inversiones_familiar_2026"
     return hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
 
+def cargar_carteras_usuario(username, rol):
+    df_carteras = cargar_datos_hoja(config.WS_CONFIG_IA_USUARIO)
+    if df_carteras.empty: return []
+    
+    rol_upper = str(rol).upper()
+    if rol_upper == "ADMINISTRADOR":
+        return df_carteras.to_dict('records')
+    elif rol_upper == "VISITA":
+        return df_carteras[df_carteras["Tipo_Cartera"].astype(str).str.upper() == "SIMULACION"].to_dict('records')
+    else:
+        return df_carteras[df_carteras["Propietario"].astype(str).str.upper() == str(username).upper()].to_dict('records')
+
 def validar_credenciales(username, password):
     sh = obtener_conexion_sheets()
     if not sh:
-        return None, "Error de conexión a la base de datos de Google Sheets."
+        return None, "Error de conexion a la base de datos."
     try:
         ws = sh.worksheet(config.WS_CONFIG_USUARIOS)
         data = ws.get_all_records()
@@ -237,17 +249,17 @@ def validar_credenciales(username, password):
                 hash_input = hash_password(password)
                 hash_db = str(r.get('HASH_PASSWORD', '')).strip()
                 if hash_input == hash_db:
+                    rol = str(r.get('ROL', 'USUARIO')).strip().upper()
                     return {
                         "nombre": u_id,
-                        "perfil_riesgo": str(r.get('PERFIL_RIESGO', 'CONSERVADOR')).strip().upper(),
-                        "rol": str(r.get('ROL', 'Usuario')).strip(),
-                        "permisos_ejecucion": str(r.get('PERMISOS_EJECUCION', 'NO')).strip().upper() == "SÍ"
+                        "rol": rol,
+                        "permisos_ejecucion": (rol == "ADMINISTRADOR")
                     }, "OK"
                 else:
-                    return None, "Contraseña incorrecta."
-        return None, "Usuario no registrado."
+                    return None, "Contrasena incorrecta."
+        return None, "Usuario no encontrado."
     except Exception as e:
-        return None, f"Error al acceder a la base de usuarios: {e}"
+        return None, f"Error validando credenciales: {e}"
 
 # --- CONTROL DE ACCESO (LOGIN DE USUARIO) ---
 if "usuario" not in st.session_state:
@@ -274,6 +286,9 @@ if "usuario" not in st.session_state:
                         user_data, status_msg = validar_credenciales(user_input, pass_input)
                         if user_data:
                             st.session_state["usuario"] = user_data
+                            st.session_state["carteras"] = cargar_carteras_usuario(user_data["nombre"], user_data["rol"])
+                            if st.session_state["carteras"]:
+                                st.session_state["cartera_activa"] = st.session_state["carteras"][0]
                             st.success("¡Inicio de sesión exitoso!")
                             time.sleep(0.5)
                             st.rerun()
@@ -283,8 +298,33 @@ if "usuario" not in st.session_state:
 
 # --- 5. BARRA LATERAL (MONITOR DE DIVISAS Y BRECHA CAMBIARIA) ---
 st.sidebar.markdown(f":material/person: **Usuario**: `{st.session_state['usuario']['nombre']}` ({st.session_state['usuario']['rol']})")
+
+if "carteras" not in st.session_state:
+    st.session_state["carteras"] = cargar_carteras_usuario(st.session_state["usuario"]["nombre"], st.session_state["usuario"]["rol"])
+    if st.session_state["carteras"]:
+        st.session_state["cartera_activa"] = st.session_state["carteras"][0]
+
+if "carteras" in st.session_state and st.session_state["carteras"]:
+    nombres_carteras = [f"{c.get('Usuario_ID', c.get('USUARIO_ID', 'ID_N/A'))} ({c.get('Tipo_Cartera', 'N/A')})" for c in st.session_state["carteras"]]
+    idx_activa = 0
+    if "cartera_activa" in st.session_state:
+        for i, c in enumerate(st.session_state["carteras"]):
+            if c.get('Usuario_ID', c.get('USUARIO_ID')) == st.session_state["cartera_activa"].get("Usuario_ID", st.session_state["cartera_activa"].get("USUARIO_ID")):
+                idx_activa = i
+                break
+    
+    sel = st.sidebar.selectbox("Cartera Activa:", nombres_carteras, index=idx_activa)
+    idx_sel = nombres_carteras.index(sel)
+    if st.session_state.get("cartera_activa", {}).get("Usuario_ID", st.session_state.get("cartera_activa", {}).get("USUARIO_ID")) != st.session_state["carteras"][idx_sel].get("Usuario_ID", st.session_state["carteras"][idx_sel].get("USUARIO_ID")):
+        st.session_state["cartera_activa"] = st.session_state["carteras"][idx_sel]
+        st.rerun()
+else:
+    st.sidebar.warning("No tienes carteras asignadas.")
+
 if st.sidebar.button("🚪 Cerrar Sesión", key="logout_btn", use_container_width=True):
-    del st.session_state["usuario"]
+    for key in ["usuario", "carteras", "cartera_activa"]:
+        if key in st.session_state:
+            del st.session_state[key]
     st.rerun()
 st.sidebar.markdown("---")
 
@@ -353,7 +393,7 @@ if mep_v > 0 or ccl_prom > 0:
     
     if brecha > 2.5:
         color_card = "#FF4D4D"
-        mensaje_brecha = f":material/error: Brecha Alta (+{brecha:.2f}%)"
+        mensaje_brecha = f"⚠️ Brecha Alta (+{brecha:.2f}%)"
         consejo = "Se sugiere evitar compras locales en ARS (Cedears con sobreprecio)."
     elif brecha < 1.5:
         color_card = "#2ECC71"
@@ -415,25 +455,28 @@ df_semaforo_side = cargar_datos_semaforo()
 estado_sheets = "LIBRE"
 detalle_sheets = ""
 
+nombre_proceso = "Proceso"
 if not df_semaforo_side.empty:
-    # Buscar dinámicamente las columnas del semáforo por aproximación de nombre
     col_proceso = next((c for c in df_semaforo_side.columns if "PROCESO" in c), None)
     col_estado = next((c for c in df_semaforo_side.columns if "ESTADO" in c), None)
     col_detalle = next((c for c in df_semaforo_side.columns if "DETALLE" in c), None)
+    col_fecha_hora = next((c for c in df_semaforo_side.columns if "CORRIDA" in c or "FECHA" in c or "HORA" in c), None)
     
-    if col_proceso and col_estado:
-        # Filtrar fila de ENSAMBLADOR (insensible a mayúsculas)
-        row_ens = df_semaforo_side[df_semaforo_side[col_proceso].astype(str).str.upper() == "ENSAMBLADOR"]
-        if not row_ens.empty:
-            estado_sheets = str(row_ens.iloc[0][col_estado]).strip().upper()
-            if col_detalle:
-                detalle_sheets = str(row_ens.iloc[0][col_detalle])
+    if col_proceso and col_estado and col_fecha_hora:
+        # Sort by latest date to get the most recently run process
+        df_semaforo_side = df_semaforo_side.sort_values(by=col_fecha_hora, ascending=False)
+        row = df_semaforo_side.iloc[0]
+        
+        # Or if one is processing, prioritize it
+        processing_rows = df_semaforo_side[df_semaforo_side[col_estado].astype(str).str.upper().str.contains("PROCESANDO")]
+        if not processing_rows.empty:
+            row = processing_rows.iloc[0]
             
-            # Buscar columna de fecha/hora de la última corrida
-            col_fecha_hora = next((c for c in df_semaforo_side.columns if "CORRIDA" in c or "FECHA" in c or "HORA" in c), None)
-            fecha_sheets = ""
-            if col_fecha_hora:
-                fecha_sheets = str(row_ens.iloc[0][col_fecha_hora]).strip()
+        nombre_proceso = str(row[col_proceso]).strip()
+        estado_sheets = str(row[col_estado]).strip().upper()
+        if col_detalle:
+            detalle_sheets = str(row[col_detalle])
+        fecha_sheets = str(row[col_fecha_hora]).strip()
 
 # Pintar el semáforo lateral
 estado_sheets_upper = estado_sheets.upper()
@@ -441,13 +484,13 @@ estado_sheets_upper = estado_sheets.upper()
 if hay_proceso_corriendo:
     st.sidebar.warning(f":material/settings: Corriendo de fondo:\n`{estado_global['activo']}`")
 elif "PROCESANDO" in estado_sheets_upper:
-    st.sidebar.warning(f":material/pending: Pipeline en Ejecución...\n{detalle_sheets[:60]}\n\n⏱️ Última corrida:\n{fecha_sheets}")
+    st.sidebar.warning(f":material/pending: {nombre_proceso} en Ejecución...\n{detalle_sheets[:60]}\n\n⏱️ Última corrida:\n{fecha_sheets}")
 elif "ERROR" in estado_sheets_upper or "FAIL" in estado_sheets_upper or "FALL" in estado_sheets_upper:
-    st.sidebar.error(f":material/cancel: Error en Pipeline:\n{detalle_sheets[:60]}\n\n⏱️ Última corrida:\n{fecha_sheets}")
+    st.sidebar.error(f":material/cancel: Error en {nombre_proceso}:\n{detalle_sheets[:60]}\n\n⏱️ Última corrida:\n{fecha_sheets}")
 elif "CANCEL" in estado_sheets_upper or "ABORT" in estado_sheets_upper:
-    st.sidebar.error(f":material/warning: Pipeline Cancelado\n\n⏱️ Última corrida:\n{fecha_sheets}")
+    st.sidebar.error(f":material/warning: {nombre_proceso} Cancelado\n\n⏱️ Última corrida:\n{fecha_sheets}")
 elif "COMPLET" in estado_sheets_upper or "OK" in estado_sheets_upper or "EXIT" in estado_sheets_upper or "ÉXIT" in estado_sheets_upper:
-    st.sidebar.success(f":material/check_circle: Pipeline Completado con Éxito\n\n⏱️ Última corrida:\n{fecha_sheets}")
+    st.sidebar.success(f":material/check_circle: {nombre_proceso} Completado con Éxito\n\n⏱️ Última corrida:\n{fecha_sheets}")
 else:
     st.sidebar.info(f":material/check_circle: Sistema Listo / Libre\n\n⏱️ Última corrida:\n{fecha_sheets}")
 
@@ -505,10 +548,11 @@ st.write("---")
 
 # Crear las pestañas principales de la aplicación (Dinámicas por rol)
 if pueden_ejecutar:
-    tab1, tab2, tab3, tab8, tab_admin = st.tabs([
+    tab1, tab2, tab3, tab_analytics, tab8, tab_admin = st.tabs([
         ":material/pie_chart: Resumen de Cartera",
         ":material/account_balance_wallet: Operaciones y Caja",
         ":material/smart_toy: Matriz de Decisiones IA",
+        ":material/query_stats: Analytics (Hit-Rate)",
         ":material/forum: Sugerencias y Feedback",
         ":material/admin_panel_settings: Panel de Administración"
     ])
@@ -520,10 +564,11 @@ if pueden_ejecutar:
             ":material/terminal: Consola de Logs"
         ])
 else:
-    tab1, tab2, tab3, tab8 = st.tabs([
+    tab1, tab2, tab3, tab_analytics, tab8 = st.tabs([
         ":material/pie_chart: Resumen de Cartera",
         ":material/account_balance_wallet: Operaciones y Caja",
         ":material/smart_toy: Matriz de Decisiones IA",
+        ":material/query_stats: Analytics (Hit-Rate)",
         ":material/forum: Sugerencias y Feedback"
     ])
     class DummyTab:
@@ -540,6 +585,15 @@ with tab1:
     # Cargar datos
     df_val = cargar_datos_hoja("VALORACION_PORTAFOLIO")
     df_caja = cargar_datos_hoja("CAJA_LIQUIDEZ")
+    
+    # Filtro de cartera activa
+    _c_activa = st.session_state.get("cartera_activa", {})
+    _p_id = _c_activa.get("Usuario_ID", _c_activa.get("USUARIO_ID", "LUIS"))
+    
+    if not df_val.empty and "PROPIETARIO" in df_val.columns:
+        df_val = df_val[df_val["PROPIETARIO"].astype(str).str.upper() == _p_id.upper()]
+    if not df_caja.empty and "PROPIETARIO" in df_caja.columns:
+        df_caja = df_caja[df_caja["PROPIETARIO"].astype(str).str.upper() == _p_id.upper()]
     
     tiene_datos = False
     if not df_val.empty:
@@ -955,7 +1009,8 @@ with tab2:
         with col_sel1:
             op_tipo = st.selectbox("Operación:", ["Compra", "Venta"])
         with col_sel2:
-            prop = st.selectbox("Propietario / Perfil:", lista_propietarios)
+            _u_id_val = st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS")
+            prop = st.text_input("Cartera (Propietario):", value=_u_id_val, disabled=True, key=f"form_trans_{_u_id_val}")
         with col_sel3:
             moneda = st.selectbox("Moneda de la Operación:", ["ARS", "USD"])
             
@@ -1069,7 +1124,8 @@ with tab2:
         with col_c1:
             tipo_mov = st.selectbox("Tipo de Movimiento:", ["INGRESO", "EGRESO"])
         with col_c2:
-            prop = st.selectbox("Propietario / Perfil:", lista_propietarios, key="caja_prop_sel")
+            _u_id_val2 = st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS")
+            prop = st.text_input("Cartera (Propietario):", value=_u_id_val2, disabled=True, key=f"form_caja_{_u_id_val2}")
         with col_c3:
             moneda = st.selectbox("Moneda:", ["ARS", "USD"], key="caja_mon_sel")
             
@@ -1202,11 +1258,11 @@ def render_matriz_decisiones_fragment(df_matriz, df_tecnico, df_maestro, df_val,
     expandir_todos = st.checkbox(":material/folder_open: Expandir todos los análisis de esta pestaña", value=False, key="expandir_matriz_checkbox")
 
     # Configurar pestañas por Perfil de inversión
+    # Perfiles estandar para simular decisiones en esta cartera
     lista_perfiles_ui = [
-        ("LUIS", ":material/person: LUIS (Agresivo)"),
-        ("LUIS_MODERADO", ":material/person: LUIS_MODERADO (Moderado)"),
-        ("VICKY", ":material/person: VICKY (Conservador)"),
-        ("ANTO", ":material/person: ANTO (Conservador)")
+        ("AGRESIVO", ":material/rocket_launch: Agresivo"),
+        ("MODERADO", ":material/balance: Moderado"),
+        ("CONSERVADOR", ":material/shield: Conservador")
     ]
     
     perfiles_tabs = st.tabs([p[1] for p in lista_perfiles_ui])
@@ -1214,7 +1270,7 @@ def render_matriz_decisiones_fragment(df_matriz, df_tecnico, df_maestro, df_val,
     for idx_tab, (p_id, p_label) in enumerate(lista_perfiles_ui):
         with perfiles_tabs[idx_tab]:
             # Filtrar datos de la matriz para este perfil específico
-            df_perfil = df_matriz[df_matriz['PERFIL'] == p_id].copy()
+            df_perfil = df_matriz[df_matriz['PERFIL'].astype(str).str.upper() == str(p_id).upper()].copy()
             
             # Aplicar filtros adicionales de Ticker y Sentimiento
             if filtro_t != "Todos":
@@ -1489,19 +1545,18 @@ with tab3:
         expandir_todos = st.checkbox(":material/folder_open: Expandir todos los análisis de esta pestaña", value=False, key="expandir_matriz_checkbox")
 
         # Configurar pestañas por Perfil de inversión
-        lista_perfiles_ui = [
-            ("LUIS", ":material/person: LUIS (Agresivo)"),
-            ("LUIS_MODERADO", ":material/person: LUIS_MODERADO (Moderado)"),
-            ("VICKY", ":material/person: VICKY (Conservador)"),
-            ("ANTO", ":material/person: ANTO (Conservador)")
-        ]
+        c_activa = st.session_state.get("cartera_activa", {})
+        u_id = c_activa.get("Usuario_ID", c_activa.get("USUARIO_ID", "LUIS"))
+        p_riesgo = c_activa.get("Perfil_Riesgo", c_activa.get("PERFIL_RIESGO", "Moderado"))
+        t_cartera = c_activa.get("Tipo_Cartera", c_activa.get("TIPO_CARTERA", "REAL"))
+        lista_perfiles_ui = [ (p_riesgo.capitalize(), f":material/person: Cartera Activa: {u_id} ({t_cartera} - {p_riesgo})") ]
         
         perfiles_tabs = st.tabs([p[1] for p in lista_perfiles_ui])
         
         for idx_tab, (p_id, p_label) in enumerate(lista_perfiles_ui):
             with perfiles_tabs[idx_tab]:
                 # Filtrar datos de la matriz para este perfil específico
-                df_perfil = df_matriz[df_matriz['PERFIL'] == p_id].copy()
+                df_perfil = df_matriz[df_matriz['PERFIL'].astype(str).str.upper() == str(p_id).upper()].copy()
                 
                 # Aplicar filtros adicionales de Ticker y Sentimiento
                 if filtro_t != "Todos":
@@ -1666,29 +1721,34 @@ with tab3:
 with tab4:
     if pueden_ejecutar:
         st.header(":material/assignment: Reportes de Supervisión del Sistema")
+        st.write("Historial de análisis y auditoría generados por la IA de Supervisión, almacenados en Base de Datos.")
         
-        rep_dir = Path(os.path.join(WORKSPACE_DIR, "ESTRATEGIA_REPORTS"))
-        if not rep_dir.exists():
-            st.warning("No se encontró la carpeta de reportes `ESTRATEGIA_REPORTS`.")
+        df_sup = cargar_datos_hoja("REPORTE_SUPERVISOR")
+        if df_sup.empty:
+            st.info("No hay reportes de supervisor en la base de datos todavía.")
         else:
-            archivos_reportes = sorted(list(rep_dir.glob("Supervision_Sistema_*.md")), key=lambda x: x.stat().st_mtime, reverse=True)
-            archivos_reportes += sorted(list(rep_dir.glob("Estrategia_*.md")), key=lambda x: x.stat().st_mtime, reverse=True)
-            
-            if not archivos_reportes:
-                st.info("No se encontraron reportes generados en la carpeta `ESTRATEGIA_REPORTS`.")
-            else:
-                nombres_archivos = [a.name for a in archivos_reportes]
-                seleccionado = st.selectbox("Seleccione el reporte a visualizar:", nombres_archivos)
+            try:
+                df_sup = df_sup.sort_values(by="FECHA_HORA", ascending=False).reset_index(drop=True)
+            except:
+                pass
                 
-                path_completo = rep_dir / seleccionado
-                try:
-                    with open(path_completo, "r", encoding="utf-8") as f:
-                        cuerpo_reporte = f.read()
-                    
-                    st.write("---")
-                    st.markdown(cuerpo_reporte)
-                except Exception as e:
-                    st.error(f"Error leyendo el reporte: {e}")
+            fechas_reportes = df_sup["FECHA_HORA"].astype(str).tolist()
+            seleccionado = st.selectbox("Seleccione el reporte a visualizar:", fechas_reportes, key="sel_rep_sup")
+            
+            if seleccionado:
+                fila = df_sup[df_sup["FECHA_HORA"].astype(str) == seleccionado].iloc[0]
+                
+                col_r1, col_r2 = st.columns(2)
+                with col_r1:
+                    st.markdown("### Resumen Ejecutivo")
+                    st.info(fila.get("RESUMEN_EJECUTIVO", "No disponible"))
+                with col_r2:
+                    st.markdown("### Alertas Críticas")
+                    st.warning(fila.get("ALERTAS_CRITICAS", "No disponible"))
+                
+                st.write("---")
+                st.markdown("### Reporte Completo")
+                st.markdown(fila.get("CUERPO_COMPLETO", ""))
 
 # ==========================================
 # PESTAÑA 5: PARÁMETROS DE LA IA
@@ -1751,27 +1811,70 @@ with tab5:
 with tab6:
     if pueden_ejecutar:
         st.header(":material/build: Configuración y Tablas Paramétricas")
-        st.write("Gestiona canales de Telegram, aprueba sinónimos y modifica tablas de configuración de forma fluida:")
+        st.markdown("---")
+        @st.fragment
+        def render_crear_cartera():
+            with st.expander("➕ Crear Nueva Cartera (Portfolio)", expanded=False):
+                st.write("Crea una nueva cartera virtual para un usuario existente.")
+                with st.container(border=True):
+                    col_c1, col_c2 = st.columns(2)
+                    nombre_cartera = col_c1.text_input("Nombre de la Cartera (Ej: Anto Ficticia)")
+                    propietario = col_c2.selectbox("Propietario (Usuario)", ["Luis", "Victoria", "Anto", "Martin", "Visita"])
+                    
+                    col_c3, col_c4 = st.columns(2)
+                    perfil_riesgo = col_c3.selectbox("Perfil de Riesgo", ["Agresivo", "Moderado", "Conservador"])
+                    tipo_cartera = col_c4.selectbox("Tipo de Cartera", ["REAL", "SIMULACION"])
+                    
+                    if perfil_riesgo == "Agresivo":
+                        def_mix = "80% Acciones / 20% Cedears"
+                        def_tol = "10%"
+                    elif perfil_riesgo == "Moderado":
+                        def_mix = "50% Acciones / 50% Cedears"
+                        def_tol = "5%"
+                    else:
+                        def_mix = "20% Acciones / 80% Renta Fija"
+                        def_tol = "2%"
+                    
+                    col_c5, col_c6 = st.columns(2)
+                    mix_target = col_c5.text_input("Mix Target (Ej: 80% Acciones / 20% Cedears)", value=def_mix)
+                    tolerancia = col_c6.text_input("Tolerancia al Desvío (Ej: 10%)", value=def_tol)
+                    
+                    if st.button("Guardar Cartera", type="primary", key="btn_guardar_cartera"):
+                        if not nombre_cartera:
+                            st.error("El nombre de la cartera es obligatorio.")
+                        else:
+                            with st.spinner("Creando cartera..."):
+                                try:
+                                    sh_admin = obtener_conexion_sheets()
+                                    ws_us = sh_admin.worksheet(config.WS_CONFIG_IA_USUARIO)
+                                    nueva_fila = [nombre_cartera, propietario, perfil_riesgo, tipo_cartera, mix_target, tolerancia]
+                                    ws_us.append_row(nueva_fila)
+                                    st.success(f"¡Cartera '{nombre_cartera}' creada exitosamente!")
+                                    st.cache_data.clear()
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Error creando cartera: {e}")
         
-        param_modo = st.selectbox(
-            "Seleccione qué desea configurar:", 
-            [
-                "📢 Canales de Telegram Consultados", 
-                ":material/search: Sugerencias de Sinónimos (Aprobación)", 
-                "✏️ Otras Tablas Paramétricas (Grilla)"
-            ],
-            key="param_modo_selectbox"
-        )
+        render_crear_cartera()
+
+        st.write("Gestiona canales de Telegram, aprueba sinónimos y modifica tablas de configuración de forma fluida:")
         
         sh_param = obtener_conexion_sheets()
         
-        if param_modo == "📢 Canales de Telegram Consultados":
+        sub_t1, sub_t2, sub_t3 = st.tabs([
+            "📢 Canales de Telegram", 
+            "🔍 Aprobación de Sinónimos", 
+            "✏️ Otras Tablas (Grilla)"
+        ])
+        
+        with sub_t1:
             st.subheader("📢 Canales de Telegram Consultados")
             st.write("Modifica la lista de canales de Telegram de los cuales el bot lee noticias. Realiza todos tus cambios y presiona Guardar Canales al finalizar:")
             
             if sh_param:
                 try:
-                    df_tg = cargar_datos_hoja("CONFIG_TELEGRAM_CHANNELS")
+                    with st.spinner("Cargando Canales de Telegram..."):
+                        df_tg = cargar_datos_hoja("CONFIG_TELEGRAM_CHANNELS")
                     df_tg.columns = [c.strip().upper() for c in df_tg.columns]
                     df_tg_mod = st.data_editor(
                         df_tg, 
@@ -1806,8 +1909,8 @@ with tab6:
                 except Exception as e:
                     st.error(f"Error leyendo la hoja CONFIG_TELEGRAM_CHANNELS: {e}")
                     
-        elif param_modo == ":material/search: Sugerencias de Sinónimos (Aprobación)":
-            st.subheader(":material/search: Aprobación de Sinónimos de Activos")
+        with sub_t2:
+            st.subheader("🔍 Aprobación de Sinónimos de Activos")
             
             col_sug_sub, col_sug_ref = st.columns([8, 2])
             with col_sug_sub:
@@ -1825,7 +1928,8 @@ with tab6:
                         return "0"
                     return val_str.upper()
 
-                df_sug = cargar_datos_hoja("SUGERENCIAS_SINONIMOS")
+                with st.spinner("Cargando Sugerencias de Sinónimos..."):
+                    df_sug = cargar_datos_hoja("SUGERENCIAS_SINONIMOS")
                 
                 if df_sug.empty:
                     st.success("🎉 ¡No hay sugerencias registradas!")
@@ -1841,7 +1945,8 @@ with tab6:
                         # Cargar tickers del maestro para validación
                         tickers_maestro = set()
                         try:
-                            df_maestro_sug = cargar_datos_hoja(config.WS_MAESTRO_ACTIVOS)
+                            with st.spinner("Validando contra Maestro de Activos..."):
+                                df_maestro_sug = cargar_datos_hoja(config.WS_MAESTRO_ACTIVOS)
                             if not df_maestro_sug.empty:
                                 df_maestro_sug.columns = [c.upper() for c in df_maestro_sug.columns]
                                 tickers_maestro = {str(r.get('TICKER_ID', '')).strip().upper() for _, r in df_maestro_sug.iterrows() if r.get('TICKER_ID')}
@@ -2032,59 +2137,63 @@ with tab6:
             except Exception as e:
                 st.error(f"Error leyendo la hoja SUGERENCIAS_SINONIMOS: {e}")
                     
-        else:
+        with sub_t3:
             # Grilla para otras tablas
             tablas_reales = ["MAESTRO_ACTIVOS", "PROGRAMA_CEDEARS", "CONFIG_FUENTES", "CONFIG_SINONIMOS", "SUGERENCIAS_SINONIMOS"]
-            tabla_elegida = st.selectbox("Seleccione la tabla de grilla a modificar:", tablas_reales, key="grilla_param_select")
             
             if sh_param:
-                try:
-                    df_param = cargar_datos_hoja(tabla_elegida)
-                    
-                    # Armar configuración de columnas dinámica para facilitar la edición sin tipear
-                    col_config_dinamico = {}
-                    for col_name in df_param.columns:
-                        col_upper = col_name.strip().upper()
-                        if col_upper == "ESTADO":
-                            col_config_dinamico[col_name] = st.column_config.SelectboxColumn(
-                                col_name,
-                                help="Seleccione el estado (ACTIVO o INACTIVO)",
-                                options=["ACTIVO", "INACTIVO"],
-                                required=True
-                            )
-                        elif col_upper == "MONEDA":
-                            col_config_dinamico[col_name] = st.column_config.SelectboxColumn(
-                                col_name,
-                                help="Seleccione la moneda (ARS o USD)",
-                                options=["ARS", "USD"],
-                                required=True
-                            )
+                sub_tablas_t3 = st.tabs(tablas_reales)
+                
+                for idx, tabla_elegida in enumerate(tablas_reales):
+                    with sub_tablas_t3[idx]:
+                        try:
+                            with st.spinner(f"Cargando {tabla_elegida}..."):
+                                df_param = cargar_datos_hoja(tabla_elegida)
+                            
+                            # Armar configuración de columnas dinámica para facilitar la edición sin tipear
+                            col_config_dinamico = {}
+                            for col_name in df_param.columns:
+                                col_upper = col_name.strip().upper()
+                                if col_upper == "ESTADO":
+                                    col_config_dinamico[col_name] = st.column_config.SelectboxColumn(
+                                        col_name,
+                                        help="Seleccione el estado (ACTIVO o INACTIVO)",
+                                        options=["ACTIVO", "INACTIVO"],
+                                        required=True
+                                    )
+                                elif col_upper == "MONEDA":
+                                    col_config_dinamico[col_name] = st.column_config.SelectboxColumn(
+                                        col_name,
+                                        help="Seleccione la moneda (ARS o USD)",
+                                        options=["ARS", "USD"],
+                                        required=True
+                                    )
 
-                    df_param_mod = st.data_editor(
-                        df_param, 
-                        num_rows="dynamic", 
-                        use_container_width=True,
-                        column_config=col_config_dinamico,
-                        key=f"editor_param_grilla_{tabla_elegida}"
-                    )
-                    
-                    if st.button(f"💾 Guardar cambios en {tabla_elegida}", key=f"btn_save_param_grilla_{tabla_elegida}"):
-                        with st.spinner("Escribiendo datos en Google Sheets..."):
-                            try:
-                                ws_param = sh_param.worksheet(tabla_elegida)
-                                ws_param.clear()
-                                cabeceras = [df_param_mod.columns.tolist()]
-                                valores = df_param_mod.values.tolist()
-                                valores_limpios = [[str(x) if pd.notna(x) else "" for x in row] for row in valores]
-                                
-                                ws_param.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
-                                st.success(f"¡Cambios guardados en la tabla paramétrica `{tabla_elegida}`!")
-                                st.cache_data.clear()
-                                st.rerun()
-                            except Exception as ex:
-                                st.error(f"Error al escribir en Google Sheets: {ex}")
-                except Exception as e:
-                    st.error(f"Error cargando la tabla paramétrica `{tabla_elegida}`: {e}")
+                            df_param_mod = st.data_editor(
+                                df_param, 
+                                num_rows="dynamic", 
+                                use_container_width=True,
+                                column_config=col_config_dinamico,
+                                key=f"editor_param_grilla_{tabla_elegida}"
+                            )
+                            
+                            if st.button(f"💾 Guardar cambios en {tabla_elegida}", key=f"btn_save_param_grilla_{tabla_elegida}"):
+                                with st.spinner("Escribiendo datos en Google Sheets..."):
+                                    try:
+                                        ws_param = sh_param.worksheet(tabla_elegida)
+                                        ws_param.clear()
+                                        cabeceras = [df_param_mod.columns.tolist()]
+                                        valores = df_param_mod.values.tolist()
+                                        valores_limpios = [[str(x) if pd.notna(x) else "" for x in row] for row in valores]
+                                        
+                                        ws_param.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
+                                        st.success(f"¡Cambios guardados en la tabla paramétrica `{tabla_elegida}`!")
+                                        st.cache_data.clear()
+                                        st.rerun()
+                                    except Exception as ex:
+                                        st.error(f"Error al escribir en Google Sheets: {ex}")
+                        except Exception as e:
+                            st.error(f"Error cargando la tabla paramétrica `{tabla_elegida}`: {e}")
 
 # ==========================================
 # PESTAÑA 7: CONSOLA DE LOGS
@@ -2175,6 +2284,103 @@ with tab7:
                             df_log_filtrado = df_log_filtrado.drop(columns=["FECHA_DIA"])
                             
                         st.dataframe(df_log_filtrado, use_container_width=True)
+
+# ==========================================
+# PESTAÑA ANALYTICS (HIT-RATE)
+# ==========================================
+with tab_analytics:
+    st.header(":material/query_stats: Analytics y Eficiencia (Hit-Rate)")
+    st.write("Métricas de rendimiento de ejecución y precisión de las recomendaciones de la IA.")
+    
+    # Eficiencia de Ejecución (Slippage)
+    st.subheader("Eficiencia de Ejecución (Tu Precio vs Sistema)")
+    df_hist_a = cargar_datos_hoja("TRANSACCIONES")
+    
+    _c_activa = st.session_state.get("cartera_activa", {})
+    _p_id = _c_activa.get("Usuario_ID", _c_activa.get("USUARIO_ID", "LUIS"))
+    
+    if not df_hist_a.empty and "PROPIETARIO" in df_hist_a.columns:
+        df_hist_a = df_hist_a[df_hist_a["PROPIETARIO"].astype(str).str.upper() == _p_id.upper()]
+        
+    if not df_hist_a.empty and "PRECIO_MERCADO_REF" in df_hist_a.columns:
+        import numpy as np
+        import pandas as pd
+        df_sl = df_hist_a.copy()
+        df_sl["PRECIO_MERCADO_REF"] = pd.to_numeric(df_sl["PRECIO_MERCADO_REF"].astype(str).str.replace(',','.'), errors='coerce').fillna(0.0)
+        df_sl["PRECIO_UNITARIO"] = pd.to_numeric(df_sl["PRECIO_UNITARIO"].astype(str).str.replace(',','.'), errors='coerce').fillna(0.0)
+        
+        df_valid = df_sl[df_sl["PRECIO_MERCADO_REF"] > 0]
+        
+        if not df_valid.empty:
+            total_execs = len(df_valid)
+            buys = df_valid[df_valid["OPERACIÓN"].astype(str).str.upper() == "COMPRA"]
+            sells = df_valid[df_valid["OPERACIÓN"].astype(str).str.upper() == "VENTA"]
+            
+            good_buys = buys[buys["PRECIO_UNITARIO"] < buys["PRECIO_MERCADO_REF"]]
+            good_sells = sells[sells["PRECIO_UNITARIO"] > sells["PRECIO_MERCADO_REF"]]
+            
+            good_execs = len(good_buys) + len(good_sells)
+            hit_rate = (good_execs / total_execs) * 100 if total_execs > 0 else 0
+            
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Hit-Rate de Ejecución", f"{hit_rate:.1f}%", help="Porcentaje de veces que operaste a mejor precio que el sugerido")
+            col2.metric("Operaciones Optimizadas", f"{good_execs} / {total_execs}")
+            
+            st.dataframe(df_valid[["FECHA", "ACTIVO", "OPERACIÓN", "PRECIO_UNITARIO", "PRECIO_MERCADO_REF"]], use_container_width=True)
+        else:
+            st.info("No hay suficientes transacciones recientes con precio de referencia guardado para calcular la eficiencia.")
+    else:
+        st.info("Esperando transacciones futuras para generar métricas de ejecución.")
+        
+    st.markdown("---")
+    st.subheader("Rendimiento Histórico de Predicciones IA")
+    st.write("Análisis empírico del éxito de las recomendaciones de compra dictaminadas por la IA en el pasado frente a los precios actuales de mercado.")
+    
+    df_ver = cargar_datos_hoja("HISTORIAL_VEREDICTOS")
+    df_m = cargar_datos_hoja("MAESTRO_ACTIVOS")
+    
+    if not df_ver.empty and not df_m.empty and "TICKER" in df_ver.columns and "VEREDICTO_IA" in df_ver.columns:
+        df_ver_compras = df_ver[df_ver["VEREDICTO_IA"].astype(str).str.upper().str.contains("COMPRA")].copy()
+        
+        if not df_ver_compras.empty:
+            df_ver_compras["PRECIO_ARS"] = pd.to_numeric(df_ver_compras["PRECIO_ARS"].astype(str).str.replace(',','.'), errors='coerce').fillna(0)
+            
+            precios_actuales = {}
+            col_precio = next((c for c in df_m.columns if 'PRECIO' in str(c).upper() or 'CIERRE' in str(c).upper()), None)
+            if col_precio:
+                for _, r in df_m.iterrows():
+                    tk = str(r.get("TICKER_ID", "")).strip().upper()
+                    try:
+                        p = float(str(r.get(col_precio, 0)).replace(',','.'))
+                        precios_actuales[tk] = p
+                    except:
+                        pass
+            
+            hits = 0
+            analizados = 0
+            for _, r in df_ver_compras.iterrows():
+                tk = str(r["TICKER"]).strip().upper()
+                precio_pasado = r["PRECIO_ARS"]
+                if tk in precios_actuales and precio_pasado > 0:
+                    analizados += 1
+                    precio_hoy = precios_actuales[tk]
+                    if precio_hoy > precio_pasado:
+                        hits += 1
+                        
+            if analizados > 0:
+                hit_rate_ia = (hits / analizados) * 100
+                st.metric("Precisión de la IA (Veredictos de Compra)", f"{hit_rate_ia:.1f}%", help=f"Basado en {analizados} recomendaciones históricas de compra donde el precio de hoy es superior al del día del veredicto.")
+                
+                df_ver_compras["PRECIO_HOY"] = df_ver_compras["TICKER"].apply(lambda x: precios_actuales.get(str(x).strip().upper(), 0.0))
+                import numpy as np
+                df_ver_compras["RESULTADO"] = np.where(df_ver_compras["PRECIO_HOY"] > df_ver_compras["PRECIO_ARS"], "✅ ACIERTO", "❌ FALLO")
+                st.dataframe(df_ver_compras[["FECHA_HORA", "TICKER", "VEREDICTO_IA", "PRECIO_ARS", "PRECIO_HOY", "RESULTADO"]], use_container_width=True)
+            else:
+                st.info("No se pudieron enlazar los precios actuales para medir el rendimiento.")
+        else:
+            st.info("No hay suficientes veredictos de 'COMPRA' en el historial para medir.")
+    else:
+        st.info("Esperando veredictos futuros para calcular el rendimiento.")
 
 # ==========================================
 # PESTAÑA 8: SUGERENCIAS Y FEEDBACK FAMILIAR

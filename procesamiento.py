@@ -841,3 +841,35 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
     except Exception as e:
         actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_noticias_sistema", tiempo_ejecucion="0.00 min")
         logger.exception(f"Error técnico en limpieza de noticias aprobadas: {e}")
+def limpiar_reporte_supervisor(sh, dias_a_mantener=30):
+    try:
+        import pandas as pd
+        from datetime import datetime
+        import config
+        ws_supervisor = sh.worksheet(config.WS_REPORTE_SUPERVISOR)
+        data = ws_supervisor.get_all_records()
+        if not data: return
+        
+        df = pd.DataFrame(data)
+        total_antes = len(df)
+        if total_antes < 20: return 
+        
+        if 'FECHA_HORA' not in df.columns: return
+        
+        df['FECHA_DT'] = pd.to_datetime(df['FECHA_HORA'], errors='coerce')
+        limite = datetime.now() - pd.Timedelta(days=dias_a_mantener)
+        
+        df_limpio = df[df['FECHA_DT'] >= limite].copy()
+        df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+        
+        eliminados = total_antes - len(df_limpio)
+        if eliminados > 0:
+            ws_supervisor.clear()
+            ws_supervisor.append_row(df_limpio.columns.values.tolist())
+            
+            chunk_limpio = [[str(x) if pd.notna(x) else "" for x in row] for row in df_limpio.values.tolist()]
+            ws_supervisor.append_rows(chunk_limpio, value_input_option='USER_ENTERED')
+            logger.info(f"[*] Limpieza de Supervisor completada: {eliminados} reportes antiguos eliminados.")
+            
+    except Exception as e:
+        logger.error(f"[!] Error en limpieza de supervisor: {e}")

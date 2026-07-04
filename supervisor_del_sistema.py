@@ -323,13 +323,31 @@ Define la política y ponderaciones que la IA debe contrastar:
 """
         informe_completo = punto_1_audit + informe
 
-        # 5. GUARDAR REPORTE EN ARCHIVO MD
-        os.makedirs(config.DIR_ESTRATEGIA, exist_ok=True)
-        filename = f"Supervision_Sistema_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-        path_md = os.path.join(config.DIR_ESTRATEGIA, filename)
-        with open(path_md, "w", encoding="utf-8") as f:
-            f.write(informe_completo)
-        
+        # 5. GUARDAR REPORTE EN GOOGLE SHEETS
+        try:
+            ws_supervisor = sh.worksheet(config.WS_REPORTE_SUPERVISOR)
+            ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            import re
+            
+            alertas = ""
+            match_alertas = re.search(r'## ALERTAS Y CALIDAD(.*?)##', informe_completo, re.DOTALL | re.IGNORECASE)
+            if match_alertas:
+                alertas = match_alertas.group(1).strip()[:800]
+                
+            resumen = ""
+            match_est = re.search(r'## ESTRATEGIA DE CARTERA(.*?)##', informe_completo, re.DOTALL | re.IGNORECASE)
+            if match_est:
+                resumen = match_est.group(1).strip()[:800]
+                
+            row = [ahora_str, resumen, alertas, "N/A", informe_completo]
+            ws_supervisor.append_row(row)
+            path_md = "Google Sheets: REPORTE_SUPERVISOR"
+            logger.info("[+] Reporte guardado en hoja REPORTE_SUPERVISOR")
+        except Exception as esh:
+            path_md = "ERROR AL GUARDAR EN SHEETS"
+            logger.error(f"[-] Error guardando reporte en Sheets: {esh}")
+            
+
         # 6. SALIDA POR TERMINAL Y REGISTRO
         try:
             print(f"\n[OK] Informe de supervisión guardado en: {path_md}\n")

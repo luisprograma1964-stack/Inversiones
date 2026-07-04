@@ -89,9 +89,11 @@ def ejecutar_decisor():
     try:
         # 1. MAPEO DE USUARIOS
         usuarios_raw = sh.worksheet(config.WS_CONFIG_IA_USUARIO).get_all_records()
-        # Normalizamos tanto la clave como el valor (Usuario_ID) para evitar descalces
-        mapa_usuarios = {str(u['Perfil_Riesgo']).strip(): str(u['Usuario_ID']).strip() for u in usuarios_raw if u['Perfil_Riesgo']}
-        perfiles_lista = list(mapa_usuarios.keys())
+        # Extraemos la lista única de perfiles de riesgo configurados
+        perfiles_set = {str(u['Perfil_Riesgo']).strip().capitalize() for u in usuarios_raw if u.get('Perfil_Riesgo')}
+        perfiles_lista = list(perfiles_set)
+        # Mapeamos el perfil a sí mismo para que la IA guarde el nombre del perfil (ej: "Conservador") en la matriz
+        mapa_usuarios = {p: p for p in perfiles_lista}
 
         # 2. DATOS TÉCNICOS
         ws_analisis = sh.worksheet(config.WS_ANALISIS_TECNICO)

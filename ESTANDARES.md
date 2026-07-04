@@ -13,47 +13,34 @@ Para permitir que los scripts se puedan ejecutar tanto de forma independiente co
 
 ## 2. Configuración Centralizada
 - Toda constante, nombre de hoja (Worksheet), nombre de archivo o variable global debe residir en `config.py`.
-- No deben existir strings "quemados" (hardcodeados) en el código referentes a nombres de hojas (ej. usar `config.WS_LOG_SISTEMA` en lugar de `"LOG_SISTEMA"`).
+- No deben existir strings "quemados" (hardcodeados) en el código referentes a nombres de hojas.
 
-## 3. Sistema de Logs (LOG_SISTEMA)
+## 3. Sistema de Logs y Reportes
 Todo evento importante, advertencia o error debe registrarse centralizadamente usando la función `procesamiento.registrar_log`.
 - **Estructura en Sheets**: `[Fecha/Hora, Nivel, Origen, Mensaje]`
-- **Niveles Permitidos**:
-  - `INFO`: Inicio, fin o hitos normales del proceso.
-  - `WARNING`: Anomalías o descartes que no detienen el proceso.
-  - `ERROR`: Fallas en capturas específicas o funciones que no abortan todo el programa.
-  - `CRITICAL`: Fallas graves que impiden que el script termine su ejecución.
-- **Origen**: Se detecta automáticamente el nombre del archivo de Python que genera el log (ej. `main.py`). No es necesario pasarlo como parámetro, a menos que se quiera forzar un nombre distinto.
+- **Formatos de Texto**: Los archivos `.md` o `.json` generados como reportes (ej. Supervisor) NO deben utilizar etiquetas exclusivas de Streamlit (`:material/...:`). En su lugar, se exige el uso de **Emojis Unicode** (✅, 🤖, ⚠️) para garantizar compatibilidad multiplataforma.
+- **Git Ignore y Limpieza**: Todo archivo `.json`, `.md` autogenerado o log efímero debe almacenarse en un directorio ignorado por Git (ej. `ESTRATEGIA_REPORTS/`). Las tablas no formales en Google Sheets deben limpiarse cada 30 días.
 
 ## 4. Estado de Procesos (ESTADO_PROCESOS)
-Los scripts que corren periódicamente deben actualizar su estado para monitoreo (semáforos).
-- Se debe usar la función centralizada `procesamiento.actualizar_estado_proceso(ws_status, estado, detalle)`.
-- **Estructura en Sheets**: `[Nombre_Proceso, Fecha/Hora, Estado, Detalle, Tiempo_Ejecucion]`
-- **Nombre_Proceso**: Al igual que en los logs, se detecta automáticamente el nombre del archivo de Python. Ya no es necesario pasarlo a mano.
-- **Estados Permitidos**:
-  - `PROCESANDO`: Al iniciar.
-  - `OK`: Al finalizar exitosamente.
-  - `ERROR`: Si el proceso falla globalmente.
+Los scripts que corren periódicamente deben actualizar su estado para monitoreo (semáforos) usando `procesamiento.actualizar_estado_proceso`.
 
 ## 5. Manejo de Fechas y Horas
-- Para mantener coherencia universal y compatibilidad nativa con Pandas, el formato estándar estricto de Fecha debe ser la norma ISO: `YYYY-MM-DD` (ej. `2026-05-19`).
-- Si se requiere fecha y hora (como en logs o marcas de actualización), el formato es: `YYYY-MM-DD HH:MM:SS`.
-- Queda totalmente prohibido el uso de barras (`/`) o formatos como `DD/MM/YYYY`.
+- Formato estándar estricto de Fecha: ISO `YYYY-MM-DD`.
+- Formato de Fecha/Hora: `YYYY-MM-DD HH:MM:SS`.
 
-## 6. Conexión a Base de Datos (Google Sheets)
-- Todas las conexiones deben iniciarse a través de `auth_google.conectar()`.
-- Se debe validar siempre si la conexión fue exitosa antes de instanciar las hojas (Worksheets).
-- **REGLA ESTRICTA PARA IA:** Antes de leer, escribir o modificar cualquier código que interactúe con las hojas de cálculo, el asistente debe consultar obligatoriamente el documento `ESTRUCTURA_SHEETS.md` para garantizar que se respetan las columnas, el orden y los formatos allí definidos.
+## 6. Conexión a Base de Datos (Google Sheets) y AppSheet
+- **Desuso de AppSheet**: Se elimina oficialmente la regla de utilizar columnas de ID / UUID generados artificialmente en la columna A. Google Sheets y Pandas nativamente manejan los datetimes precisos para cruces.
+- **Validación Estricta**: Antes de leer o escribir, es obligatorio consultar `ESTRUCTURA_SHEETS.md`.
 
-## 7. Manejo de Errores (Try/Except)
-- Todo bloque principal o consulta externa (APIs, Google Finance) debe estar dentro de bloques `try/except`.
-- Los errores capturados en el `except Exception as e:` deben enviarse al log como `ERROR` o `CRITICAL` para no perder visibilidad.
+## 7. Performance Web (Streamlit y Caché)
+- **Uso Obligatorio de Caché**: Todo llamado a Google Sheets o APIs lentas DEBE usar `@st.cache_data` o `@st.cache_resource` en la medida de las posibilidades.
+- **Borrados Granulares**: Está prohibido el uso masivo de `st.cache_data.clear()` que provoque latencia extrema al usuario. Utilizar siempre el borrado parametrizado (ej. `cargar_datos_hoja.clear("REPORTE_IA")`).
+- **Recargas Selectivas**: Evitar abusar de `st.rerun()`. Priorizar redibujados localizados y usar `@st.fragment` (en Streamlit 1.37+) para aislar métricas en tiempo real de la página principal.
 
-## 8. Documentación y Comentarios (Docstrings)
-- Todo programa debe incluir una descripción funcional al inicio del archivo explicando para qué sirve de forma general.
-- Todas las funciones (especialmente las principales) deben tener un *Docstring* debajo de su definición (`def funcion(): ... """Descripción"""`) que explique qué hace.
-- Se deben incluir comentarios breves (con `#`) en las rutinas comunes o pasos lógicos importantes para aclarar *qué* se está haciendo en cada paso, facilitando la lectura a futuros programadores.
+## 8. Manejo de Errores y Docstrings
+- Los errores capturados deben enviarse al log.
+- Todo programa y función compleja debe tener docstrings y comentarios de paso a paso.
 
 ## 9. Reglas Estrictas para el Asistente (IA)
-- **Cero Suposiciones:** Si el requerimiento del usuario (prompts o tareas) es ambiguo, le falta contexto, o no define claramente cómo manejar bordes (edge cases), la IA tiene la obligación estricta de detenerse y hacer las preguntas necesarias para aclarar. Queda prohibido "asumir" o inventar la intención del usuario.
-- **Validación de Estructura:** Antes de modificar cualquier interacción con Google Sheets, es obligatorio consultar `ESTRUCTURA_SHEETS.md` para evitar desincronizaciones de columnas.
+- **Cero Suposiciones:** Si el requerimiento es ambiguo, detenerse y hacer preguntas.
+- **Validación de Estructura:** Consultar `ESTRUCTURA_SHEETS.md` antes de modificar flujos de datos.
