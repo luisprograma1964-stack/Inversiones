@@ -102,6 +102,21 @@ def ejecutar_sincronizacion():
             except Exception as e:
                 logger.warning(f"Error consultando DolarApi para {nombre_dolar}: {e}. Se utilizará el raspado clásico de respaldo.")
 
+        # 4.1.5 Obtener Riesgo País desde ArgentinaDatos API
+        logger.info("Consultando Riesgo País en api.argentinadatos.com...")
+        try:
+            r_rp = requests.get("https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais", timeout=10)
+            if r_rp.status_code == 200:
+                data_rp = r_rp.json()
+                if data_rp and len(data_rp) > 0:
+                    ultimo_dato = data_rp[-1]
+                    valor_rp = float(ultimo_dato.get("valor", 0.0))
+                    if valor_rp > 0:
+                        variables_consolidadas["Riesgo País"] = ["Riesgo País", valor_rp, valor_rp, valor_rp, valor_rp, valor_rp, "0.0%", 1, ahora_str]
+                        logger.info(f"  [OK] Riesgo País -> {valor_rp}")
+        except Exception as e_rp:
+            logger.warning(f"Error consultando Riesgo País: {e_rp}")
+
         # 4.2 Cargar el resto de las variables por el método tradicional
         for nombre, valores in resultados_agrupados.items():
             # Si ya se procesó de forma nativa arriba, lo salteamos
@@ -121,11 +136,34 @@ def ejecutar_sincronizacion():
             variables_consolidadas[nombre] = [nombre, v_prom, v_prom, v_prom, v_min, v_max, gap, len(valores_limpios), ahora_str]
 
         # 4.3 Escribir todos los resultados consolidados en VARIABLES_MERCADO
+        # Mapeamos también la fecha y valor previo para construir el CIERRE_ANTERIOR
+        datos_previos_map = {str(row[0]).strip().upper(): row for row in datos_actuales[1:] if row}
+        
         for nombre, nueva_fila in variables_consolidadas.items():
             encontrado_idx = filas_existentes.get(nombre.upper())
+            cierre_anterior = ""
             if encontrado_idx:
-                # Escribimos las 9 columnas en el rango correspondiente de la fila i
-                ws_vars.update(values=[nueva_fila], range_name=f"A{encontrado_idx}:I{encontrado_idx}")
+                fila_vieja = datos_previos_map.get(nombre.upper(), [])
+                if len(fila_vieja) >= 9:
+                    fecha_vieja = str(fila_vieja[8]).strip()
+                    v_prom_viejo = str(fila_vieja[3]).strip()
+                    c_ant_viejo = str(fila_vieja[9]).strip() if len(fila_vieja) >= 10 else v_prom_viejo
+                    
+                    # Si la fecha de la última corrida es de un día distinto al de hoy, el valor anterior pasa a ser el cierre
+                    if fecha_vieja.split(" ")[0] != ahora_str.split(" ")[0]:
+                        cierre_anterior = v_prom_viejo
+                    else:
+                        cierre_anterior = c_ant_viejo
+                else:
+                    cierre_anterior = str(nueva_fila[3])
+            else:
+                cierre_anterior = str(nueva_fila[3])
+                
+            nueva_fila.append(cierre_anterior)
+            
+            if encontrado_idx:
+                # Escribimos las 10 columnas en el rango correspondiente de la fila i
+                ws_vars.update(values=[nueva_fila], range_name=f"A{encontrado_idx}:J{encontrado_idx}")
                 logger.info(f"Actualizada variable {nombre} en fila {encontrado_idx}")
             else:
                 ws_vars.append_row(nueva_fila)

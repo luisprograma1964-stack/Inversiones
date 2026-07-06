@@ -38,6 +38,8 @@ def buscar_ultimo_json_auditable():
     return archivos[0]
 
 def ejecutar_homologacion():
+    import notificador_telegram
+    notificador_telegram.enviar_mensaje_telegram("🚀 <b>[QA Homologador]</b> Iniciando Auditoría y Control de Calidad...")
     print("=" * 60)
     print("[HOMOLOGADOR] INICIANDO AUDITORIA Y CONTROL DE DATOS DE IA")
     print("=" * 60)
@@ -226,9 +228,16 @@ def ejecutar_homologacion():
         
     if inconsistencias == 0:
         print("   - [STATUS] EXCELENTE (Integridad 100%). Los datos coinciden perfectamente entre Sheets y el JSON/Prompt.")
+        import notificador_telegram
+        notificador_telegram.enviar_mensaje_telegram(f"✅ <b>[QA Homologador]</b> Finalizado.\nIntegridad 100%. ({verificaciones} chequeos).")
     else:
         print(f"   - [STATUS] INCONSISTENTE. Se detectaron {inconsistencias} discrepancias de datos.")
         print("     Por favor revisa el log superior para corregir descalces o re-ejecutar el pipeline.")
+        try:
+            import notificador_telegram
+            notificador_telegram.enviar_mensaje_telegram(f"⚠️ <b>[QA Homologador]</b> Finalizado con {inconsistencias} inconsistencias.\nRevisar consola.")
+        except:
+            pass
     print("=" * 60)
 
 if __name__ == "__main__":

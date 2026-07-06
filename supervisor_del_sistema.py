@@ -71,6 +71,8 @@ def limpiar_reportes_antiguos(dias=30):
 
 
 def ejecutar_supervisor():
+    import notificador_telegram
+    notificador_telegram.enviar_mensaje_telegram("🚀 <b>[Supervisor]</b> Iniciando Análisis y Auditoría del Sistema...")
     print("[*] Iniciando Supervisor del Sistema...")
     logger.info("" + "X"*60)
     logger.info(f"SUPERVISOR Y MEJORADOR DEL SISTEMA | {datetime.now().strftime('%H:%M:%S')}")
@@ -378,12 +380,19 @@ Define la política y ponderaciones que la IA debe contrastar:
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.actualizar_estado_proceso(ws_status, "OK", f"Informe generado ({modelo_exitoso})", nombre_proceso="supervisor_del_sistema", tiempo_ejecucion=duracion)
         print(f"[OK] Supervisor finalizado exitosamente en {duracion}.\n")
+        import notificador_telegram
+        notificador_telegram.enviar_mensaje_telegram(f"✅ <b>[Supervisor]</b> Finalizado con éxito.\n⏱️ Tiempo: {duracion}")
         
         return informe_completo
 
     except Exception as e:
         msg = f"Error en Supervisor: {e}"
         logger.exception(msg)
+        try:
+            import notificador_telegram
+            notificador_telegram.enviar_mensaje_telegram(f"❌ <b>[Supervisor]</b> Error crítico:\n<code>{str(e)[:150]}</code>")
+        except:
+            pass
         procesamiento.actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], nombre_proceso="supervisor_del_sistema")
         return None
 

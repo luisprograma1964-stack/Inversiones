@@ -53,6 +53,8 @@ if estado_global["objeto"] is not None:
             estado_global["status"] = f"Error en Último Proceso (Código {exit_code})"
         
         # Limpiar caché de datos para ver los resultados calculados por el proceso finalizado
+        for k in list(st.session_state.keys()):
+            if str(k).startswith("cache_sheet_"): del st.session_state[k]
         st.cache_data.clear()
 
 # Inicialización de banderas de ejecución locales de sesión
@@ -97,8 +99,13 @@ def formatear_ticker(ticker, dict_activos):
 
 # --- 3. LÓGICA DE EJECUCIÓN ASINCRÓNICA SEGUNDO PLANO ---
 def target_ejecucion(script_name, log_path, global_ref):
-    python_exe = os.path.join(WORKSPACE_DIR, ".venv", "Scripts", "python.exe")
-    target_script = os.path.join(WORKSPACE_DIR, script_name)
+    python_exe = sys.executable
+    
+    args_list = script_name.split()
+    base_script = args_list[0]
+    script_args = args_list[1:]
+    
+    target_script = os.path.join(WORKSPACE_DIR, base_script)
     
     with open(log_path, "w", encoding="utf-8") as f:
         f.write(f"--- INICIANDO EJECUCIÓN DE: {script_name} ({datetime.now().strftime('%H:%M:%S')}) ---\n\n")
@@ -106,7 +113,7 @@ def target_ejecucion(script_name, log_path, global_ref):
         
     try:
         proc = subprocess.Popen(
-            [python_exe, "-u", target_script],
+            [python_exe, "-u", target_script] + script_args,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -154,19 +161,43 @@ def obtener_conexion_sheets():
         st.error(f"Error conectando a Google Sheets: {e}")
         return None
 
-@st.cache_data(ttl=120)
+import time
+
+def limpiar_cache_hoja(sheet_name):
+    key = f"cache_sheet_{sheet_name}"
+    if key in st.session_state:
+        del st.session_state[key]
+
 def cargar_datos_hoja(sheet_name):
     sh = obtener_conexion_sheets()
     if not sh:
         return pd.DataFrame()
+        
+    cache_key = f"cache_sheet_{sheet_name}"
+    ttl = 120
+    
+    if cache_key in st.session_state:
+        df, timestamp = st.session_state[cache_key]
+        if time.time() - timestamp < ttl:
+            return df.copy()
+            
     try:
         ws = sh.worksheet(sheet_name)
         data = ws.get_all_records()
         df = pd.DataFrame(data)
         df.columns = [c.strip().upper() for c in df.columns]
-        return df
+        st.session_state[cache_key] = (df, time.time())
+        return df.copy()
     except Exception as e:
         return pd.DataFrame()
+
+@st.cache_data(ttl=120)
+def cargar_y_filtrar_por_cartera(sheet_name, cartera_id):
+    """Carga los datos y los filtra por cartera_id (PROPIETARIO), cacheando el resultado."""
+    df = cargar_datos_hoja(sheet_name)
+    if not df.empty and "PROPIETARIO" in df.columns:
+        df = df[df["PROPIETARIO"].astype(str).str.upper() == str(cartera_id).upper()]
+    return df
 
 # Cargador específico para la tabla Semáforo
 @st.cache_data(ttl=120)
@@ -228,13 +259,16 @@ def cargar_carteras_usuario(username, rol):
     df_carteras = cargar_datos_hoja(config.WS_CONFIG_IA_USUARIO)
     if df_carteras.empty: return []
     
+    # Normalizar columnas
+    df_carteras.columns = [c.strip().upper() for c in df_carteras.columns]
+    
     rol_upper = str(rol).upper()
     if rol_upper == "ADMINISTRADOR":
         return df_carteras.to_dict('records')
     elif rol_upper == "VISITA":
-        return df_carteras[df_carteras["Tipo_Cartera"].astype(str).str.upper() == "SIMULACION"].to_dict('records')
+        return df_carteras[df_carteras["TIPO_CARTERA"].astype(str).str.upper() == "SIMULACION"].to_dict('records')
     else:
-        return df_carteras[df_carteras["Propietario"].astype(str).str.upper() == str(username).upper()].to_dict('records')
+        return df_carteras[df_carteras["USUARIO_ID"].astype(str).str.upper() == str(username).upper()].to_dict('records')
 
 def validar_credenciales(username, password):
     sh = obtener_conexion_sheets()
@@ -332,15 +366,19 @@ def obtener_variables_cambiarias():
     df_mercado = cargar_datos_hoja(config.WS_VARIABLES_MERCADO)
     df_tecnico = cargar_datos_hoja(config.WS_ANALISIS_TECNICO)
     
-    mep_c, mep_v = 0.0, 0.0
-    blue_c, blue_v = 0.0, 0.0
-    cripto_c, cripto_v = 0.0, 0.0
+    mep_c, mep_v, mep_ant = 0.0, 0.0, 0.0
+    blue_c, blue_v, blue_ant = 0.0, 0.0, 0.0
+    ofic_c, ofic_v, ofic_ant = 0.0, 0.0, 0.0
+    tarj_c, tarj_v, tarj_ant = 0.0, 0.0, 0.0
+    crip_c, crip_v, crip_ant = 0.0, 0.0, 0.0
+    rp, rp_ant = 0.0, 0.0
     
     if not df_mercado.empty:
         col_dato = next((c for c in df_mercado.columns if "DATO" in c), "DATO")
         col_compra = next((c for c in df_mercado.columns if "VALOR_COMPRA" in c or "COMPRA" in c), None)
         col_venta = next((c for c in df_mercado.columns if "VALOR_VENTA" in c or "VENTA" in c), None)
         col_prom = next((c for c in df_mercado.columns if "VALOR_PROM" in c or "VALOR" in c), "VALOR_PROM")
+        col_ant = next((c for c in df_mercado.columns if "CIERRE_ANTERIOR" in c), None)
         
         col_c = col_compra if col_compra else col_prom
         col_v = col_venta if col_venta else col_prom
@@ -355,23 +393,31 @@ def obtener_variables_cambiarias():
             except: pass
             return 0.0
 
-        # MEP
-        row_mep = df_mercado[df_mercado[col_dato].astype(str).str.contains('MEP', case=False, na=False)]
-        if not row_mep.empty:
-            mep_c = sanar_escala(row_mep.iloc[0][col_c])
-            mep_v = sanar_escala(row_mep.iloc[0][col_v])
-            
-        # Blue
-        row_blue = df_mercado[df_mercado[col_dato].astype(str).str.contains('Blue', case=False, na=False)]
-        if not row_blue.empty:
-            blue_c = sanar_escala(row_blue.iloc[0][col_c], es_blue=True)
-            blue_v = sanar_escala(row_blue.iloc[0][col_v], es_blue=True)
-
-        # Cripto
-        row_cripto = df_mercado[df_mercado[col_dato].astype(str).str.contains('Cripto', case=False, na=False)]
-        if not row_cripto.empty:
-            cripto_c = sanar_escala(row_cripto.iloc[0][col_c])
-            cripto_v = sanar_escala(row_cripto.iloc[0][col_v])
+        for _, r in df_mercado.iterrows():
+            d = str(r.get(col_dato, '')).lower()
+            if "mep" in d:
+                mep_c = sanar_escala(r.get(col_c, 0))
+                mep_v = sanar_escala(r.get(col_v, 0))
+                mep_ant = sanar_escala(r.get(col_ant, 0)) if col_ant else mep_v
+            elif "blue" in d:
+                blue_c = sanar_escala(r.get(col_c, 0), es_blue=True)
+                blue_v = sanar_escala(r.get(col_v, 0), es_blue=True)
+                blue_ant = sanar_escala(r.get(col_ant, 0), es_blue=True) if col_ant else blue_v
+            elif "oficial" in d:
+                ofic_c = sanar_escala(r.get(col_c, 0))
+                ofic_v = sanar_escala(r.get(col_v, 0))
+                ofic_ant = sanar_escala(r.get(col_ant, 0)) if col_ant else ofic_v
+            elif "tarjeta" in d:
+                tarj_c = sanar_escala(r.get(col_c, 0))
+                tarj_v = sanar_escala(r.get(col_v, 0))
+                tarj_ant = sanar_escala(r.get(col_ant, 0)) if col_ant else tarj_v
+            elif "cripto" in d:
+                crip_c = sanar_escala(r.get(col_c, 0))
+                crip_v = sanar_escala(r.get(col_v, 0))
+                crip_ant = sanar_escala(r.get(col_ant, 0)) if col_ant else crip_v
+            elif "riesgo" in d:
+                rp = sanar_escala(r.get(col_v, 0))
+                if col_ant: rp_ant = sanar_escala(r.get(col_ant, 0))
 
     ccl_vals = []
     if not df_tecnico.empty and 'CCL_IMPLICITO' in df_tecnico.columns:
@@ -385,9 +431,23 @@ def obtener_variables_cambiarias():
             except: pass
             
     ccl_prom = sum(ccl_vals) / len(ccl_vals) if ccl_vals else 0.0
-    return mep_c, mep_v, blue_c, blue_v, ccl_prom
+    return mep_c, mep_v, mep_ant, blue_c, blue_v, blue_ant, ofic_c, ofic_v, ofic_ant, tarj_c, tarj_v, tarj_ant, crip_c, crip_v, crip_ant, ccl_prom, rp, rp_ant
 
-mep_c, mep_v, blue_c, blue_v, ccl_prom = obtener_variables_cambiarias()
+mep_c, mep_v, mep_ant, blue_c, blue_v, blue_ant, ofic_c, ofic_v, ofic_ant, tarj_c, tarj_v, tarj_ant, crip_c, crip_v, crip_ant, ccl_prom, rp, rp_ant = obtener_variables_cambiarias()
+
+def flecha_tendencia(actual, anterior, invertido=False):
+    if anterior <= 0 or actual <= 0: return ""
+    delta = actual - anterior
+    if abs(delta) < 0.1: return '<span style="color:#888888;">━</span>'
+    color_up = "#FF4D4D" if invertido else "#2ECC71"
+    color_down = "#2ECC71" if invertido else "#FF4D4D"
+    if delta > 0: return f'<span style="color:{color_up};">▲</span>'
+    return f'<span style="color:{color_down};">▼</span>'
+
+fl_mep = flecha_tendencia(mep_v, mep_ant)
+fl_blue = flecha_tendencia(blue_v, blue_ant)
+fl_rp = flecha_tendencia(rp, rp_ant, invertido=True)
+
 if mep_v > 0 or ccl_prom > 0:
     brecha = ((ccl_prom - mep_v) / mep_v) * 100 if mep_v > 0 and ccl_prom > 0 else 0.0
     
@@ -407,12 +467,12 @@ if mep_v > 0 or ccl_prom > 0:
     html_card = f"""
     <div style="background-color: #1A1A1A; border-radius: 8px; padding: 14px; border-left: 5px solid {color_card}; margin-bottom: 15px; color: #FFFFFF; font-family: sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <h4 style="margin: 0 0 12px 0; font-size: 17px; color: #FFFFFF; font-weight: bold; display: flex; align-items: center; gap: 8px;">
-            💵 Monitor de Divisas
+            📈 Monitor de Mercado
         </h4>
         <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 8px; text-align: right;">
             <thead>
                 <tr style="border-bottom: 1px solid #333333; font-size: 11px; color: #AAAAAA; font-weight: bold; text-transform: uppercase;">
-                    <th style="padding: 4px 0; text-align: left; font-weight: bold; color: #AAAAAA;">Divisa</th>
+                    <th style="padding: 4px 0; text-align: left; font-weight: bold; color: #AAAAAA;">Métrica</th>
                     <th style="padding: 4px 6px; font-weight: bold; color: #AAAAAA; text-align: right;">Compra</th>
                     <th style="padding: 4px 0; font-weight: bold; color: #AAAAAA; text-align: right;">Venta</th>
                 </tr>
@@ -421,17 +481,22 @@ if mep_v > 0 or ccl_prom > 0:
                 <tr style="border-bottom: 1px solid #222222;">
                     <td style="padding: 6px 0; text-align: left; color: #FFFFFF; font-weight: 500;">Dólar MEP</td>
                     <td style="padding: 6px 6px; font-weight: bold; color: #E0E0E0; text-align: right;">${mep_c:,.2f}</td>
-                    <td style="padding: 6px 0; font-weight: bold; color: #E0E0E0; text-align: right;">${mep_v:,.2f}</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #E0E0E0; text-align: right;">${mep_v:,.2f} {fl_mep}</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #222222;">
                     <td style="padding: 6px 0; text-align: left; color: #FFFFFF; font-weight: 500;">Dólar Blue</td>
                     <td style="padding: 6px 6px; font-weight: bold; color: #E0E0E0; text-align: right;">${blue_c:,.2f}</td>
-                    <td style="padding: 6px 0; font-weight: bold; color: #E0E0E0; text-align: right;">${blue_v:,.2f}</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #E0E0E0; text-align: right;">${blue_v:,.2f} {fl_blue}</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #222222;">
                     <td style="padding: 6px 0; text-align: left; color: #FFFFFF; font-weight: 500;">CCL Prom</td>
                     <td style="padding: 6px 6px; color: #888888; font-style: italic; text-align: right;">-</td>
                     <td style="padding: 6px 0; font-weight: bold; color: #E0E0E0; text-align: right;">${ccl_prom:,.2f}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #222222;">
+                    <td style="padding: 6px 0; text-align: left; color: #FFFFFF; font-weight: 500;">Riesgo País</td>
+                    <td style="padding: 6px 6px; color: #888888; font-style: italic; text-align: right;">-</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #E0E0E0; text-align: right;">{rp:,.0f} {fl_rp}</td>
                 </tr>
                 <tr>
                     <td colspan="3" style="padding: 10px 0 0 0; color: {color_card}; font-weight: bold; font-size: 15px; line-height: 1.2; text-align: left;">{mensaje_brecha}</td>
@@ -505,11 +570,18 @@ if hay_proceso_corriendo:
                 estado_global["objeto"].terminate()
                 with open(LOG_FILE_PATH, "a", encoding="utf-8") as f:
                     f.write(f"\n[STOP] PROCESO CANCELADO POR EL USUARIO DESDE LA WEB ({datetime.now().strftime('%H:%M:%S')})\n")
+                try:
+                    import notificador_telegram
+                    notificador_telegram.enviar_mensaje_telegram(f"❌ <b>ALERTA</b>\n\nEl proceso <code>{estado_global['activo']}</code> fue cancelado manualmente por el usuario desde la Web App.")
+                except Exception:
+                    pass
             except Exception as ex:
                 st.sidebar.error(f"Error cancelando proceso: {ex}")
         estado_global["activo"] = None
         estado_global["objeto"] = None
         estado_global["status"] = "Cancelado por usuario"
+        for k in list(st.session_state.keys()):
+            if str(k).startswith("cache_sheet_"): del st.session_state[k]
         st.cache_data.clear()
         st.rerun()
 
@@ -583,17 +655,12 @@ with tab1:
     st.header(":material/bar_chart: Rentabilidad y Distribución de Cartera")
     
     # Cargar datos
-    df_val = cargar_datos_hoja("VALORACION_PORTAFOLIO")
-    df_caja = cargar_datos_hoja("CAJA_LIQUIDEZ")
-    
     # Filtro de cartera activa
     _c_activa = st.session_state.get("cartera_activa", {})
     _p_id = _c_activa.get("Usuario_ID", _c_activa.get("USUARIO_ID", "LUIS"))
     
-    if not df_val.empty and "PROPIETARIO" in df_val.columns:
-        df_val = df_val[df_val["PROPIETARIO"].astype(str).str.upper() == _p_id.upper()]
-    if not df_caja.empty and "PROPIETARIO" in df_caja.columns:
-        df_caja = df_caja[df_caja["PROPIETARIO"].astype(str).str.upper() == _p_id.upper()]
+    df_val = cargar_y_filtrar_por_cartera("VALORACION_PORTAFOLIO", _p_id)
+    df_caja = cargar_y_filtrar_por_cartera("CAJA_LIQUIDEZ", _p_id)
     
     tiene_datos = False
     if not df_val.empty:
@@ -620,31 +687,9 @@ with tab1:
         propietarios_caja = df_caja["PROPIETARIO"].dropna().unique().tolist() if "PROPIETARIO" in df_caja else []
         lista_perfiles = sorted(list(set(propietarios_val + propietarios_caja)))
         
-        # Filtro de perfil
-        col_f1, col_f2 = st.columns([4, 8])
-        with col_f1:
-            usuario_actual_nombre = st.session_state["usuario"]["nombre"]
-            opciones_perfiles = ["Todos"] + lista_perfiles
-            indice_default = 0
-            # Mapeo insensible a mayúsculas
-            opciones_upper = [o.upper() for o in opciones_perfiles]
-            if usuario_actual_nombre.upper() in opciones_upper:
-                indice_default = opciones_upper.index(usuario_actual_nombre.upper())
-                
-            perfil_sel = st.selectbox(
-                ":material/person: Filtrar Dashboard por Perfil / Propietario:", 
-                opciones_perfiles,
-                index=indice_default,
-                key="dashboard_profile_select"
-            )
-            
-        # Filtrado de DataFrames según selección
-        if perfil_sel == "Todos":
-            df_val_filtered = df_val
-            df_caja_filtered = df_caja
-        else:
-            df_val_filtered = df_val[df_val["PROPIETARIO"].astype(str).str.strip().str.upper() == str(perfil_sel).strip().upper()] if not df_val.empty else df_val
-            df_caja_filtered = df_caja[df_caja["PROPIETARIO"].astype(str).str.strip().str.upper() == str(perfil_sel).strip().upper()] if not df_caja.empty else df_caja
+        # La cartera ya está filtrada globalmente
+        df_val_filtered = df_val
+        df_caja_filtered = df_caja
 
         # Calcular Métricas
         total_valuacion_cedears = df_val_filtered["VALOR_ACTUAL"].sum() if not df_val_filtered.empty and "VALOR_ACTUAL" in df_val_filtered else 0.0
@@ -663,19 +708,19 @@ with tab1:
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric(
-                label=f"Patrimonio Neto ({perfil_sel})", 
+                label=f"Patrimonio Neto ({_p_id})", 
                 value=f"${patrimonio_neto:,.2f}", 
                 delta=f"${rent_nominal:+,.2f} ({rent_porc:+.2f}%)"
             )
         with col2:
             st.metric(
-                label=f"Valuación CEDEARs ({perfil_sel})", 
+                label=f"Valuación CEDEARs ({_p_id})", 
                 value=f"${total_valuacion_cedears:,.2f}", 
                 delta=f"${rent_nominal:+,.2f} (Ganancia Acum.)"
             )
         with col3:
             st.metric(
-                label=f"Efectivo Total Caja ({perfil_sel})", 
+                label=f"Efectivo Total Caja ({_p_id})", 
                 value=f"${total_saldos_caja:,.2f}", 
                 delta=f"{liquidez_porc:.1f}% del capital",
                 delta_color="normal" if total_saldos_caja > 0 else "off"
@@ -696,7 +741,7 @@ with tab1:
                         df_pie_data, 
                         values="VALOR_ACTUAL", 
                         names="TICKER", 
-                        title=f"Distribución de Cartera ({perfil_sel})",
+                        title=f"Distribución de Cartera ({_p_id})",
                         color_discrete_sequence=px.colors.qualitative.Pastel
                     )
                     st.plotly_chart(fig_pie, use_container_width=True)
@@ -715,7 +760,7 @@ with tab1:
                         df_bar_data,
                         x="TICKER",
                         y="RENTABILIDAD_NOMINAL",
-                        title=f"Rentabilidad Nominal en ARS ({perfil_sel})",
+                        title=f"Rentabilidad Nominal en ARS ({_p_id})",
                         color="RENTABILIDAD_NOMINAL",
                         color_continuous_scale=px.colors.diverging.RdYlGn
                     )
@@ -724,50 +769,10 @@ with tab1:
                     st.info("No hay activos individuales para mostrar en la rentabilidad.")
             else:
                 st.info("Gráfico de rentabilidad no disponible.")
-                
-        # Gráfico extra para "Todos": Distribución por Perfil
-        if perfil_sel == "Todos" and not df_val.empty:
-            st.write("---")
-            col_extra1, col_extra2 = st.columns(2)
-            with col_extra1:
-                st.subheader("Distribución de Patrimonio por Perfil")
-                # Agrupar valoración y caja por Propietario
-                df_val_prop = df_val[~df_val["TICKER"].isin(["-TOTAL-", "-CASH-"])].groupby("PROPIETARIO")["VALOR_ACTUAL"].sum().reset_index()
-                df_caja_prop = df_caja.groupby("PROPIETARIO")["SALDO"].sum().reset_index()
-                
-                df_merge = pd.merge(df_val_prop, df_caja_prop, on="PROPIETARIO", how="outer").fillna(0.0)
-                df_merge["PATRIMONIO_TOTAL"] = df_merge["VALOR_ACTUAL"] + df_merge["SALDO"]
-                
-                if not df_merge.empty and df_merge["PATRIMONIO_TOTAL"].sum() > 0:
-                    fig_pie_perf = px.pie(
-                        df_merge,
-                        values="PATRIMONIO_TOTAL",
-                        names="PROPIETARIO",
-                        title="Distribución del Patrimonio Neto Total",
-                        color_discrete_sequence=px.colors.qualitative.Safe
-                    )
-                    st.plotly_chart(fig_pie_perf, use_container_width=True)
-                else:
-                    st.info("Datos insuficientes para la distribución por perfiles.")
-            with col_extra2:
-                st.subheader("Saldos de Caja Líquida")
-                if not df_caja.empty:
-                    fig_caja_bar = px.bar(
-                        df_caja,
-                        x="PROPIETARIO",
-                        y="SALDO",
-                        color="MONEDA",
-                        barmode="group",
-                        title="Saldos en Efectivo por Perfil y Moneda",
-                        color_discrete_sequence=px.colors.qualitative.Dark24
-                    )
-                    st.plotly_chart(fig_caja_bar, use_container_width=True)
-                else:
-                    st.info("No hay saldos de caja registrados.")
         
         st.write("---")
         if not df_val_filtered.empty:
-            st.subheader(f"Tenencias Consolidadas ({perfil_sel})")
+            st.subheader(f"Tenencias Consolidadas ({_p_id})")
             st.dataframe(df_val_filtered, use_container_width=True)
 
     # ==========================================
@@ -987,8 +992,13 @@ with tab2:
     lista_tickers = []
     if not df_activos_aux.empty:
         col_tick = next((c for c in df_activos_aux.columns if "TICKER" in c), None)
+        col_estado = next((c for c in df_activos_aux.columns if "ESTADO" in c), None)
         if col_tick:
-            lista_tickers = sorted(df_activos_aux[col_tick].dropna().astype(str).unique().tolist())
+            if col_estado:
+                df_activos_activos = df_activos_aux[df_activos_aux[col_estado].astype(str).str.strip().str.upper() == "ACTIVO"]
+                lista_tickers = sorted(df_activos_activos[col_tick].dropna().astype(str).unique().tolist())
+            else:
+                lista_tickers = sorted(df_activos_aux[col_tick].dropna().astype(str).unique().tolist())
     if not lista_tickers:
         lista_tickers = ["AAPL", "AMZN", "META", "TSLA", "KO", "DIS", "AMD", "WMT", "VIST", "XOM"]
 
@@ -1009,7 +1019,7 @@ with tab2:
         with col_sel1:
             op_tipo = st.selectbox("Operación:", ["Compra", "Venta"])
         with col_sel2:
-            _u_id_val = st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS")
+            _u_id_val = st.session_state.get("cartera_activa", {}).get("USUARIO_ID", st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS"))
             prop = st.text_input("Cartera (Propietario):", value=_u_id_val, disabled=True, key=f"form_trans_{_u_id_val}")
         with col_sel3:
             moneda = st.selectbox("Moneda de la Operación:", ["ARS", "USD"])
@@ -1039,12 +1049,38 @@ with tab2:
             key="select_ops_ticker"
         )
         
-        with st.form("form_transaccion"):
+        # Cargar lista de brokers de CONFIG_MAESTROS
+        lista_brokers = ["IOL", "BULL_MARKET", "BALANZ", "PPI"]
+        df_m_gen = cargar_datos_hoja("CONFIG_MAESTROS")
+        if not df_m_gen.empty:
+            df_m_gen.columns = [str(c).upper() for c in df_m_gen.columns]
+            if "BROKERS_CUENTAS" in df_m_gen.columns:
+                lista_b_val = df_m_gen["BROKERS_CUENTAS"].dropna().astype(str).unique().tolist()
+                if lista_b_val:
+                    lista_brokers = sorted(lista_b_val)
+                    
+        with st.form("form_transaccion", clear_on_submit=True):
             col_t1, col_t2 = st.columns(2)
             with col_t1:
                 fecha_op = st.date_input("Fecha de Operación:", datetime.now())
                 cantidad = st.number_input("Cantidad nominal:", min_value=0.0, value=0.0, step=1.0)
+                broker_sel = st.selectbox("Broker/Cuenta:", lista_brokers)
             with col_t2:
+                # Add suggested value fetch
+                val_sug = 0.0
+                try:
+                    df_m = cargar_datos_hoja(config.WS_ANALISIS_TECNICO)
+                    df_m.columns = [str(c).upper() for c in df_m.columns]
+                    tk_clean = str(ticker).strip().upper()
+                    row_m = df_m[df_m['TICKER_ID'].astype(str).str.strip().str.upper() == tk_clean]
+                    if not row_m.empty:
+                        col_p = next((c for c in df_m.columns if "CIERRE_AJUSTADO" in c or "PRECIO" in c), None)
+                        if col_p:
+                            val_sug = float(str(row_m.iloc[0][col_p]).replace(',', '.'))
+                except Exception as e:
+                    print("ERROR FETCHING SUG:", e)
+                    pass
+                st.text_input("Precio Ref. Mercado:", value=f"${val_sug:,.2f}" if val_sug > 0 else "N/A", disabled=True)
                 precio_u = st.number_input("Precio Unitario:", min_value=0.0, value=0.0, step=100.0)
                 comision = st.number_input("Comisión Total cobrada por ALyC:", min_value=0.0, value=0.0, step=10.0)
                 
@@ -1061,60 +1097,105 @@ with tab2:
             if ticker == "N/A":
                 fondos_suficientes = False
             elif total_neto_est == 0.0:
-                st.info(f"💰 Saldo de caja disponible para {prop}: {moneda} {saldo_caja:,.2f}")
+                st.info(f"💡 Saldo de caja disponible para {prop}: {moneda} {saldo_caja:,.2f}")
                 fondos_suficientes = False
             elif op_tipo == "Compra" and total_neto_est > saldo_caja:
                 fondos_suficientes = False
                 st.error(f":material/cancel: Fondos Insuficientes: {prop} dispone de {moneda} {saldo_caja:,.2f} en caja, pero esta compra requiere {moneda} {total_neto_est:,.2f}.")
             elif op_tipo == "Venta":
-                # Validar tenencia máxima nominal
+                # Validar tenencia histórica disponible consultando TRANSACCIONES histórico completo
                 tenencia_max = 0.0
-                if ticker != "N/A" and not df_val_filtrado.empty:
-                    row_tenencia = df_val_filtrado[df_val_filtrado['TICKER'] == ticker]
-                    if not row_tenencia.empty:
-                        tenencia_max = float(row_tenencia.iloc[0]['CANTIDAD'])
+                if ticker != "N/A":
+                    df_t = cargar_datos_hoja("TRANSACCIONES")
+                    if not df_t.empty and "ACTIVO" in df_t.columns and "PROPIETARIO" in df_t.columns and "CANTIDAD" in df_t.columns:
+                        df_t_fil = df_t[
+                            (df_t["PROPIETARIO"].astype(str).str.strip().str.upper() == str(prop).strip().upper()) &
+                            (df_t["ACTIVO"].astype(str).str.strip().str.upper() == str(ticker).strip().upper())
+                        ]
+                        if not df_t_fil.empty:
+                            col_op = next((c for c in df_t_fil.columns if "OPERAC" in c.upper()), None)
+                            if col_op:
+                                try:
+                                    compras = df_t_fil[df_t_fil[col_op].astype(str).str.upper().str.contains("COMPRA")]["CANTIDAD"].astype(float).sum()
+                                    ventas = df_t_fil[df_t_fil[col_op].astype(str).str.upper().str.contains("VENTA")]["CANTIDAD"].astype(float).sum()
+                                    tenencia_max = compras - ventas
+                                except:
+                                    pass
                 
                 if cantidad > tenencia_max:
                     fondos_suficientes = False
                     st.error(f":material/cancel: Venta Inválida: {prop} posee únicamente {tenencia_max:,.2f} nominales de {ticker}, pero intenta vender {cantidad:,.2f} nominales.")
                 else:
-                    st.info(f":material/monitoring: Tenencia disponible de {ticker} para {prop}: {tenencia_max:,.2f} nominales.")
+                    st.info(f"💡 Tenencia histórica disponible de {ticker} para {prop}: {tenencia_max:,.2f} nominales.")
             else:
-                st.info(f"💰 Saldo de caja disponible para {prop}: {moneda} {saldo_caja:,.2f} | Costo Neto Estimado: {moneda} {total_neto_est:,.2f}")
+                st.info(f"💡 Saldo de caja disponible para {prop}: {moneda} {saldo_caja:,.2f} | Costo Neto Estimado: {moneda} {total_neto_est:,.2f}")
                 
-            btn_submit_trans = st.form_submit_button("💾 Guardar Transacción", disabled=not fondos_suficientes)
-            
+            btn_submit_trans = st.form_submit_button("💾 Guardar Transacción")
             if btn_submit_trans and sh_form:
-                with st.spinner("Registrando transacción en Google Sheets..."):
-                    try:
-                        ws_trans = sh_form.worksheet("TRANSACCIONES")
-                        headers = [str(h).strip().upper() for h in ws_trans.row_values(1)]
+                total_neto_est = (cantidad * precio_u) + comision if op_tipo == "Compra" else (cantidad * precio_u) - comision
+                
+                if ticker == "N/A" or total_neto_est <= 0:
+                    st.error("⚠️ No se puede guardar: Verifica los montos ingresados.")
+                elif op_tipo == "Compra" and total_neto_est > saldo_caja:
+                    st.error(f"⚠️ Fondos insuficientes: Necesitas {total_neto_est:,.2f} pero tienes {saldo_caja:,.2f}.")
+                elif op_tipo == "Venta" and cantidad > tenencia_max:
+                    st.error(f"⚠️ Venta Inválida: Posees {tenencia_max:,.2f} nominales.")
+                else:
+                    with st.spinner("Registrando transacción en Google Sheets..."):
+                        try:
+                            ws_trans = sh_form.worksheet("TRANSACCIONES")
+                            headers = [str(h).strip().upper() for h in ws_trans.row_values(1)]
                         
-                        ahora_completo = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        fecha_str = fecha_op.strftime("%Y-%m-%d") + " " + datetime.now().strftime("%H:%M:%S")
+                            ahora_completo = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            fecha_str = fecha_op.strftime("%Y-%m-%d") + " " + datetime.now().strftime("%H:%M:%S")
                         
-                        row_dict = {
-                            "FECHA": fecha_str,
-                            "PROPIETARIO": prop,
-                            "ACTIVO": ticker,
-                            "OPERACIÓN": op_tipo,
-                            "OPERACION": op_tipo,
-                            "CANTIDAD": str(cantidad).replace('.', ','),
-                            "PRECIO_UNITARIO": str(precio_u).replace('.', ','),
-                            "COMISIÓN_TOTAL": str(comision).replace('.', ','),
-                            "COMISION_TOTAL": str(comision).replace('.', ','),
-                            "MONEDA": moneda,
-                            "TOTAL_NETO": str(total_neto_est).replace('.', ','),
-                            "FECHA_ACTUALIZACION": ahora_completo
-                        }
+                            row_dict = {
+                                "FECHA": fecha_str,
+                                "PROPIETARIO": prop,
+                                "BROKER_CUENTA": broker_sel,
+                                "ACTIVO": ticker,
+                                "OPERACIÓN": op_tipo,
+                                "OPERACION": op_tipo,
+                                "CANTIDAD": str(cantidad).replace('.', ','),
+                                "PRECIO_UNITARIO": str(precio_u).replace('.', ','),
+                                "COMISIÓN_TOTAL": str(comision).replace('.', ','),
+                                "COMISION_TOTAL": str(comision).replace('.', ','),
+                                "MONEDA": moneda,
+                                "TOTAL_NETO": str(total_neto_est).replace('.', ','),
+                                "PRECIO_MERCADO_REF": str(val_sug).replace('.', ',') if val_sug > 0 else "",
+                                "FECHA_ACTUALIZACION": ahora_completo
+                            }
                         
-                        nueva_fila = [row_dict.get(h, "") for h in headers]
-                        ws_trans.append_row(nueva_fila, value_input_option="USER_ENTERED")
-                        st.success("¡Transacción registrada y liquidez recalculada exitosamente!")
-                        st.cache_data.clear()
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error registrando transacción: {e}")
+                            nueva_fila = [row_dict.get(h, "") for h in headers]
+                            ws_trans.append_row(nueva_fila, value_input_option="USER_ENTERED")
+                            
+                            # Impactar en caja automáticamente usando columnas correctas
+                            ws_caja = sh_form.worksheet("MOVIMIENTOS_CAJA")
+                            headers_caja = [str(h).strip().upper() for h in ws_caja.row_values(1)]
+                            
+                            tipo_caja = "EGRESO" if op_tipo == "Compra" else "INGRESO"
+                            detalle_caja = f"Operación {op_tipo} - {cantidad}x {ticker}"
+                            
+                            row_dict_caja = {
+                                "FECHA": fecha_str,
+                                "PROPIETARIO": prop,
+                                "MOVIMIENTO": tipo_caja,
+                                "MONTO": str(total_neto_est).replace('.', ','),
+                                "MONEDA": moneda,
+                                "CONCEPTO": detalle_caja,
+                                "FECHA_ACTUALIZACION": ahora_completo
+                            }
+                            
+                            nueva_fila_caja = [row_dict_caja.get(h, "") for h in headers_caja]
+                            ws_caja.append_row(nueva_fila_caja, value_input_option="USER_ENTERED")
+                            
+                            st.success("💾 Transacción y movimiento de caja registrados exitosamente!")
+                            for k in list(st.session_state.keys()):
+                                if str(k).startswith("cache_sheet_"): del st.session_state[k]
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error registrando transacción: {e}")
                         
     else:
         st.subheader("🏦 Registrar Movimiento de Caja")
@@ -1124,7 +1205,7 @@ with tab2:
         with col_c1:
             tipo_mov = st.selectbox("Tipo de Movimiento:", ["INGRESO", "EGRESO"])
         with col_c2:
-            _u_id_val2 = st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS")
+            _u_id_val2 = st.session_state.get("cartera_activa", {}).get("USUARIO_ID", st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS"))
             prop = st.text_input("Cartera (Propietario):", value=_u_id_val2, disabled=True, key=f"form_caja_{_u_id_val2}")
         with col_c3:
             moneda = st.selectbox("Moneda:", ["ARS", "USD"], key="caja_mon_sel")
@@ -1154,31 +1235,33 @@ with tab2:
             
             if btn_submit_caja and sh_form:
                 with st.spinner("Registrando movimiento de caja en Google Sheets..."):
-                    try:
-                        ws_caja_sheet = sh_form.worksheet("MOVIMIENTOS_CAJA")
-                        headers = [str(h).strip().upper() for h in ws_caja_sheet.row_values(1)]
+                        try:
+                            ws_caja_sheet = sh_form.worksheet("MOVIMIENTOS_CAJA")
+                            headers = [str(h).strip().upper() for h in ws_caja_sheet.row_values(1)]
                         
-                        ahora_completo = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        fecha_str = fecha_mov.strftime("%Y-%m-%d") + " " + datetime.now().strftime("%H:%M:%S")
+                            ahora_completo = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            fecha_str = fecha_mov.strftime("%Y-%m-%d") + " " + datetime.now().strftime("%H:%M:%S")
                         
-                        row_dict = {
-                            "FECHA": fecha_str,
-                            "PROPIETARIO": prop,
-                            "TIPO_MOVIMIENTO": tipo_mov,
-                            "TIPO": tipo_mov,
-                            "MONTO": str(monto).replace('.', ','),
-                            "MONEDA": moneda,
-                            "DETALLE": detalle_mov,
-                            "FECHA_ACTUALIZACION": ahora_completo
-                        }
+                            row_dict = {
+                                "FECHA": fecha_str,
+                                "PROPIETARIO": prop,
+                                "TIPO_MOVIMIENTO": tipo_mov,
+                                "TIPO": tipo_mov,
+                                "MONTO": str(monto).replace('.', ','),
+                                "MONEDA": moneda,
+                                "DETALLE": detalle_mov,
+                                "FECHA_ACTUALIZACION": ahora_completo
+                            }
                         
-                        nueva_fila = [row_dict.get(h, "") for h in headers]
-                        ws_caja_sheet.append_row(nueva_fila, value_input_option="USER_ENTERED")
-                        st.success("¡Movimiento de caja registrado exitosamente!")
-                        st.cache_data.clear()
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error registrando movimiento: {e}")
+                            nueva_fila = [row_dict.get(h, "") for h in headers]
+                            ws_caja_sheet.append_row(nueva_fila, value_input_option="USER_ENTERED")
+                            st.success("¡Movimiento de caja registrado exitosamente!")
+                            for k in list(st.session_state.keys()):
+                                if str(k).startswith("cache_sheet_"): del st.session_state[k]
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error registrando movimiento: {e}")
 
     # 2. EDITOR AVANZADO PLEGABLE (Modificar históricos de operaciones)
     st.write("---")
@@ -1215,6 +1298,8 @@ with tab2:
                             # Escribir con USER_ENTERED para que Sheets vuelva a calcular fórmulas
                             ws_ops.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
                             st.success(f"¡Hoja de operaciones `{tabla_ops_elegida}` actualizada exitosamente!")
+                            for k in list(st.session_state.keys()):
+                                if str(k).startswith("cache_sheet_"): del st.session_state[k]
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as ex:
@@ -1224,7 +1309,7 @@ with tab2:
                 
     st.write("---")
     st.subheader("🏦 Resumen de Caja y Liquidez (Calculado en Sheets)")
-    df_caja_readonly = cargar_datos_hoja("CAJA_LIQUIDEZ")
+    df_caja_readonly = df_caja_filtered.copy() if "df_caja_filtered" in locals() else cargar_y_filtrar_por_cartera("CAJA_LIQUIDEZ", _p_id)
     if not df_caja_readonly.empty:
         st.dataframe(df_caja_readonly, use_container_width=True)
     else:
@@ -1232,16 +1317,55 @@ with tab2:
 
 
 # ==========================================
-# PESTAÑA 3: MATRIZ DE DECISIONES IA
-# ==========================================
+
 @st.fragment
-def render_matriz_decisiones_fragment(df_matriz, df_tecnico, df_maestro, df_val, mapeo_descripciones):
+def render_matriz_decisiones():
+    st.header("🎯 Matriz de Decisiones y Veredictos de IA")
+    st.write("Visualiza las recomendaciones de inversión (Comprar/Vender/Mantener) organizadas por perfil de inversión:")
+    
+    # Cargar datos necesarios
+    df_matriz = cargar_datos_hoja(config.WS_MATRIZ_RECOMENDACIONES)
+    df_tecnico = cargar_datos_hoja(config.WS_ANALISIS_TECNICO)
+    df_maestro = cargar_datos_hoja(config.WS_MAESTRO_ACTIVOS)
+    
+    _c_activa = st.session_state.get("cartera_activa", {})
+    _p_id = _c_activa.get("Usuario_ID", _c_activa.get("USUARIO_ID", "LUIS"))
+    df_val = cargar_y_filtrar_por_cartera("VALORACION_PORTAFOLIO", _p_id)
+    
+    if df_matriz.empty:
+        st.info("No se encontraron registros de decisiones en la tabla MATRIZ_RECOMENDACIONES. Ejecuta el pipeline para generarlos.")
+        return
+        
+    # Ordenamos las filas de forma cronológica descendente si existe la columna Fecha
+    col_fecha_matriz = next((c for c in df_matriz.columns if "FECHA" in c), None)
+    if col_fecha_matriz:
+        try:
+            df_matriz = df_matriz.sort_values(by=col_fecha_matriz, ascending=False).reset_index(drop=True)
+        except:
+            pass
+            
+    # Normalizar columnas
+    df_matriz.columns = [c.upper() for c in df_matriz.columns]
+    if not df_tecnico.empty: df_tecnico.columns = [c.upper() for c in df_tecnico.columns]
+    if not df_maestro.empty: df_maestro.columns = [c.upper() for c in df_maestro.columns]
+    if not df_val.empty: df_val.columns = [c.upper() for c in df_val.columns]
+
+    # Crear diccionario de descripciones de activos
+    mapeo_descripciones = {}
+    if not df_maestro.empty and 'TICKER_ID' in df_maestro.columns:
+        for _, r_m in df_maestro.iterrows():
+            tk_id = str(r_m['TICKER_ID']).strip().upper()
+            desc = str(r_m.get('DESCRIPCION', r_m.get('NOMBRE', ''))).strip()
+            if tk_id:
+                mapeo_descripciones[tk_id] = desc
+
     # --- SECCIÓN DE FILTROS ---
-    st.write("### :material/search: Filtros de Búsqueda")
-    col_f1, col_f2 = st.columns(2)
+    st.write("### 🔍 Filtros de Búsqueda")
+    col_f1, col_f2, col_f3 = st.columns(3)
     
     tickers_disponibles = sorted(list(df_matriz['TICKER'].dropna().unique()))
     sentimientos_disponibles = sorted(list(df_matriz['SENTIMIENTO'].dropna().unique()))
+    perfiles_disponibles = sorted(list(df_matriz['PERFIL'].dropna().unique())) if 'PERFIL' in df_matriz.columns else []
     
     with col_f1:
         dict_act_matriz = obtener_diccionario_activos()
@@ -1252,471 +1376,148 @@ def render_matriz_decisiones_fragment(df_matriz, df_tecnico, df_maestro, df_val,
             key="select_filtro_t_matriz"
         )
     with col_f2:
-        filtro_s = st.selectbox("Sentimiento IA:", ["Todos"] + sentimientos_disponibles, key="select_filtro_s_matriz")
+        def formato_sentimiento(s):
+            s_u = str(s).upper()
+            if "COMPRA" in s_u or "BULL" in s_u: return f"🟢 {s}"
+            if "VENTA" in s_u or "BEAR" in s_u: return f"🔴 {s}"
+            if "MANTENER" in s_u or "HOLD" in s_u: return f"🟡 {s}"
+            return s
+            
+        filtro_s = st.selectbox(
+            "Sentimiento IA:", 
+            ["Todos"] + sentimientos_disponibles, 
+            format_func=formato_sentimiento,
+            key="select_filtro_s_matriz"
+        )
+    with col_f3:
+        filtro_p = st.selectbox("Perfil de Riesgo:", ["Todos"] + perfiles_disponibles, key="select_filtro_p_matriz")
         
-    # Control global de expansión de tarjetas
-    expandir_todos = st.checkbox(":material/folder_open: Expandir todos los análisis de esta pestaña", value=False, key="expandir_matriz_checkbox")
+    expandir_todos = st.checkbox("📂 Expandir todos los análisis de esta pestaña", value=False, key="expandir_matriz_checkbox")
 
-    # Configurar pestañas por Perfil de inversión
-    # Perfiles estandar para simular decisiones en esta cartera
-    lista_perfiles_ui = [
-        ("AGRESIVO", ":material/rocket_launch: Agresivo"),
-        ("MODERADO", ":material/balance: Moderado"),
-        ("CONSERVADOR", ":material/shield: Conservador")
-    ]
-    
-    perfiles_tabs = st.tabs([p[1] for p in lista_perfiles_ui])
-    
-    for idx_tab, (p_id, p_label) in enumerate(lista_perfiles_ui):
-        with perfiles_tabs[idx_tab]:
-            # Filtrar datos de la matriz para este perfil específico
-            df_perfil = df_matriz[df_matriz['PERFIL'].astype(str).str.upper() == str(p_id).upper()].copy()
-            
-            # Aplicar filtros adicionales de Ticker y Sentimiento
-            if filtro_t != "Todos":
-                df_perfil = df_perfil[df_perfil['TICKER'] == filtro_t]
-            if filtro_s != "Todos":
-                df_perfil = df_perfil[df_perfil['SENTIMIENTO'] == filtro_s]
-            
-            if df_perfil.empty:
-                st.info(f"No se encontraron veredictos de IA para el perfil {p_id} con los filtros seleccionados.")
-                continue
-            
-            # Tarjetas métricas específicas para este perfil
-            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-            with col_m1:
-                st.metric("Activos Analizados", len(df_perfil['TICKER'].unique()))
-            with col_m2:
-                c_compras = len(df_perfil[df_perfil['SENTIMIENTO'].str.contains("BULL|COMPRA", case=False, na=False)])
-                st.metric("Comprar 🟢", c_compras)
-            with col_m3:
-                c_hold = len(df_perfil[df_perfil['SENTIMIENTO'].str.contains("HOLD|NEUTRAL|MANT", case=False, na=False)])
-                st.metric("Mantener 🟡", c_hold)
-            with col_m4:
-                c_ventas = len(df_perfil[df_perfil['SENTIMIENTO'].str.contains("BEAR|VENTA", case=False, na=False)])
-                st.metric("Vender 🔴", c_ventas)
-            
-            st.write("---")
-            
-            # Listar veredictos de este perfil por activo
-            tickers_perfil = list(df_perfil['TICKER'].unique())
-            for tk in tickers_perfil:
-                df_tk = df_perfil[df_perfil['TICKER'] == tk].iloc[0]
-                v_parsed = parsear_veredicto(df_tk['VEREDICTO_IA'])
-                
-                sentimiento = str(df_tk['SENTIMIENTO']).strip().upper()
-                
-                # Definir color e insignia según sentimiento
-                if "BULL" in sentimiento or "COMPR" in sentimiento:
-                    emoji = "🟢"
-                elif "BEAR" in sentimiento or "VENT" in sentimiento:
-                    emoji = "🔴"
-                else:
-                    emoji = "🟡"
-                
-                # Brecha cambiaria y cotización actual
-                desc_activo = mapeo_descripciones.get(tk, "CEDEAR de Activo Extranjero")
-                
-                # Intentar calcular brecha cambiaria individual
-                ccl_info = ""
-                brecha_individual = 0.0
-                if not df_tecnico.empty and 'TICKER_ID' in df_tecnico.columns:
-                    row_t = df_tecnico[df_tecnico['TICKER_ID'] == tk]
-                    if not row_t.empty:
-                        try:
-                            ccl_val = float(str(row_t.iloc[0].get('CCL_IMPLICITO', 0.0)).replace(',', '.'))
-                            if ccl_val > 500:
-                                # Desvío frente al Dólar MEP
-                                if mep_v > 0:
-                                    brecha_individual = ((ccl_val - mep_v) / mep_v) * 100
-                                    
-                                    # Generar insignias para el expander
-                                    if brecha_individual > 2.5:
-                                        ccl_info = f" (🔴 +{brecha_individual:.1f}% ARS Caro)"
-                                    elif brecha_individual < 1.5:
-                                        ccl_info = f" (🟢 +{brecha_individual:.1f}% ARS Oferta)"
-                                    else:
-                                        ccl_info = f" (🟡 +{brecha_individual:.1f}% ARS Normal)"
-                        except:
-                            pass
-                
-                # Renderizar tarjeta plegable (Expander)
-                with st.expander(f"{emoji} {tk} | Sentimiento: **{sentimiento}**{ccl_info}", expanded=expandir_todos):
-                    
-                    # 1. Indicadores Técnicos en fila (Alto Contraste)
-                    if not df_tecnico.empty and 'TICKER_ID' in df_tecnico.columns:
-                        row_t = df_tecnico[df_tecnico['TICKER_ID'] == tk]
-                        if not row_t.empty:
-                            rsi_val = str(row_t.iloc[0].get('RSI', 'N/A'))
-                            trend_val = str(row_t.iloc[0].get('TENDENCIA_MA', 'N/A'))
-                            ccl_val_raw = row_t.iloc[0].get('CCL_IMPLICITO', 0.0)
-                            sma20_val = str(row_t.iloc[0].get('SMA_20', 'N/A'))
-                            sma200_val = str(row_t.iloc[0].get('SMA_200', 'N/A'))
-                            
-                            try:
-                                ccl_val = float(str(ccl_val_raw).replace(',', '.'))
-                            except:
-                                ccl_val = 0.0
-                            
-                            ccl_label = f"<div style='font-size: 15px;'>💵 <b>CCL:</b><br><code style='font-size: 16px; font-weight: bold;'>${ccl_val:,.2f}</code>"
-                            if brecha_individual > 0:
-                                if brecha_individual > 2.5:
-                                    ccl_label += f"<br><span style='color: #FF4D4D; font-size: 13px; font-weight: bold;'>Sobreprecio en pesos local</span>"
-                                elif brecha_individual < 1.5:
-                                    ccl_label += f"<br><span style='color: #2ECC71; font-size: 13px; font-weight: bold;'>Buen tipo de cambio en pesos</span>"
-                                else:
-                                    ccl_label += f"<br><span style='color: #3498DB; font-size: 13px; font-weight: bold;'>Brecha estable</span>"
-                            ccl_label += "</div>"
-                            
-                            with st.container(border=True):
-                                col_t1, col_t2, col_t3, col_t4, col_t5 = st.columns(5)
-                                col_t1.markdown(f"<div style='font-size: 15px;'>📊 <b>RSI:</b><br><code style='font-size: 16px;'>{rsi_val}</code></div>", unsafe_allow_html=True)
-                                col_t2.markdown(f"<div style='font-size: 15px;'>📈 <b>Tendencia:</b><br><code style='font-size: 15px;'>{trend_val}</code></div>", unsafe_allow_html=True)
-                                col_t3.markdown(ccl_label, unsafe_allow_html=True)
-                                col_t4.markdown(f"<div style='font-size: 15px;'>📍 <b>SMA 20:</b><br><code style='font-size: 16px;'>{sma20_val}</code></div>", unsafe_allow_html=True)
-                                col_t5.markdown(f"<div style='font-size: 15px;'>📍 <b>SMA 200:</b><br><code style='font-size: 16px;'>{sma200_val}</code></div>", unsafe_allow_html=True)
+    # Aplicar filtros a la matriz completa
+    df_filtrada = df_matriz.copy()
+    if filtro_t != "Todos":
+        df_filtrada = df_filtrada[df_filtrada['TICKER'].astype(str).str.upper() == str(filtro_t).upper()]
+    if filtro_s != "Todos":
+        df_filtrada = df_filtrada[df_filtrada['SENTIMIENTO'].astype(str).str.upper() == str(filtro_s).upper()]
+    if filtro_p != "Todos" and 'PERFIL' in df_filtrada.columns:
+        df_filtrada = df_filtrada[df_filtrada['PERFIL'].astype(str).str.upper() == str(filtro_p).upper()]
 
-                    # 2. Detalles del Veredicto en Contenedor Nativo (Alto Contraste)
-                    with st.container(border=True):
-                        st.markdown(f"### :material/ads_click: Recomendación para Perfil: **{p_id}**")
-                        
-                        col_v1, col_v2 = st.columns([2, 3])
-                        with col_v1:
-                            st.markdown(f"**:material/hourglass_empty: Horizonte Temporal:** {v_parsed['horizonte']}")
-                            st.markdown(f"**:material/warning: Nivel de Riesgo:** {v_parsed['riesgo']}")
-                            st.markdown(f"**:material/psychology: Convicción del Motor:** {v_parsed['conviccion']}")
-                            
-                            # Progreso visual del Score
-                            score = v_parsed['score']
-                            sc_num_str = score.split('/')[0].strip()
-                            if sc_num_str.isdigit():
-                                st.progress(int(sc_num_str) / 10.0, text=f":material/bar_chart: **Score Calculado: {sc_num_str}/10**")
-                            else:
-                                st.write(f":material/bar_chart: **Score Calculado:** {score}")
-                                
-                        with col_v2:
-                            # Desglosar textos largos con alto contraste y tipografía estándar
-                            st.markdown(f"**:material/newspaper: Confluencia de Noticias:**\n{v_parsed['confluencia']}")
-                            st.markdown(f"**:material/edit_note: Análisis Técnico y Fundamental:**\n{v_parsed['analisis']}")
-
-    # --- GRIDS Y DESCARGAS DE RESPALDO ---
-    st.write("---")
-    with st.expander(":material/folder_open: Mostrar Tabla de Datos Original (Sheets)"):
-        st.dataframe(df_matriz, use_container_width=True)
-
-    # --- HISTORIAL DE VEREDICTOS ---
-    st.write("---")
-    st.subheader(":material/monitoring: Evolución Histórica de Veredictos de IA")
-    df_historial = cargar_datos_hoja(config.WS_HISTORIAL_VEREDICTOS)
-    if not df_historial.empty:
-        df_historial.columns = [c.upper() for c in df_historial.columns]
-        
-        # Filtro por Ticker para ver su evolución
-        lista_tickers_hist = sorted(list(df_historial['TICKER'].dropna().unique()))
-        
-        if lista_tickers_hist:
-            col_h1, col_h2 = st.columns([4, 8])
-            with col_h1:
-                ticker_sel_hist = st.selectbox("Seleccionar Activo para Historial:", lista_tickers_hist, key="sel_historial_ticker")
-                
-            df_hist_fil = df_historial[df_historial['TICKER'] == ticker_sel_hist].copy()
-            
-            if not df_hist_fil.empty:
-                # Ordenamos cronológicamente ascendente para el gráfico
-                df_hist_fil = df_hist_fil.sort_values(by="FECHA").reset_index(drop=True)
-                
-                # Dibujar gráfico interactivo de Plotly
-                fig_hist = px.line(
-                    df_hist_fil,
-                    x="FECHA",
-                    y="SENTIMIENTO",
-                    color="PERFIL",
-                    title=f"Historial de Recomendaciones para {ticker_sel_hist}",
-                    markers=True,
-                    labels={"FECHA": "Fecha/Hora", "SENTIMIENTO": "Sentimiento", "PERFIL": "Perfil"}
-                )
-                fig_hist.update_layout(
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    font=dict(family="Inter, sans-serif", size=12),
-                    xaxis=dict(showgrid=True, gridcolor="#E5E7EB"),
-                    yaxis=dict(showgrid=True, gridcolor="#E5E7EB")
-                )
-                st.plotly_chart(fig_hist, use_container_width=True)
-            else:
-                st.info("No hay datos históricos registrados para este activo.")
-        else:
-            st.info("No se hallaron tickers en el historial.")
+    if df_filtrada.empty:
+        st.warning("No hay recomendaciones que coincidan con los filtros seleccionados.")
     else:
-        st.info("El historial de veredictos está vacío. Se completará en la próxima ejecución de IA.")
-
-with tab3:
-    st.header(":material/ads_click: Matriz de Decisiones y Veredictos de IA")
-    st.write("Visualiza las recomendaciones de inversión (Comprar/Vender/Mantener) organizadas por perfil de inversión:")
-    
-    # Cargar datos necesarios
-    df_matriz = cargar_datos_hoja(config.WS_MATRIZ_RECOMENDACIONES)
-    df_tecnico = cargar_datos_hoja(config.WS_ANALISIS_TECNICO)
-    df_maestro = cargar_datos_hoja(config.WS_MAESTRO_ACTIVOS)
-    df_val = cargar_datos_hoja("VALORACION_PORTAFOLIO")
-    
-    if df_matriz.empty:
-        st.info("No se encontraron registros de decisiones en la tabla MATRIZ_RECOMENDACIONES. Ejecuta el pipeline para generarlos.")
-    else:
-        # Ordenamos las filas de forma cronológica descendente si existe la columna Fecha
-        col_fecha_matriz = next((c for c in df_matriz.columns if "FECHA" in c), None)
-        if col_fecha_matriz:
-            try:
-                df_matriz = df_matriz.sort_values(by=col_fecha_matriz, ascending=False).reset_index(drop=True)
-            except:
-                pass
+        st.write(f"Se encontraron **{len(df_filtrada)}** decisiones:")
         
         # --- FUNCIÓN AUXILIAR PARA PARSEAR EL VEREDICTO ---
         def parsear_veredicto(texto):
             lineas = str(texto).split('\n')
             datos = {
-                "horizonte": "N/A",
-                "conviccion": "N/A",
-                "score": "N/A",
-                "riesgo": "N/A",
-                "confluencia": "Sin datos de confluencia",
-                "analisis": "Sin detalle de análisis"
+                "horizonte": "N/A", "conviccion": "N/A", "score": "N/A", 
+                "riesgo": "N/A", "confluencia": "Sin datos de confluencia", "analisis": "Sin detalle de análisis"
             }
             analisis_lineas = []
             for l in lineas:
                 l_clean = l.strip()
-                if l_clean.startswith("HORIZONTE:"):
-                    datos["horizonte"] = l_clean.replace("HORIZONTE:", "").strip()
-                elif l_clean.startswith("CONVICCION:"):
-                    datos["conviccion"] = l_clean.replace("CONVICCION:", "").strip()
-                elif l_clean.startswith("SCORE:"):
-                    datos["score"] = l_clean.replace("SCORE:", "").strip()
-                elif l_clean.startswith("RIESGO:"):
-                    datos["riesgo"] = l_clean.replace("RIESGO:", "").strip()
-                elif l_clean.startswith("CONFLUENCIA NOTICIAS:"):
-                    datos["confluencia"] = l_clean.replace("CONFLUENCIA NOTICIAS:", "").strip()
-                elif l_clean.startswith("ANALISIS:"):
-                    datos["analisis"] = l_clean.replace("ANALISIS:", "").strip()
+                if l_clean.startswith("HORIZONTE:"): datos["horizonte"] = l_clean.replace("HORIZONTE:", "").strip()
+                elif l_clean.startswith("CONVICCION:"): datos["conviccion"] = l_clean.replace("CONVICCION:", "").strip()
+                elif l_clean.startswith("SCORE:"): datos["score"] = l_clean.replace("SCORE:", "").strip()
+                elif l_clean.startswith("RIESGO:"): datos["riesgo"] = l_clean.replace("RIESGO:", "").strip()
+                elif l_clean.startswith("CONFLUENCIA NOTICIAS:"): datos["confluencia"] = l_clean.replace("CONFLUENCIA NOTICIAS:", "").strip()
+                elif l_clean.startswith("ANALISIS:"): datos["analisis"] = l_clean.replace("ANALISIS:", "").strip()
                 elif l_clean and not any(l_clean.startswith(pref) for pref in ["HORIZONTE:", "CONVICCION:", "SCORE:", "RIESGO:", "CONFLUENCIA", "ANALISIS:"]):
                     analisis_lineas.append(l_clean)
-            
             if analisis_lineas:
                 if datos["analisis"] == "Sin detalle de análisis" or len(datos["analisis"]) < 10:
                     datos["analisis"] = " ".join(analisis_lineas)
             return datos
-
-        # Normalizar columnas
-        df_matriz.columns = [c.upper() for c in df_matriz.columns]
-        if not df_tecnico.empty:
-            df_tecnico.columns = [c.upper() for c in df_tecnico.columns]
-        if not df_maestro.empty:
-            df_maestro.columns = [c.upper() for c in df_maestro.columns]
-        if not df_val.empty:
-            df_val.columns = [c.upper() for c in df_val.columns]
-
-        # Crear diccionario de descripciones de activos
-        mapeo_descripciones = {}
-        if not df_maestro.empty and 'TICKER_ID' in df_maestro.columns:
-            for _, r_m in df_maestro.iterrows():
-                tk_id = str(r_m['TICKER_ID']).strip().upper()
-                desc = str(r_m.get('DESCRIPCION', r_m.get('NOMBRE', ''))).strip()
-                if tk_id:
-                    mapeo_descripciones[tk_id] = desc
-
-        # --- SECCIÓN DE FILTROS ---
-        st.write("### :material/search: Filtros de Búsqueda")
-        col_f1, col_f2 = st.columns(2)
-        
-        tickers_disponibles = sorted(list(df_matriz['TICKER'].dropna().unique()))
-        sentimientos_disponibles = sorted(list(df_matriz['SENTIMIENTO'].dropna().unique()))
-        
-        with col_f1:
-            dict_act_matriz = obtener_diccionario_activos()
-            filtro_t = st.selectbox(
-                "Ticker / Activo:", 
-                ["Todos"] + sorted(tickers_disponibles), 
-                format_func=lambda x: formatear_ticker(x, dict_act_matriz),
-                key="select_filtro_t_matriz"
-            )
-        with col_f2:
-            filtro_s = st.selectbox("Sentimiento IA:", ["Todos"] + sentimientos_disponibles, key="select_filtro_s_matriz")
             
-        # Control global de expansión de tarjetas
-        expandir_todos = st.checkbox(":material/folder_open: Expandir todos los análisis de esta pestaña", value=False, key="expandir_matriz_checkbox")
-
-        # Configurar pestañas por Perfil de inversión
-        c_activa = st.session_state.get("cartera_activa", {})
-        u_id = c_activa.get("Usuario_ID", c_activa.get("USUARIO_ID", "LUIS"))
-        p_riesgo = c_activa.get("Perfil_Riesgo", c_activa.get("PERFIL_RIESGO", "Moderado"))
-        t_cartera = c_activa.get("Tipo_Cartera", c_activa.get("TIPO_CARTERA", "REAL"))
-        lista_perfiles_ui = [ (p_riesgo.capitalize(), f":material/person: Cartera Activa: {u_id} ({t_cartera} - {p_riesgo})") ]
-        
-        perfiles_tabs = st.tabs([p[1] for p in lista_perfiles_ui])
-        
-        for idx_tab, (p_id, p_label) in enumerate(lista_perfiles_ui):
-            with perfiles_tabs[idx_tab]:
-                # Filtrar datos de la matriz para este perfil específico
-                df_perfil = df_matriz[df_matriz['PERFIL'].astype(str).str.upper() == str(p_id).upper()].copy()
-                
-                # Aplicar filtros adicionales de Ticker y Sentimiento
-                if filtro_t != "Todos":
-                    df_perfil = df_perfil[df_perfil['TICKER'] == filtro_t]
-                if filtro_s != "Todos":
-                    df_perfil = df_perfil[df_perfil['SENTIMIENTO'] == filtro_s]
-                
-                if df_perfil.empty:
-                    st.info(f"No se encontraron veredictos de IA para el perfil {p_id} con los filtros seleccionados.")
-                    continue
-                
-                # Tarjetas métricas específicas para este perfil
-                col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-                with col_m1:
-                    st.metric("Activos Analizados", len(df_perfil['TICKER'].unique()))
-                with col_m2:
-                    c_compras = len(df_perfil[df_perfil['SENTIMIENTO'].str.contains("BULL|COMPRA", case=False, na=False)])
-                    st.metric("Comprar 🟢", c_compras)
-                with col_m3:
-                    c_hold = len(df_perfil[df_perfil['SENTIMIENTO'].str.contains("HOLD|NEUTRAL|MANT", case=False, na=False)])
-                    st.metric("Mantener 🟡", c_hold)
-                with col_m4:
-                    c_ventas = len(df_perfil[df_perfil['SENTIMIENTO'].str.contains("BEAR|VENTA", case=False, na=False)])
-                    st.metric("Vender 🔴", c_ventas)
-                
-                st.write("---")
-                
-                # Listar veredictos de este perfil por activo
-                tickers_perfil = list(df_perfil['TICKER'].unique())
-                for tk in tickers_perfil:
-                    df_tk = df_perfil[df_perfil['TICKER'] == tk].iloc[0]
-                    v_parsed = parsear_veredicto(df_tk['VEREDICTO_IA'])
+        for idx, row in df_filtrada.iterrows():
+            ticker_dec = str(row.get('TICKER', '')).strip().upper()
+            perfil_dec = str(row.get('PERFIL', '')).strip().capitalize()
+            fecha_dec = str(row.get('FECHA', ''))
+            sentimiento_dec = str(row.get('SENTIMIENTO', '')).strip().upper()
+            veredicto_raw = str(row.get('VEREDICTO_IA', ''))
+            razon_dec = str(row.get('RAZON_PRINCIPAL', ''))
+            
+            color_sent, icono_sent = "#3498DB", "🔵"
+            if "COMPRA" in sentimiento_dec or "BULL" in sentimiento_dec: color_sent, icono_sent = "#2ECC71", "🟢"
+            elif "VENTA" in sentimiento_dec or "BEAR" in sentimiento_dec: color_sent, icono_sent = "#E74C3C", "🔴"
+            elif "MANTENER" in sentimiento_dec or "HOLD" in sentimiento_dec or "NEUTRAL" in sentimiento_dec: color_sent, icono_sent = "#F1C40F", "🟡"
+            
+            datos_parsed = parsear_veredicto(veredicto_raw)
+            
+            datos_tec = {"tendencia": "N/A", "rsi": "N/A", "precio": "N/A"}
+            if not df_tecnico.empty and 'TICKER' in df_tecnico.columns:
+                row_tec = df_tecnico[df_tecnico['TICKER'].astype(str).str.upper() == ticker_dec]
+                if not row_tec.empty:
+                    datos_tec["tendencia"] = str(row_tec.iloc[0].get('TENDENCIA_CORTO', 'N/A'))
+                    datos_tec["rsi"] = str(row_tec.iloc[0].get('RSI', 'N/A'))
+                    datos_tec["precio"] = str(row_tec.iloc[0].get('CIERRE_AJUSTADO', 'N/A'))
                     
-                    sentimiento = str(df_tk['SENTIMIENTO']).strip().upper()
-                    
-                    # Semáforo de color y emoji
-                    color_emoji = "🟡"
-                    sent_label = "HOLD / NEUTRAL"
-                    if "BULL" in sentimiento or "COMPRA" in sentimiento:
-                        color_emoji = "🟢"
-                        sent_label = "BULLISH (COMPRA)"
-                    elif "BEAR" in sentimiento or "VENTA" in sentimiento:
-                        color_emoji = "🔴"
-                        sent_label = "BEARISH (VENTA)"
+            tenencia_actual = 0.0
+            rend_actual = "0.0%"
+            if not df_val.empty and 'TICKER' in df_val.columns:
+                row_v = df_val[df_val['TICKER'].astype(str).str.upper() == ticker_dec]
+                if not row_v.empty:
+                    try:
+                        tenencia_actual = float(str(row_v.iloc[0].get('CANTIDAD', '0')).replace(',', '.'))
+                        rend_actual = str(row_v.iloc[0].get('RENDIMIENTO_PORC', '0.0%'))
+                    except: pass
+            
+            nombre_largo = mapeo_descripciones.get(ticker_dec, ticker_dec)
+            
+            with st.expander(f"{icono_sent} {ticker_dec} - {sentimiento_dec.capitalize()} | {perfil_dec} | {fecha_dec}", expanded=expandir_todos):
+                st.markdown(f"**Activo:** {nombre_largo} (`{ticker_dec}`)")
+                st.markdown(f"**Razón Principal:** {razon_dec}")
+                
+                c_m1, c_m2, c_m3 = st.columns(3)
+                c_m1.metric("Tenencia Actual", f"{tenencia_actual:,.2f}", rend_actual)
+                c_m2.metric("Precio Técnico", f"${datos_tec['precio']}")
+                c_m3.metric("RSI (Fuerza Rel.)", f"{datos_tec['rsi']}", datos_tec['tendencia'])
+                
+                st.markdown("##### 🧠 Análisis Detallado (IA)")
+                st.info(datos_parsed["analisis"])
+                
+                col_i1, col_i2, col_i3, col_i4 = st.columns(4)
+                col_i1.markdown(f"**Horizonte:**<br/> {datos_parsed['horizonte']}", unsafe_allow_html=True)
+                col_i2.markdown(f"**Convicción:**<br/> {datos_parsed['conviccion']}", unsafe_allow_html=True)
+                col_i3.markdown(f"**Riesgo:**<br/> {datos_parsed['riesgo']}", unsafe_allow_html=True)
+                col_i4.markdown(f"**Score:**<br/> {datos_parsed['score']}", unsafe_allow_html=True)
+                
+                st.markdown("##### 📰 Confluencia de Noticias")
+                st.caption(datos_parsed["confluencia"])
+                
+    st.markdown("---")
+    with st.expander("📋 Mostrar Tabla de Datos Original (Sheets)"):
+        st.dataframe(df_filtrada, use_container_width=True)
 
-                    # Buscar descripción del activo
-                    desc_act = mapeo_descripciones.get(tk.upper(), "")
-                    label_ticker = f"{tk} ({desc_act})" if desc_act else tk
+    # Historial de Veredictos (integrado en la misma pestaña)
+    st.subheader("📈 Evolución Histórica de Veredictos")
+    df_historial = cargar_datos_hoja(config.WS_HISTORIAL_VEREDICTOS)
+    if not df_historial.empty:
+        df_historial.columns = [c.upper() for c in df_historial.columns]
+        lista_tickers_hist = sorted(list(df_historial['TICKER'].dropna().unique()))
+        if lista_tickers_hist:
+            ticker_sel_hist = st.selectbox("Seleccionar Activo para Historial:", lista_tickers_hist, key="sel_historial_ticker")
+            df_hist_fil = df_historial[df_historial['TICKER'] == ticker_sel_hist].copy()
+            if not df_hist_fil.empty:
+                # La columna puede ser FECHA o FECHA_HORA
+                col_f = "FECHA_HORA" if "FECHA_HORA" in df_hist_fil.columns else ("FECHA" if "FECHA" in df_hist_fil.columns else None)
+                col_s = "SENTIMIENTO_IA" if "SENTIMIENTO_IA" in df_hist_fil.columns else ("SENTIMIENTO" if "SENTIMIENTO" in df_hist_fil.columns else None)
+                if col_f and col_s:
+                    df_hist_fil = df_hist_fil.sort_values(by=col_f).reset_index(drop=True)
+                    import plotly.express as px
+                    fig_hist = px.line(df_hist_fil, x=col_f, y=col_s, markers=True, title=f"Recomendaciones {ticker_sel_hist}")
+                    st.plotly_chart(fig_hist, use_container_width=True)
+                else:
+                    st.warning("No se pudo generar el gráfico porque faltan columnas requeridas.")
+    else:
+        st.info("El historial de veredictos está vacío.")
 
-                    # Determinar si el activo ya está en cartera de este perfil
-                    tiene_activo = False
-                    if not df_val.empty and 'PROPIETARIO' in df_val.columns and 'TICKER' in df_val.columns:
-                        df_val_fil = df_val[
-                            (df_val['PROPIETARIO'].astype(str).str.strip().str.upper() == p_id.upper()) & 
-                            (df_val['TICKER'].astype(str).str.strip().str.upper() == tk.upper())
-                        ]
-                        if not df_val_fil.empty:
-                            try:
-                                cant = float(str(df_val_fil.iloc[0].get('CANTIDAD', 0.0)).replace(',', '.'))
-                                if cant > 0.0:
-                                    tiene_activo = True
-                            except:
-                                pass
+with tab3:
+    render_matriz_decisiones()
 
-                    badge_tenencia = ":material/work: [En Cartera]" if tiene_activo else ":material/rocket_launch: [Nueva Oportunidad]"
 
-                    # Score máximo del activo
-                    score = v_parsed["score"]
-                    fecha_val = str(df_tk['FECHA']).split()[0]
-                    
-                    # Calcular brecha cambiaria del activo frente al MEP de venta
-                    brecha_tk = 0.0
-                    insignia_brecha = ""
-                    consejo_corto = ""
-                    ccl_num_val = None
-                    
-                    if not df_tecnico.empty:
-                        df_tk_tec = df_tecnico[df_tecnico['TICKER_ID'] == tk.upper()]
-                        if not df_tk_tec.empty:
-                            try:
-                                ccl_raw = df_tk_tec.iloc[0].get('CCL_IMPLICITO')
-                                if ccl_raw is not None and str(ccl_raw).strip() != '':
-                                    ccl_num_val = float(str(ccl_raw).replace(',', '.'))
-                                    # Sanar escala
-                                    if ccl_num_val > 100000: ccl_num_val /= 100.0
-                                    elif ccl_num_val > 10000: ccl_num_val /= 10.0
-                                    
-                                    if ccl_num_val > 500 and mep_v > 0:
-                                        brecha_tk = ((ccl_num_val - mep_v) / mep_v) * 100
-                                        if brecha_tk > 2.5:
-                                            insignia_brecha = f" 🔴 (+{brecha_tk:.1f}% ARS Caro)"
-                                            consejo_corto = "Sobreprecio en pesos local."
-                                        elif brecha_tk < 1.5:
-                                            insignia_brecha = f" 🟢 (+{brecha_tk:.1f}% ARS Oferta)"
-                                            consejo_corto = "Buen tipo de cambio en pesos."
-                                        else:
-                                            insignia_brecha = f" :material/info: (+{brecha_tk:.1f}%)"
-                                            consejo_corto = "Tipo de cambio estándar."
-                            except:
-                                pass
-                                
-                    header_exp = f"{color_emoji} {label_ticker}{insignia_brecha} | {sent_label} | Score: {score} | {badge_tenencia} | Actualizado: {fecha_val}"
-                    
-                    with st.expander(header_exp, expanded=expandir_todos):
-                        # 1. Banners de Datos Técnicos en Contenedor Claro Nativo (Alto Contraste)
-                        if not df_tecnico.empty:
-                            df_tk_tec = df_tecnico[df_tecnico['TICKER_ID'] == tk]
-                            if not df_tk_tec.empty:
-                                tec_row = df_tk_tec.iloc[0]
-                                rsi_val = tec_row.get('RSI', 'N/A')
-                                trend_val = tec_row.get('TREND', 'N/A')
-                                ccl_val = tec_row.get('CCL_IMPLICITO', 'N/A')
-                                sma20_val = tec_row.get('SMA_20', 'N/A')
-                                sma200_val = tec_row.get('SMA_200', 'N/A')
-                                
-                                # Si tenemos el número formateado, lo mostramos estilizado
-                                ccl_display = f"{ccl_num_val:,.2f} ARS" if ccl_num_val else f"{ccl_val} ARS"
-                                ccl_label = f"<div style='font-size: 15px;'>💵 <b>CCL:</b><br><code style='font-size: 15px;'>{ccl_display}</code>"
-                                if ccl_num_val and mep_v > 0:
-                                    color_brecha = '#FF4D4D' if brecha_tk > 2.5 else '#2ECC71' if brecha_tk < 1.5 else '#3498DB'
-                                    ccl_label += f"<br><span style='font-size: 13px; font-weight: bold; color: {color_brecha};'>*{consejo_corto}*</span>"
-                                ccl_label += "</div>"
-                                
-                                with st.container(border=True):
-                                    col_t1, col_t2, col_t3, col_t4, col_t5 = st.columns(5)
-                                    col_t1.markdown(f"<div style='font-size: 15px;'>📊 <b>RSI:</b><br><code style='font-size: 16px;'>{rsi_val}</code></div>", unsafe_allow_html=True)
-                                    col_t2.markdown(f"<div style='font-size: 15px;'>📈 <b>Tendencia:</b><br><code style='font-size: 15px;'>{trend_val}</code></div>", unsafe_allow_html=True)
-                                    col_t3.markdown(ccl_label, unsafe_allow_html=True)
-                                    col_t4.markdown(f"<div style='font-size: 15px;'>📍 <b>SMA 20:</b><br><code style='font-size: 16px;'>{sma20_val}</code></div>", unsafe_allow_html=True)
-                                    col_t5.markdown(f"<div style='font-size: 15px;'>📍 <b>SMA 200:</b><br><code style='font-size: 16px;'>{sma200_val}</code></div>", unsafe_allow_html=True)
-
-                        # 2. Detalles del Veredicto en Contenedor Nativo (Alto Contraste)
-                        with st.container(border=True):
-                            st.markdown(f"### :material/ads_click: Recomendación para Perfil: **{p_id}**")
-                            
-                            col_v1, col_v2 = st.columns([2, 3])
-                            with col_v1:
-                                st.markdown(f"**:material/hourglass_empty: Horizonte Temporal:** {v_parsed['horizonte']}")
-                                st.markdown(f"**:material/warning: Nivel de Riesgo:** {v_parsed['riesgo']}")
-                                st.markdown(f"**:material/psychology: Convicción del Motor:** {v_parsed['conviccion']}")
-                                
-                                # Progreso visual del Score
-                                sc_num_str = score.split('/')[0].strip()
-                                if sc_num_str.isdigit():
-                                    st.progress(int(sc_num_str) / 10.0, text=f":material/bar_chart: **Score Calculado: {sc_num_str}/10**")
-                                else:
-                                    st.write(f":material/bar_chart: **Score Calculado:** {score}")
-                                    
-                            with col_v2:
-                                # Desglosar textos largos con alto contraste y tipografía estándar
-                                st.markdown(f"**:material/newspaper: Confluencia de Noticias:**\n{v_parsed['confluencia']}")
-                                st.markdown(f"**:material/edit_note: Análisis Técnico y Fundamental:**\n{v_parsed['analisis']}")
-
-        # --- GRIDS Y DESCARGAS DE RESPALDO ---
-        st.write("---")
-        with st.expander(":material/folder_open: Mostrar Tabla de Datos Original (Sheets)"):
-            st.dataframe(df_matriz, use_container_width=True)
-
-# ==========================================
-# PESTAÑA 4: REPORTES DEL SUPERVISOR
 # ==========================================
 with tab4:
     if pueden_ejecutar:
@@ -1801,6 +1602,8 @@ with tab5:
                             # Sobrescribir fila 2
                             ws_ia.update(values=[nueva_fila], range_name="A2:Z2", raw=True)
                             st.success("¡Parámetros de la IA actualizados con éxito!")
+                            for k in list(st.session_state.keys()):
+                                if str(k).startswith("cache_sheet_"): del st.session_state[k]
                             st.cache_data.clear()
                         except Exception as ex:
                             st.error(f"Error escribiendo en Google Sheets: {ex}")
@@ -1850,6 +1653,8 @@ with tab6:
                                     nueva_fila = [nombre_cartera, propietario, perfil_riesgo, tipo_cartera, mix_target, tolerancia]
                                     ws_us.append_row(nueva_fila)
                                     st.success(f"¡Cartera '{nombre_cartera}' creada exitosamente!")
+                                    for k in list(st.session_state.keys()):
+                                        if str(k).startswith("cache_sheet_"): del st.session_state[k]
                                     st.cache_data.clear()
                                     st.rerun()
                                 except Exception as e:
@@ -1861,10 +1666,11 @@ with tab6:
         
         sh_param = obtener_conexion_sheets()
         
-        sub_t1, sub_t2, sub_t3 = st.tabs([
+        sub_t1, sub_t2, sub_t3, sub_t4 = st.tabs([
             "📢 Canales de Telegram", 
             "🔍 Aprobación de Sinónimos", 
-            "✏️ Otras Tablas (Grilla)"
+            "✏️ Otras Tablas (Grilla)",
+            "📨 Buzón de Feedback"
         ])
         
         with sub_t1:
@@ -1902,6 +1708,8 @@ with tab6:
                                 
                                 ws_param.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
                                 st.success("¡Configuración de Canales de Telegram guardada exitosamente!")
+                                for k in list(st.session_state.keys()):
+                                    if str(k).startswith("cache_sheet_"): del st.session_state[k]
                                 st.cache_data.clear()
                                 st.rerun()
                             except Exception as ex:
@@ -1910,13 +1718,32 @@ with tab6:
                     st.error(f"Error leyendo la hoja CONFIG_TELEGRAM_CHANNELS: {e}")
                     
         with sub_t2:
-            st.subheader("🔍 Aprobación de Sinónimos de Activos")
+            st.subheader("💡 Aprobación de Sinónimos de Activos")
+            
+            st.write("#### 🚀 Inicialización Rápida (Kickstart)")
+            st.write("¿Agregaste un activo nuevo? Escribí su Ticker acá para buscar sinónimos de inmediato con la IA, sin esperar a las noticias.")
+            col_k1, col_k2 = st.columns([7, 3])
+            with col_k1:
+                kickstart_ticker = st.text_input("Ticker a buscar (ej. AAPL):", key="input_kickstart")
+            with col_k2:
+                st.write("")
+                st.write("")
+                if st.button("🚀 Kickstart Ticker", key="btn_kickstart", use_container_width=True):
+                    if kickstart_ticker.strip():
+                        disparar_proceso_fondo(f"kickstart.py {kickstart_ticker.strip().upper()}")
+                        st.success(f"Iniciado Kickstart para {kickstart_ticker}. El sistema te notificará por Telegram cuando esté listo.")
+                    else:
+                        st.error("Ingresa un ticker.")
+                        
+            st.markdown("---")
             
             col_sug_sub, col_sug_ref = st.columns([8, 2])
             with col_sug_sub:
                 st.write("Cuando la IA captura una noticia y encuentra un término desconocido, el supervisor te propone asociarlo a un Ticker. Apruébalo aquí para que se auto-cargue en las próximas lecturas:")
             with col_sug_ref:
                 if st.button(":material/refresh: Refrescar", key="btn_ref_sinonimos_sug", help="Refresca las sugerencias de sinónimos desde Sheets."):
+                    for k in list(st.session_state.keys()):
+                        if str(k).startswith("cache_sheet_"): del st.session_state[k]
                     st.cache_data.clear()
                     
             try:
@@ -2130,6 +1957,8 @@ with tab6:
                                         if session_key in st.session_state:
                                             del st.session_state[session_key]
                                             
+                                        for k in list(st.session_state.keys()):
+                                            if str(k).startswith("cache_sheet_"): del st.session_state[k]
                                         st.cache_data.clear()
                                         st.rerun()
                                     except Exception as ex:
@@ -2188,12 +2017,54 @@ with tab6:
                                         
                                         ws_param.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
                                         st.success(f"¡Cambios guardados en la tabla paramétrica `{tabla_elegida}`!")
+                                        for k in list(st.session_state.keys()):
+                                            if str(k).startswith("cache_sheet_"): del st.session_state[k]
                                         st.cache_data.clear()
                                         st.rerun()
                                     except Exception as ex:
                                         st.error(f"Error al escribir en Google Sheets: {ex}")
                         except Exception as e:
                             st.error(f"Error cargando la tabla paramétrica `{tabla_elegida}`: {e}")
+
+        with sub_t4:
+            st.subheader("📨 Panel de Gestión de Feedback")
+            if sh_param:
+                try:
+                    ws_feed = sh_param.worksheet(config.WS_FEEDBACK_USUARIOS)
+                    df_feed = pd.DataFrame(ws_feed.get_all_records())
+                    if not df_feed.empty:
+                        df_feed.columns = [c.strip().upper() for c in df_feed.columns]
+                        
+                        col_config_dinamico = {
+                            "ESTADO": st.column_config.SelectboxColumn(
+                                "ESTADO",
+                                options=["PENDIENTE", "REVISADO", "RESUELTO"],
+                                required=True
+                            )
+                        }
+                        df_feed_mod = st.data_editor(
+                            df_feed, 
+                            use_container_width=True,
+                            column_config=col_config_dinamico,
+                            key="editor_feedback_grilla"
+                        )
+                        
+                        if st.button("💾 Guardar cambios en Feedback", key="btn_save_feedback"):
+                            with st.spinner("Guardando estados..."):
+                                ws_feed.clear()
+                                cabeceras = [df_feed_mod.columns.tolist()]
+                                valores = df_feed_mod.values.tolist()
+                                valores_limpios = [[str(x) if pd.notna(x) else "" for x in row] for row in valores]
+                                ws_feed.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
+                                st.success("✅ Estados de feedback actualizados con éxito!")
+                                for k in list(st.session_state.keys()):
+                                    if str(k).startswith("cache_sheet_"): del st.session_state[k]
+                                st.cache_data.clear()
+                                st.rerun()
+                    else:
+                        st.info("Aún no se han recibido comentarios.")
+                except Exception as e_f:
+                    st.error(f"Error al cargar listado de feedback: {e_f}")
 
 # ==========================================
 # PESTAÑA 7: CONSOLA DE LOGS
@@ -2416,47 +2287,12 @@ with tab8:
                             prioridad, 
                             "PENDIENTE"
                         ])
-                        st.success("¡Sugerencia enviada con éxito! Muchas gracias.")
+                        st.success("✅ Sugerencia enviada con éxito! Muchas gracias.")
+                        try:
+                            import notificador_telegram
+                            msg = f"📩 <b>Nuevo Feedback de Usuario</b>\n\n👤 <b>Usuario:</b> {st.session_state['usuario']['nombre']}\n📌 <b>Módulo:</b> {modulo_app}\n⚠️ <b>Prioridad:</b> {prioridad}\n\n💬 <i>{comentario}</i>"
+                            notificador_telegram.enviar_mensaje_telegram(msg)
+                        except:
+                            pass
                     except Exception as ex_f:
                         st.error(f"Error al enviar sugerencia: {ex_f}")
-    
-    # Sección para Administradores
-    if st.session_state["usuario"]["rol"] == "Administrador":
-        st.write("---")
-        st.subheader(":material/settings: Panel de Gestión de Feedback (Solo Administradores)")
-        sh_feed = obtener_conexion_sheets()
-        if sh_feed:
-            try:
-                ws_feed = sh_feed.worksheet(config.WS_FEEDBACK_USUARIOS)
-                df_feed = pd.DataFrame(ws_feed.get_all_records())
-                if not df_feed.empty:
-                    df_feed.columns = [c.strip().upper() for c in df_feed.columns]
-                    
-                    # Grilla interactiva para cambiar estado
-                    col_config_dinamico = {
-                        "ESTADO": st.column_config.SelectboxColumn(
-                            "ESTADO",
-                            options=["PENDIENTE", "REVISADO", "RESUELTO"],
-                            required=True
-                        )
-                    }
-                    df_feed_mod = st.data_editor(
-                        df_feed, 
-                        use_container_width=True,
-                        column_config=col_config_dinamico,
-                        key="editor_feedback_grilla"
-                    )
-                    
-                    if st.button("💾 Guardar cambios en Feedback", key="btn_save_feedback"):
-                        with st.spinner("Guardando estados..."):
-                            ws_feed.clear()
-                            cabeceras = [df_feed_mod.columns.tolist()]
-                            valores = df_feed_mod.values.tolist()
-                            valores_limpios = [[str(x) if pd.notna(x) else "" for x in row] for row in valores]
-                            ws_feed.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
-                            st.success("¡Estados de feedback actualizados con éxito!")
-                            st.rerun()
-                else:
-                    st.info("Aún no se han recibido comentarios.")
-            except Exception as e_f:
-                st.error(f"Error al cargar listado de feedback: {e_f}")

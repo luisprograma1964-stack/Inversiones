@@ -30,7 +30,7 @@ def enviar_mensaje_telegram(mensaje):
         payload = {
             "chat_id": chat_id,
             "text": mensaje,
-            "parse_mode": "Markdown"
+            "parse_mode": "HTML"
         }
         
         # Timeout de 8s para no trancar la ejecución de fondo del pipeline si hay mala red

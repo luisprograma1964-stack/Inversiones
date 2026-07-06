@@ -498,6 +498,15 @@ def ejecutar_captura_noticias():
         if sugerencias_batch:
             ws_sugerencias.append_rows(sugerencias_batch, value_input_option='USER_ENTERED')
             logger.info(f"    [!] {len(sugerencias_batch)} sugerencias de sinónimos detectadas.")
+            
+            import notificador_telegram
+            for sug in sugerencias_batch:
+                titular = sug[1]
+                termino = sug[3]
+                ticker = sug[4]
+                explicacion = sug[5] if len(sug) > 5 else "Generado por IA"
+                msg_tg = f"🔔 <b>Sugerencia de Sinónimo (AI)</b>\n\nSe sugiere el término <code>{termino}</code> para el activo <b>{ticker}</b>.\n\n<b>Titular original:</b> {titular}\n<b>Motivo/Explicación:</b> {explicacion}\n\nRevisalo en el Panel de Administración."
+                notificador_telegram.enviar_mensaje_telegram(msg_tg)
 
         # 6. Finalización y Logs
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
