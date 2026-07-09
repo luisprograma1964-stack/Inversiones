@@ -1,0 +1,97 @@
+Fecha: 2026-07-06 12:24:19
+
+Resumen: * **LUIS (Agresivo):** Cartera altamente desbalanceada. Liquidez en pesos (100% en -CASH- ARS) sin exposición a Tech. El activo AAPL tiene una rentabilidad nominal de -97.53%. 
+    * **Orden:** Vender tenencias de AAPL y TSLA (posiciones de bajo rendimiento técnico y alta pérdida). Reasignar el capital líquido hacia ETFs/Tech según el Mix (60% Tech, 30% Cedears Estables).
+* **LUIS_MODERADO (Moderado):** 100% en efectivo. Debe asignar un 50% a ETF Indexados y 30% a Bonos.
+    * **Orden:** Iniciar compra escalonada de QQQ (como proxy de ETF) dado su perfil. Evitar AMZN y KO por el momento debido al sobreprecio del CCL (supera el umbral del 2.5% de brecha).
+* **VICKY (Conservador):** Alta exposición a AMD con -95.29% de rentabilidad.
+    * **Orden:** Liquidar posición en AMD. Rebalancear haci
+
+Alertas: * **Alerta de CCL:** VIST, META, WMT, AAPL, AMZN y ASML cotizan localmente con un sobreprecio cambiario superior al 2.5% respecto a la media de mercado. Se recomienda encarecidamente evitar compras en pesos en estos activos hasta que el CCL implícito se normalice.
+* **Silencio de noticias:** El activo XOM presenta movimientos técnicos pero el radar de noticias no captura catalizadores específicos. Se sugiere al usuario buscar manualmente en Twitter o Google sobre "XOM oil quarterly outlook".
+
+Informe Completo:
+# INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA
+
+## 📋 1. ESTRUCTURA DE INPUTS DE LA IA DECISORA (AUDITORÍA)
+
+Este apartado detalla el catálogo completo de datos y campos que se inyectan dinámicamente en el prompt de la IA decisora (`decisor_con_ia.py`), agrupados por su origen de datos en Google Sheets:
+
+### 📊 Origen: `ANALISIS_TECNICO` (Datos Técnicos del Activo)
+Métricas matemáticas y de precio que definen la situación técnica de cada Ticker:
+* **Identificación**: `TICKER_ID`, `FECHA` (Fecha de cálculo).
+* **Indicadores Técnicos**: `RSI`, `MACD`, `TREND`, `PSAR`, `DMI`, `SMA_20`, `SMA_50`, `SMA_200`, `FIBO_RET`, `CCL_IMPLICITO`
+* **Valores de Control**: `ESTADO` (Debe ser `PENDIENTE` para procesar).
+
+### 📰 Origen: `NOTICIAS_SISTEMA` (Contexto Fundamental y Sentimiento)
+Noticias recolectadas en paralelo y filtradas por la IA. Se inyectan las 5 más recientes del Ticker y las 5 más recientes de contexto macroeconómico global (Ticker 9999):
+* **Campos por noticia**: `FECHA`, `TITULAR`, `RESUMEN_IA`, `SENTIMIENTO`, `FUENTE`.
+
+### 💼 Origen: `VALORACION_PORTAFOLIO` (Situación de Cartera)
+Tenencias y rentabilidades consolidadas por propietario calculadas en el Paso 3.8:
+* **Campos**: `PROPIETARIO`, `ACTIVO`, `CANTIDAD`, `PRECIO_PROMEDIO_COMPRA`, `VALORACION_MERCADO`, `RENTABILIDAD_NOMINAL`, `RENTABILIDAD_REAL_PERC`.
+
+### 💵 Origen: `CAJA_LIQUIDEZ` (Saldos Disponibles)
+Saldos líquidos por cuenta, propietario y moneda (ARS, USD, MEP):
+* **Campos**: `MONEDA`, `SALDO`, `TIPO_CUENTA`, `ULTIMA_ACTUALIZACION`, `PROPIETARIO`.
+
+### 📈 Origen: `VARIABLES_MERCADO` (Contexto de Referencia Financiera)
+Monitoreo de tipos de cambio de referencia e inflación:
+* **Campos**: `DATO`, `VALOR_PROM`, `VALOR_MIN`, `VALOR_MAX`, `GAP_PERC`.
+
+### 👥 Origen: `CONFIG_IA_USUARIO` (Perfiles y Reglas del Inversor)
+Define la política y ponderaciones que la IA debe contrastar:
+* **Campos**: `Usuario_ID`, `Perfil_Riesgo`, `Mix_Target`, `Tolerancia_Desvio`.
+
+---
+
+## ESTRATEGIA DE CARTERA
+
+* **LUIS (Agresivo):** Cartera altamente desbalanceada. Liquidez en pesos (100% en -CASH- ARS) sin exposición a Tech. El activo AAPL tiene una rentabilidad nominal de -97.53%. 
+    * **Orden:** Vender tenencias de AAPL y TSLA (posiciones de bajo rendimiento técnico y alta pérdida). Reasignar el capital líquido hacia ETFs/Tech según el Mix (60% Tech, 30% Cedears Estables).
+* **LUIS_MODERADO (Moderado):** 100% en efectivo. Debe asignar un 50% a ETF Indexados y 30% a Bonos.
+    * **Orden:** Iniciar compra escalonada de QQQ (como proxy de ETF) dado su perfil. Evitar AMZN y KO por el momento debido al sobreprecio del CCL (supera el umbral del 2.5% de brecha).
+* **VICKY (Conservador):** Alta exposición a AMD con -95.29% de rentabilidad.
+    * **Orden:** Liquidar posición en AMD. Rebalancear hacia Dólar Billete (50%) y ONs (20%) para cumplir con su perfil conservador y reducir volatilidad.
+* **ANTO (Conservador):** Exposición excesiva a TSLA y KO con pérdidas severas.
+    * **Orden:** Liquidar TSLA y KO. Reasignar a FCI (60%) y Renta Fija (30%) conforme al Mix_Target.
+
+## MEJORA DE DATOS
+
+* **Sugerencias:** Luis, tienes 2 sugerencias de sinónimos pendientes. Por favor revisa la hoja SUGERENCIAS_SINONIMOS y cambia su estado a APROBADO o RECHAZADO.
+* **Activación de Tickers:** 
+    * El activo YPFD tiene noticias recientes pero figura INACTIVO. Considera activarlo.
+    * El activo YPF tiene noticias recientes pero figura INACTIVO. Considera activarlo.
+* **Actualización de Búsqueda:** El filtro de búsqueda para WMT es insuficiente. Cambiar en el Maestro de 'stock:WMT' a 'Walmart earnings, retail consumer demand, consumer spending'.
+
+## AUDITORIA DE NOTICIAS VS DECISION
+
+* Calidad del Triage: El sistema está descartando noticias de alta relevancia como las de 'Anthropic' por considerarlas corporativas; sugiero ajustar el criterio ya que la IA generativa es un driver macro.
+* La noticia de 'Demanda del Trainium 3' fue descartada erróneamente por considerarse solo microeconomía, ignorando su impacto sectorial en semiconductores.
+
+## CONTRADICCIONES TECNICAS
+
+* MU: Presenta un score bajo (4/10) mientras que su tendencia es Alcista L.P. Esta divergencia es alta; se requiere verificar si los litigios legales compensan la estructura técnica de largo plazo.
+* VIST: El sentimiento es Bullish con RSI 24.22 (sobreventa extrema). Es una contradicción técnica que sugiere oportunidad de rebote violento.
+
+## ERRORES DE ESCALA
+
+* No se detectaron activos con bloqueo 15x en la carga actual de datos técnicos.
+
+## SINCRONIZACION DE DATOS
+
+* Integridad de fechas: Todos los activos presentan fechas de datos técnicos al 2026-07-02, lo cual es coherente con un mercado que no ha cerrado la rueda del 06-07 (Diferencia < 48hs). No se requieren alertas de discrepancia.
+
+## ALERTAS Y CALIDAD
+
+* **Alerta de CCL:** VIST, META, WMT, AAPL, AMZN y ASML cotizan localmente con un sobreprecio cambiario superior al 2.5% respecto a la media de mercado. Se recomienda encarecidamente evitar compras en pesos en estos activos hasta que el CCL implícito se normalice.
+* **Silencio de noticias:** El activo XOM presenta movimientos técnicos pero el radar de noticias no captura catalizadores específicos. Se sugiere al usuario buscar manualmente en Twitter o Google sobre "XOM oil quarterly outlook".
+
+## OPTIMIZACION DE INSTRUCCIONES IA
+
+* **Sugerencia 1 (Prompt_Triage_Noticias):** 
+    * Sección: [SECCIÓN 2: CRITERIOS DE APROBACIÓN Y FILTRO GENERAL]
+    * Regla: "No descartar noticias que vinculen empresas de semiconductores o IA (ej: Anthropic, Trainium) con el mercado global, aunque sean de carácter corporativo, dado su impacto en el sentimiento del sector tecnológico."
+* **Sugerencia 2 (Instrucciones_Fijas):**
+    * Sección: [SECCIÓN 4: REGLAS DE OPERATORIA LOCAL Y BRECHA CAMBIARIA]
+    * Regla: "Si el CCL implícito de un activo presenta un desvío > 2.5% respecto a la cotización MEP del día, el sistema debe bloquear automáticamente la recomendación de compra en ARS y emitir una alerta de sobreprecio cambiario."

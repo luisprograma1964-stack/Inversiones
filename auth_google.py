@@ -17,6 +17,26 @@ def conectar():
     import time
     for intento in range(8):
         try:
+            # Intentar primero con Streamlit Secrets (Streamlit Cloud)
+            try:
+                import streamlit as st
+                if "gcp_service_account" in st.secrets:
+                    gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
+                    sh = gc.open(config.SHEET_NAME)
+                    return sh
+            except Exception:
+                pass
+            
+            # Intentar con variable de entorno (GitHub Actions)
+            import os
+            gcp_env = os.getenv("GCP_SERVICE_ACCOUNT_JSON")
+            if gcp_env:
+                import json
+                gc = gspread.service_account_from_dict(json.loads(gcp_env))
+                sh = gc.open(config.SHEET_NAME)
+                return sh
+                
+            # Fallback a archivo local
             gc = gspread.service_account(filename=config.JSON_FILE)
             sh = gc.open(config.SHEET_NAME)
             return sh
@@ -74,6 +94,9 @@ def _hacer_resiliente_gspread():
     
     def robust_decorator(method, max_retries=8, initial_delay=15):
         def wrapper(*args, **kwargs):
+            if method.__name__ in ('get_all_values', 'get_all_records'):
+                if 'value_render_option' not in kwargs:
+                    kwargs['value_render_option'] = 'UNFORMATTED_VALUE'
             for intento in range(max_retries):
                 try:
                     return method(*args, **kwargs)

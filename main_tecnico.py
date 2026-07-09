@@ -150,10 +150,10 @@ def ejecutar_analisis_completo():
             if len(resultados) < conteo_esperado:
                 activos_procesados = [r[0] for r in resultados]
                 faltantes = [a for a in activos_activos if a not in activos_procesados]
-                error_cobertura = f"FALLA DE COBERTURA: Se esperaban {conteo_esperado} activos (Maestro), pero solo se procesaron {len(resultados)}. Faltan en histórico: {', '.join(faltantes)}"
-                logger.critical(error_cobertura)
-                procesamiento.registrar_log(ws_log, "CRITICAL", error_cobertura, config.ORIGEN_LOG_TECNICO)
-                return False # Esto aborta el pipeline en el ensamblador para no gastar tokens
+                error_cobertura = f"COBERTURA PARCIAL: Se esperaban {conteo_esperado} activos, pero solo se procesaron {len(resultados)}. Faltan: {', '.join(faltantes)}"
+                logger.warning(error_cobertura)
+                procesamiento.registrar_log(ws_log, "WARNING", error_cobertura, config.ORIGEN_LOG_TECNICO)
+                # NOTA: Ya no abortamos (return False). Permitimos que el pipeline continúe con los activos que sí tienen datos.
 
             # LIMPIEZA PREVENTIVA: Borramos la hoja antes de validar. 
             # Si la validación falla, la hoja queda vacía (sin "zombies") y el pipeline se detiene.

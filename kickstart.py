@@ -63,8 +63,38 @@ def run_kickstart():
         ws_sug = sh.worksheet("SUGERENCIAS_SINONIMOS")
         nuevos_totales = 0
         
+        import yfinance as yf
+        
         for ticker in faltantes:
             registrar_log(ws_log, "INFO", f"Generando sugerencias para {ticker}...", "kickstart_tickers")
+            
+            # --- VALIDACIÓN DE SUPERVIVENCIA (yfinance) ---
+            try:
+                t = yf.Ticker(ticker)
+                hist = t.history(period="5d")
+                if hist.empty:
+                    msg_dead = f"El ticker {ticker} parece estar deslistado o sin precios recientes en el mercado. Se aborta la creación de sinónimos."
+                    registrar_log(ws_log, "WARNING", msg_dead, "kickstart_tickers")
+                    
+                    # Auto-Deslistar en el Maestro
+                    try:
+                        celda = ws_ma.find(ticker)
+                        if celda:
+                            headers = ws_ma.row_values(1)
+                            if 'ESTADO' in headers:
+                                ws_ma.update_cell(celda.row, headers.index('ESTADO') + 1, 'DESLISTADO')
+                                msg_dead += " Fue movido automáticamente a DESLISTADO."
+                    except Exception as e_sheets:
+                        pass
+                        
+                    try:
+                        notificador_telegram.enviar_mensaje_telegram(f"⚠️ <b>Ticker Deslistado</b>\n\n{msg_dead}")
+                    except: pass
+                    continue
+            except Exception as e_yf:
+                pass # Si hay error de red temporal, permitimos que siga
+            # ----------------------------------------------
+
             
             prompt = f"Actúa como un experto en mercados financieros. Para el activo financiero (acción, ETF, bono o empresa) cuyo Ticker es '{ticker}', dime hasta 5 variaciones de cómo se lo suele nombrar en las noticias (ej. el nombre de la empresa completo, marcas clave, nombre coloquial). DEVUELVE SOLAMENTE LOS NOMBRES SEPARADOS POR COMAS, sin explicaciones ni viñetas. Si no lo conoces, devuelve 'DESCONOCIDO'."
             respuesta = ia_utils.consultar_gemini_generativo(prompt)

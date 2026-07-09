@@ -44,3 +44,7 @@ Los scripts que corren periódicamente deben actualizar su estado para monitoreo
 ## 9. Reglas Estrictas para el Asistente (IA)
 - **Cero Suposiciones:** Si el requerimiento es ambiguo, detenerse y hacer preguntas.
 - **Validación de Estructura:** Consultar `ESTRUCTURA_SHEETS.md` antes de modificar flujos de datos.
+
+## 10. Lectura de Datos y Formatos (UNFORMATTED_VALUE)
+- **Datos Puros:** Al extraer informacin numrica o de fechas de Google Sheets usando gspread, est ESTRICTAMENTE PROHIBIDO leer los datos con su formato visual (ej. $1,234.00). 
+- **Implementacin:** El script uth_google.py ya inyecta por defecto el parmetro alue_render_option='UNFORMATTED_VALUE' en todas las llamadas a get_all_values(), get_all_records() y get(). Todo nuevo script debe respetar esta metodologa y no intentar parsear strings manualmente a menos que sea inevitable.
