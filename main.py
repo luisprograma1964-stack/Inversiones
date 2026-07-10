@@ -79,9 +79,11 @@ def ejecutar_sincronizacion():
         # Consolidar los resultados procesados
         variables_consolidadas = {}
 
-        # 4.1 Obtener Dólar MEP, Blue y Cripto con DolarApi de forma nativa e infalible (Compra y Venta)
+        # 4.1 Obtener Cotizaciones con DolarApi de forma nativa e infalible (Compra y Venta real)
         endpoints_dolar = {
-            "Dólar MEP": "https://dolarapi.com/v1/dolares/mep",
+            "Dólar Oficial": "https://dolarapi.com/v1/dolares/oficial",
+            "Dólar Tarjeta": "https://dolarapi.com/v1/dolares/tarjeta",
+            "Dólar MEP": "https://dolarapi.com/v1/dolares/bolsa",
             "Dólar Blue": "https://dolarapi.com/v1/dolares/blue",
             "Dólar Cripto": "https://dolarapi.com/v1/dolares/cripto"
         }

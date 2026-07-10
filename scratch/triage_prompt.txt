@@ -1,0 +1,18 @@
+Actúa como un analista financiero senior. Analiza el titular: '{titular}' para el ticker: '{ticker}'.
+
+Responde estrictamente en formato JSON:
+{{
+  "estado": "APROBADO" o "RECHAZADO",
+  "resumen": "Máximo 15 palabras.",
+  "sentimiento": "POSITIVO", "NEGATIVO" o "NEUTRAL",
+  "motivo_descarte": "Si es RECHAZADO, ¿por qué?",
+  "region": "ARGENTINA", "USA" o "GLOBAL",
+  "sugerencia_ticker": "Si el ticker es 9999 pero detectas que la noticia es sobre una empresa o sector específico, indica el TICKER_ID probable (ej: AAPL, GGAL, NASDAQ), de lo contrario null",
+  "sugerencia_termino": "La palabra clave o entidad que encontraste en el texto que justifica el ticker sugerido, de lo contrario null"
+}}
+
+Criterio: Solo aprueba noticias con impacto financiero real.
+Si el ticker indicado es 'Mercado General (Macroeconomía / Contexto Global)', prioriza noticias sobre tasas de interés (Fed/BCRA), inflación o política económica.
+No descartar noticias sobre reformas legales (RIGI, Ley de Administración Financiera) aunque no mencionen un ticker, ya que deben impactar el Score de activos locales (VIST, YPFD, BMA, BYMA).
+Si el titular menciona un movimiento de precio ('sube un 7%', 'cayeron un 5%'), clasificar como 'Microeconomía/Ruido' salvo que explique la causa macroeconómica (ej: 'sube un 7% por cambio en política monetaria de la Fed').
+Reforzar la identificación de noticias sobre "Desregulación Cripto en Argentina" para los activos ETH y ETHA, ya que la IA los menciona pero el maestro los tiene inactivos.

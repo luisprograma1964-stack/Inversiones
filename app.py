@@ -51,10 +51,12 @@ if "ejecutar_script" not in st.session_state:
 
 
 # Cargar conexión para caché inicial
+@st.cache_resource(ttl=3600, show_spinner="Autenticando de forma segura con Google...")
 def obtener_conexion_sheets():
     try:
         return auth_google.conectar()
-    except:
+    except Exception as e:
+        st.error(f"Error conectando a Google Sheets: {e}")
         return None
 
 # Diccionario global de activos para mostrar descripciones amigables
@@ -139,13 +141,7 @@ def disparar_proceso_fondo(script_name):
     t.start()
 
 # --- 4. CARGA DE HOJAS CON CACHÉ (Optimizado a 5 minutos) ---
-def obtener_conexion_sheets():
-    try:
-        sh = auth_google.conectar()
-        return sh
-    except Exception as e:
-        st.error(f"Error conectando a Google Sheets: {e}")
-        return None
+
 
 import time
 
@@ -201,10 +197,6 @@ def verificar_procesos_fondo():
 verificar_procesos_fondo()
 
 def cargar_datos_hoja(sheet_name):
-    sh = obtener_conexion_sheets()
-    if not sh:
-        return pd.DataFrame()
-        
     cache_key = f"cache_sheet_{sheet_name}"
     ttl = 3600
     
@@ -212,7 +204,11 @@ def cargar_datos_hoja(sheet_name):
         df, timestamp = st.session_state[cache_key]
         if time.time() - timestamp < ttl:
             return df.copy()
-            
+
+    sh = obtener_conexion_sheets()
+    if not sh:
+        return pd.DataFrame()
+        
     try:
         ws = sh.worksheet(sheet_name)
         data = ws.get_all_records()
@@ -254,28 +250,16 @@ def cargar_logs_recientes(cantidad=50):
     try:
         ws = sh.worksheet(config.WS_LOG_SISTEMA)
         
-        # Fetch solo la cabecera
-        headers = [str(c).strip().upper() for c in ws.row_values(1)]
-        
-        # Count rows quickly by fetching just the first column
-        col_dates = ws.col_values(1)
-        total_rows = len(col_dates)
-        
-        if total_rows <= 1:
+        # Unificar las 3 llamadas a la API en UNA sola (10x más rápido)
+        all_data = ws.get_all_values()
+        if not all_data or len(all_data) <= 1:
             return pd.DataFrame()
             
-        start_row = max(2, total_rows - cantidad + 1)
-        end_row = total_rows
+        headers = [str(c).strip().upper() for c in all_data[0]]
         
-        import string
-        last_col_letter = string.ascii_uppercase[len(headers) - 1] if len(headers) <= 26 else 'Z'
-        range_str = f"A{start_row}:{last_col_letter}{end_row}"
+        # Tomar solo los últimos X registros
+        chunk_values = all_data[1:][-cantidad:]
         
-        chunk_values = ws.get(range_str, value_render_option='UNFORMATTED_VALUE')
-        
-        if not chunk_values:
-            return pd.DataFrame()
-            
         df = pd.DataFrame(chunk_values, columns=headers)
         # Mostrar más nuevas arriba
         df_recientes = df.iloc[::-1].reset_index(drop=True)
@@ -672,8 +656,10 @@ def render_semaforo_sidebar():
         if "ultimo_refresh_global" not in st.session_state or (time.time() - st.session_state["ultimo_refresh_global"] > 3):
             with st.spinner("Refrescando..."):
                 cargar_datos_semaforo.clear()
+                limpiar_cache_dinamico()
                 st.session_state["ultimo_refresh_global"] = time.time()
                 time.sleep(0.35)
+            st.rerun()
 
 pueden_ejecutar = st.session_state["usuario"]["permisos_ejecucion"]
 hay_proceso_corriendo = estado_global["activo"] is not None
@@ -1590,39 +1576,134 @@ with tab1:
 
 
     # ==========================================
+    # ==========================================
+    # ==========================================
     with tab4:
         if pueden_ejecutar:
             st.header(":material/assignment: Reportes de Supervisión del Sistema")
-            st.write("Historial de análisis y auditoría generados por la IA de Supervisión, almacenados en Base de Datos.")
-        
-            df_sup = cargar_datos_hoja("REPORTE_SUPERVISOR")
-            if df_sup.empty:
-                st.info("No hay reportes de supervisor en la base de datos todavía.")
-            else:
-                try:
-                    df_sup = df_sup.sort_values(by="FECHA_HORA", ascending=False).reset_index(drop=True)
-                except:
-                    pass
-                
-                fechas_reportes = df_sup["FECHA_HORA"].astype(str).tolist()
-                seleccionado = st.selectbox("Seleccione el reporte a visualizar:", fechas_reportes, key="sel_rep_sup")
+            st.write("Bandeja de entrada interactiva y registro histórico generados por la IA de Supervisión.")
             
-                if seleccionado:
-                    fila = df_sup[df_sup["FECHA_HORA"].astype(str) == seleccionado].iloc[0]
-                
-                    col_r1, col_r2 = st.columns(2)
-                    with col_r1:
-                        st.markdown("### Resumen Ejecutivo")
-                        st.info(fila.get("RESUMEN_EJECUTIVO", "No disponible"))
-                    with col_r2:
-                        st.markdown("### Alertas Críticas")
-                        st.warning(fila.get("ALERTAS_CRITICAS", "No disponible"))
-                
-                    st.write("---")
-                    st.markdown("### Reporte Completo")
-                    st.markdown(fila.get("CUERPO_COMPLETO", ""))
+            @st.fragment
+            def render_supervisor_inbox():
+                # --- SECCIÓN 1 Y 2: ALERTAS CRÍTICAS Y MEJORA CONSTANTE ---
+                df_alertas = cargar_datos_hoja(config.WS_ALERTAS_SUPERVISOR)
+                if not df_alertas.empty:
+                    df_alertas_pendientes = df_alertas[df_alertas['ESTADO'] == 'PENDIENTE'].copy()
+                    
+                    if not df_alertas_pendientes.empty:
+                        # 1. Alertas Críticas
+                        criticas = df_alertas_pendientes[df_alertas_pendientes['CATEGORIA'] == 'ALERTA_CRITICA']
+                        if not criticas.empty:
+                            st.error("🚨 **NIVEL 1: ALERTAS CRÍTICAS DE INTERVENCIÓN MANUAL**")
+                            st.write("⚠️ **ACCIÓN REQUERIDA:** Copiá los siguientes mensajes y envíaselos a Antigravity en el chat para investigarlos juntos. Una vez resueltos, cambiales el estado en la grilla de abajo.")
+                            for _, row in criticas.iterrows():
+                                st.warning(f"**[{row['TIPO']}]** Activo: {row.get('ACTIVO', '')} -> {row['MENSAJE_ALERTA']}", icon="⚠️")
+                            st.markdown("<br>", unsafe_allow_html=True)
+                            
+                        # 2. Mejora Constante y Nuevos Activos
+                        st.subheader("🛠️ Nivel 2: Mejora Constante")
+                        st.write("Revisá las sugerencias de la IA o los sistemas automáticos.")
+                        
+                        # Botón Especial para Nuevos Activos
+                        nuevos_activos = df_alertas_pendientes[df_alertas_pendientes['TIPO'] == 'NUEVO_ACTIVO']
+                        if not nuevos_activos.empty:
+                            st.info(f"💡 **Se detectaron {len(nuevos_activos)} Nuevos Activos (CEDEARs) disponibles en el mercado.**")
+                            if st.button("🚀 Inicializar Nuevos Activos Automáticamente", type="primary"):
+                                with st.spinner("Ejecutando sincronización de activos..."):
+                                    import subprocess
+                                    try:
+                                        subprocess.run([sys.executable, "mantenimiento_cedears_comafi.py"], check=True)
+                                        st.success("Sincronización completa. Por favor, marca las alertas como RESUELTAS en la tabla y presiona Guardar.")
+                                        st.rerun(scope='fragment')
+                                    except Exception as e:
+                                        st.error(f"Error: {e}")
+                                        
+                        # Grilla Interactiva Global
+                        st.markdown("---")
+                        st.subheader("📝 Grilla de Resolución Global (Inbox)")
+                        st.write("Acá aparecen **TODAS** las alertas pendientes (Nivel 1, Nivel 2 y Nuevos Activos). Una vez que apliques o resuelvas una alerta, cambiale el Estado a RESUELTO y guardá.")
+                        with st.form("form_alertas"):
+                            cols_mostrar = ['ID_ALERTA', 'FECHA_DETECCION', 'TIPO', 'MENSAJE_ALERTA', 'ESTADO']
+                            df_mostrar = df_alertas_pendientes[cols_mostrar] if all(c in df_alertas_pendientes.columns for c in cols_mostrar) else df_alertas_pendientes
+                            
+                            editado = st.data_editor(
+                                df_mostrar,
+                                column_config={
+                                    "ESTADO": st.column_config.SelectboxColumn("Estado", options=["PENDIENTE", "RESUELTO", "IGNORADO"]),
+                                    "MENSAJE_ALERTA": st.column_config.TextColumn("Mensaje (Copiar)", width="large"),
+                                    "ID_ALERTA": None
+                                },
+                                disabled=["FECHA_DETECCION", "TIPO", "MENSAJE_ALERTA"],
+                                hide_index=True,
+                                use_container_width=True
+                            )
+                            submitted = st.form_submit_button("💾 Guardar Cambios de Estado")
+                            if submitted:
+                                cambios = editado[editado['ESTADO'] != 'PENDIENTE']
+                                if not cambios.empty:
+                                    try:
+                                        sh = auth_google.conectar()
+                                        ws = sh.worksheet(config.WS_ALERTAS_SUPERVISOR)
+                                        all_records = ws.get_all_records()
+                                        
+                                        ids_cambiados = cambios['ID_ALERTA'].tolist()
+                                        for row_idx, record in enumerate(all_records):
+                                            if record.get('ID_ALERTA') in ids_cambiados:
+                                                nuevo_estado = cambios[cambios['ID_ALERTA'] == record['ID_ALERTA']]['ESTADO'].iloc[0]
+                                                ws.update_cell(row_idx + 2, 6, nuevo_estado) 
+                                        
+                                        st.success("¡Cambios guardados con éxito!")
+                                        # Limpiar caché de la hoja para que recargue los datos
+                                        cache_key = f"cache_sheet_{config.WS_ALERTAS_SUPERVISOR}"
+                                        if cache_key in st.session_state:
+                                            del st.session_state[cache_key]
+                                            
+                                        st.rerun(scope="fragment")
+                                    except Exception as esh:
+                                        st.error(f"Error al guardar: {esh}")
+                    else:
+                        st.success("✅ **¡Bandeja Limpia!** No hay alertas pendientes.")
+                else:
+                    st.info("No hay tabla de Alertas de Supervisor en la base de datos todavía.")
 
-    # ==========================================
+            # Llamar al fragmento
+            render_supervisor_inbox()
+
+            st.write("---")
+            
+            # --- SECCIÓN 3: REPORTE HISTÓRICO ---
+            @st.fragment
+            def render_historical_reports():
+                with st.expander("📖 Nivel 3: Historial de Informes de Supervisión Completos", expanded=False):
+                    df_sup = cargar_datos_hoja(config.WS_REPORTE_SUPERVISOR)
+                    if df_sup.empty:
+                        st.info("No hay reportes históricos en la base de datos todavía.")
+                    else:
+                        try:
+                            df_sup = df_sup.sort_values(by="FECHA_HORA", ascending=False).reset_index(drop=True)
+                        except:
+                            pass
+                        
+                        fechas_reportes = df_sup["FECHA_HORA"].astype(str).tolist()
+                        seleccionado = st.selectbox("Seleccione el reporte a visualizar:", fechas_reportes, key="sel_rep_sup")
+                    
+                        if seleccionado:
+                            fila = df_sup[df_sup["FECHA_HORA"].astype(str) == seleccionado].iloc[0]
+                        
+                            col_r1, col_r2 = st.columns(2)
+                            with col_r1:
+                                st.markdown("### Resumen Ejecutivo")
+                                st.info(fila.get("RESUMEN_EJECUTIVO", "No disponible"))
+                            with col_r2:
+                                st.markdown("### Resumen de Alertas")
+                                st.warning(fila.get("ALERTAS_CRITICAS", "No disponible"))
+                        
+                            st.write("---")
+                            st.markdown("### Reporte Narrado por la IA")
+                            st.markdown(fila.get("CUERPO_COMPLETO", ""))
+            
+            render_historical_reports()
+    # ==========================================    # ==========================================
     # PESTAÑA 5: PARÁMETROS DE LA IA
     # ==========================================
     with tab5:
@@ -1733,10 +1814,9 @@ with tab1:
         
             sh_param = obtener_conexion_sheets()
         
-            sub_t1, sub_t2, sub_t3, sub_t4 = st.tabs([
+            sub_t1, sub_t2, sub_t4 = st.tabs([
                 "📢 Canales de Telegram", 
                 "🔍 Aprobación de Sinónimos", 
-                "✏️ Otras Tablas (Grilla)",
                 "📨 Buzón de Feedback"
             ])
         
@@ -1783,308 +1863,256 @@ with tab1:
                         st.error(f"Error leyendo la hoja CONFIG_TELEGRAM_CHANNELS: {e}")
                     
             with sub_t2:
-                st.subheader("💡 Aprobación de Sinónimos de Activos")
-            
-                st.write("#### 🚀 Inicialización Rápida (Kickstart)")
-                st.write("¿Agregaste un activo nuevo? Escribí su Ticker acá para buscar sinónimos de inmediato con la IA, sin esperar a las noticias.")
-                col_k1, col_k2 = st.columns([7, 3])
-                with col_k1:
-                    kickstart_ticker = st.text_input("Ticker a buscar (ej. AAPL):", key="input_kickstart")
-                with col_k2:
-                    st.write("")
-                    st.write("")
-                    if st.button("🚀 Kickstart Ticker", key="btn_kickstart", use_container_width=True):
-                        if kickstart_ticker.strip():
-                            disparar_proceso_fondo(f"kickstart.py {kickstart_ticker.strip().upper()}")
-                            st.success(f"Iniciado Kickstart para {kickstart_ticker}. El sistema te notificará por Telegram cuando esté listo.")
+                @st.fragment
+                def render_synonyms_tab():
+                    st.subheader("💡 Aprobación de Sinónimos de Activos")
+
+                    st.write("#### 🚀 Inicialización Rápida (Kickstart)")
+                    st.write("¿Agregaste un activo nuevo? Escribí su Ticker acá para buscar sinónimos de inmediato con la IA, sin esperar a las noticias.")
+                    with st.form("form_kickstart", clear_on_submit=True):
+                        col_k1, col_k2 = st.columns([7, 3])
+                        with col_k1:
+                            kickstart_ticker = st.text_input("Ticker a buscar (ej. AAPL):", key="input_kickstart")
+                        with col_k2:
+                            st.write("")
+                            st.write("")
+                            submitted_kick = st.form_submit_button("🚀 Kickstart Ticker", use_container_width=True)
+                            if submitted_kick:
+                                if kickstart_ticker.strip():
+                                    disparar_proceso_fondo(f"kickstart.py {kickstart_ticker.strip().upper()}")
+                                    st.success(f"Iniciado Kickstart para {kickstart_ticker}. El sistema te notificará por Telegram cuando esté listo.")
+                                else:
+                                    st.error("Ingresa un ticker.")
+
+                    st.markdown("---")
+
+                    col_sug_sub, col_sug_ref = st.columns([8, 2])
+                    with col_sug_sub:
+                        st.write("Cuando la IA captura una noticia y encuentra un término desconocido, el supervisor te propone asociarlo a un Ticker. Apruébalo aquí para que se auto-cargue en las próximas lecturas:")
+                    with col_sug_ref:
+                        if st.button(":material/refresh: Refrescar", key="btn_ref_sinonimos_sug", help="Refresca las sugerencias de sinónimos desde Sheets."):
+                            limpiar_cache_dinamico()
+
+                    try:
+                        def normalizar_id(val):
+                            val_str = str(val).strip()
+                            if val_str.endswith(".0"):
+                                val_str = val_str[:-2]
+                            if val_str == "0,00E+00" or val_str == "0.0" or val_str == "0":
+                                return "0"
+                            return val_str.upper()
+
+                        with st.spinner("Cargando Sugerencias de Sinónimos..."):
+                            df_sug = cargar_datos_hoja("SUGERENCIAS_SINONIMOS")
+
+                        if df_sug.empty:
+                            st.success("🎉 ¡No hay sugerencias registradas!")
                         else:
-                            st.error("Ingresa un ticker.")
-                        
-                st.markdown("---")
-            
-                col_sug_sub, col_sug_ref = st.columns([8, 2])
-                with col_sug_sub:
-                    st.write("Cuando la IA captura una noticia y encuentra un término desconocido, el supervisor te propone asociarlo a un Ticker. Apruébalo aquí para que se auto-cargue en las próximas lecturas:")
-                with col_sug_ref:
-                    if st.button(":material/refresh: Refrescar", key="btn_ref_sinonimos_sug", help="Refresca las sugerencias de sinónimos desde Sheets."):
-                        limpiar_cache_dinamico()
-                    
-                try:
-                    def normalizar_id(val):
-                        val_str = str(val).strip()
-                        if val_str.endswith(".0"):
-                            val_str = val_str[:-2]
-                        if val_str == "0,00E+00" or val_str == "0.0" or val_str == "0":
-                            return "0"
-                        return val_str.upper()
+                            df_sug.columns = [c.strip().upper() for c in df_sug.columns]
+                            df_pendientes = df_sug[df_sug['ESTADO'].astype(str).str.strip().str.upper() == "PENDIENTE"].copy()
 
-                    with st.spinner("Cargando Sugerencias de Sinónimos..."):
-                        df_sug = cargar_datos_hoja("SUGERENCIAS_SINONIMOS")
-                
-                    if df_sug.empty:
-                        st.success("🎉 ¡No hay sugerencias registradas!")
-                    else:
-                        df_sug.columns = [c.strip().upper() for c in df_sug.columns]
-                        df_pendientes = df_sug[df_sug['ESTADO'].astype(str).str.strip().str.upper() == "PENDIENTE"].copy()
-                    
-                        if df_pendientes.empty:
-                            st.success("🎉 ¡No hay sugerencias de sinónimos pendientes de aprobación!")
-                        else:
-                            st.write(f"Tienes **{len(df_pendientes)}** sugerencias pendientes de revisión:")
-                        
-                            # Cargar tickers del maestro para validación
-                            tickers_maestro = set()
-                            try:
-                                with st.spinner("Validando contra Maestro de Activos..."):
-                                    df_maestro_sug = cargar_datos_hoja(config.WS_MAESTRO_ACTIVOS)
-                                if not df_maestro_sug.empty:
-                                    df_maestro_sug.columns = [c.upper() for c in df_maestro_sug.columns]
-                                    tickers_maestro = {str(r.get('TICKER_ID', '')).strip().upper() for _, r in df_maestro_sug.iterrows() if r.get('TICKER_ID')}
-                            except Exception as m_err:
-                                st.warning(f"No se pudo cargar el maestro de activos para validación de tickers: {m_err}")
+                            if df_pendientes.empty:
+                                st.success("🎉 ¡No hay sugerencias de sinónimos pendientes de aprobación!")
+                            else:
+                                st.write(f"Tienes **{len(df_pendientes)}** sugerencias pendientes de revisión:")
 
-                            # Inicializar o recuperar diccionario de estado de decisiones en session_state
-                            session_key = "sinonimos_decisiones"
-                            if session_key not in st.session_state:
-                                st.session_state[session_key] = {}
-                        
-                            # Asegurar que todas las sugerencias pendientes tengan un estado de decisión
-                            for _, row in df_pendientes.iterrows():
-                                sug_id = normalizar_id(row['ID'])
-                                if sug_id not in st.session_state[session_key]:
-                                    st.session_state[session_key][sug_id] = "Dejar Pendiente"
+                                # Cargar tickers del maestro para validación
+                                tickers_maestro = set()
+                                try:
+                                    with st.spinner("Validando contra Maestro de Activos..."):
+                                        df_maestro_sug = cargar_datos_hoja(config.WS_MAESTRO_ACTIVOS)
+                                    if not df_maestro_sug.empty:
+                                        df_maestro_sug.columns = [c.upper() for c in df_maestro_sug.columns]
+                                        tickers_maestro = {str(r.get('TICKER_ID', '')).strip().upper() for _, r in df_maestro_sug.iterrows() if r.get('TICKER_ID')}
+                                except Exception as m_err:
+                                    st.warning(f"No se pudo cargar el maestro de activos para validación de tickers: {m_err}")
 
-                            # Botones de Acción Masiva
-                            col_all_1, col_all_2, col_all_3 = st.columns([1.5, 1.5, 3])
-                            with col_all_1:
-                                if st.button("👍 Preseleccionar TODOS como Aprobar", key="btn_aprove_all_syn"):
-                                    for _, row in df_pendientes.iterrows():
-                                        s_id = normalizar_id(row['ID'])
-                                        st.session_state[session_key][s_id] = "Aprobar"
-                                        st.session_state[f"rad_decision_{s_id}"] = "Aprobar"
-                                    st.rerun()
-                            with col_all_2:
-                                if st.button("👎 Preseleccionar TODOS como Rechazar", key="btn_reject_all_syn"):
-                                    for _, row in df_pendientes.iterrows():
-                                        s_id = normalizar_id(row['ID'])
-                                        st.session_state[session_key][s_id] = "Rechazar"
-                                        st.session_state[f"rad_decision_{s_id}"] = "Rechazar"
-                                    st.rerun()
+                                # Inicializar o recuperar diccionario de estado de decisiones en session_state
+                                session_key = "sinonimos_decisiones"
+                                if session_key not in st.session_state:
+                                    st.session_state[session_key] = {}
 
-                            st.write("---")
-
-                            # Envolver las sugerencias en un formulario para evitar reruns al hacer clicks individuales
-                            with st.form("form_sinonimos_pendientes", clear_on_submit=False):
-                                # Renderizar las sugerencias pendientes en formato Cards legibles
+                                # Asegurar que todas las sugerencias pendientes tengan un estado de decisión
                                 for _, row in df_pendientes.iterrows():
                                     sug_id = normalizar_id(row['ID'])
-                                    fecha = str(row['FECHA']).strip()
-                                    titular = str(row['TITULAR']).strip()
-                                    termino = str(row['TERMINO_SUGERIDO']).strip()
-                                    ticker_prop = str(row['TICKER_SUGERIDO']).strip()
-                                    explicacion = str(row['EXPLICACION']).strip()
+                                    if sug_id not in st.session_state[session_key]:
+                                        st.session_state[session_key][sug_id] = "Dejar Pendiente"
 
-                                    # Dibujar tarjeta de la sugerencia
-                                    with st.container(border=True):
-                                        st.markdown(f"### :material/newspaper: {titular}")
-                                        st.markdown(f"📅 *Fecha:* {fecha}")
-                                    
-                                        # Resaltar la propuesta de asociación
-                                        st.markdown(f"""
-                                        <div style='font-size: 1.15rem; margin-top: 10px; margin-bottom: 10px;'>
-                                            IA propone asociar: <code style='font-size:1.25rem; color:#d97706;'>{termino}</code> ➔ Ticker: <code style='font-size:1.25rem; color:#1d4ed8;'>{ticker_prop}</code>
-                                        </div>
-                                        """, unsafe_allow_html=True)
-                                    
-                                        st.write(f":material/lightbulb: *Motivo / Explicación:* {explicacion}")
-
-                                        # Validar si el ticker existe en el maestro
-                                        if tickers_maestro and ticker_prop.upper() not in tickers_maestro:
-                                            st.warning(f":material/warning: El ticker sugerido '{ticker_prop}' no existe en el Maestro de Activos.")
-
-                                        # Control de decisión individual
-                                        current_val = st.session_state[session_key].get(sug_id, "Dejar Pendiente")
-                                        try:
-                                            index_val = ["Dejar Pendiente", "Aprobar", "Rechazar"].index(current_val)
-                                        except ValueError:
-                                            index_val = 0
-
-                                        col_lbl, col_rad = st.columns([1, 4])
-                                        with col_lbl:
-                                            st.markdown("<p style='font-size:1.1rem; font-weight:bold; margin-top:8px;'>Decisión:</p>", unsafe_allow_html=True)
-                                        with col_rad:
-                                            dec = st.radio(
-                                                "Seleccione acción:",
-                                                ["Dejar Pendiente", "Aprobar", "Rechazar"],
-                                                index=index_val,
-                                                horizontal=True,
-                                                key=f"rad_decision_{sug_id}",
-                                                label_visibility="collapsed"
-                                            )
-                                            # Guardar cambio en el estado de sesión temporal
-                                            st.session_state[session_key][sug_id] = dec
+                                # Botones de Acción Masiva
+                                col_all_1, col_all_2, col_all_3 = st.columns([1.5, 1.5, 3])
+                                with col_all_1:
+                                    if st.button("👍 Preseleccionar TODOS como Aprobar", key="btn_aprove_all_syn"):
+                                        for _, row in df_pendientes.iterrows():
+                                            s_id = normalizar_id(row['ID'])
+                                            st.session_state[session_key][s_id] = "Aprobar"
+                                            st.session_state[f"rad_decision_{s_id}"] = "Aprobar"
+                                        st.rerun(scope="fragment")
+                                with col_all_2:
+                                    if st.button("👎 Preseleccionar TODOS como Rechazar", key="btn_reject_all_syn"):
+                                        for _, row in df_pendientes.iterrows():
+                                            s_id = normalizar_id(row['ID'])
+                                            st.session_state[session_key][s_id] = "Rechazar"
+                                            st.session_state[f"rad_decision_{s_id}"] = "Rechazar"
+                                        st.rerun(scope="fragment")
 
                                 st.write("---")
 
-                                # Botón de envío del formulario
-                                btn_apply = st.form_submit_button("💾 Aplicar Decisiones sobre Sinónimos", type="primary")
+                                # Envolver las sugerencias en un formulario para evitar reruns al hacer clicks individuales
+                                with st.form("form_sinonimos_pendientes", clear_on_submit=False):
+                                    # Renderizar las sugerencias pendientes en formato Cards legibles
+                                    for _, row in df_pendientes.iterrows():
+                                        sug_id = normalizar_id(row['ID'])
+                                        fecha = str(row['FECHA']).strip()
+                                        titular = str(row['TITULAR']).strip()
+                                        termino = str(row['TERMINO_SUGERIDO']).strip()
+                                        ticker_prop = str(row['TICKER_SUGERIDO']).strip()
+                                        explicacion = str(row['EXPLICACION']).strip()
 
-                            if btn_apply:
-                                # Leer decisiones directamente del estado de los radios en el submit
-                                acciones_a_procesar = {}
-                                for _, row in df_pendientes.iterrows():
-                                    sug_id = normalizar_id(row['ID'])
-                                    val_radio = st.session_state.get(f"rad_decision_{sug_id}", "Dejar Pendiente")
-                                    if val_radio != "Dejar Pendiente":
-                                        acciones_a_procesar[sug_id] = val_radio
-                            
-                                if not acciones_a_procesar:
-                                    st.warning("No has seleccionado ninguna acción (Aprobar/Rechazar) para aplicar.")
-                                else:
-                                    with st.spinner("Procesando decisiones en Google Sheets..."):
-                                        try:
-                                            ws_sin = sh_param.worksheet("CONFIG_SINONIMOS")
-                                            ws_sug = sh_param.worksheet("SUGERENCIAS_SINONIMOS")
-                                            raw_sin = ws_sin.get_all_records()
-                                            df_sin = pd.DataFrame(raw_sin)
-                                            df_sin.columns = [c.strip().upper() for c in df_sin.columns]
-                                        
-                                            # Mapeo en diccionario para buscar y editar rápido
-                                            sinonimos_dict = {}
-                                            for _, r in df_sin.iterrows():
-                                                sinonimos_dict[str(r['TICKER']).strip().upper()] = str(r['SINONIMOS']).strip()
-                                            
-                                            # Procesar decisiones
-                                            cambio_sugerencias = False
-                                            cambio_sinonimos = False
-                                        
-                                            # Obtener valores crudos de SUGERENCIAS_SINONIMOS para mapear fila exacta por ID
-                                            raw_sug_rows = ws_sug.get_all_values()
-                                            headers_sug = [h.strip().upper() for h in raw_sug_rows[0]]
-                                            id_col_idx = headers_sug.index("ID") + 1
-                                            estado_col_idx = headers_sug.index("ESTADO") + 1
-                                        
-                                            # Iterar sobre las sugerencias que cambiaron
-                                            for sug_id, dec in acciones_a_procesar.items():
-                                                # Buscar los valores de la sugerencia en la lista original
-                                                sug_row_data = None
-                                                row_number = None
-                                                for idx_row, row_val in enumerate(raw_sug_rows[1:], start=2):
-                                                    if normalizar_id(row_val[id_col_idx - 1]) == sug_id:
-                                                        sug_row_data = row_val
-                                                        row_number = idx_row
-                                                        break
-                                            
-                                                if not sug_row_data or not row_number:
-                                                    continue
-                                                
-                                                # Extraer datos de la fila original
-                                                termino_col_idx = headers_sug.index("TERMINO_SUGERIDO")
-                                                ticker_col_idx = headers_sug.index("TICKER_SUGERIDO")
-                                            
-                                                termino = str(sug_row_data[termino_col_idx]).strip()
-                                                ticker_prop = str(sug_row_data[ticker_col_idx]).strip()
-                                            
-                                                if dec == "Aprobar":
-                                                    tk_upper = ticker_prop.strip().upper()
-                                                    t_clean = termino.strip()
-                                                
-                                                    if tk_upper in sinonimos_dict:
-                                                        lista_actual = [s.strip().upper() for s in sinonimos_dict[tk_upper].split(",") if s.strip()]
-                                                        if t_clean.upper() not in lista_actual:
-                                                            sinonimos_dict[tk_upper] = sinonimos_dict[tk_upper] + "," + t_clean
+                                        # Dibujar tarjeta de la sugerencia
+                                        with st.container(border=True):
+                                            st.markdown(f"### :material/newspaper: {titular}")
+                                            st.markdown(f"📅 *Fecha:* {fecha}")
+
+                                            # Resaltar la propuesta de asociación
+                                            st.markdown(f"""
+                                            <div style='font-size: 1.15rem; margin-top: 10px; margin-bottom: 10px;'>
+                                                IA propone asociar: <code style='font-size:1.25rem; color:#d97706;'>{termino}</code> ➔ Ticker: <code style='font-size:1.25rem; color:#1d4ed8;'>{ticker_prop}</code>
+                                            </div>
+                                            """, unsafe_allow_html=True)
+
+                                            st.write(f":material/lightbulb: *Motivo / Explicación:* {explicacion}")
+
+                                            # Validar si el ticker existe en el maestro
+                                            if tickers_maestro and ticker_prop.upper() not in tickers_maestro:
+                                                st.warning(f":material/warning: El ticker sugerido '{ticker_prop}' no existe en el Maestro de Activos.")
+
+                                            # Control de decisión individual
+                                            current_val = st.session_state[session_key].get(sug_id, "Dejar Pendiente")
+                                            try:
+                                                index_val = ["Dejar Pendiente", "Aprobar", "Rechazar"].index(current_val)
+                                            except ValueError:
+                                                index_val = 0
+
+                                            col_lbl, col_rad = st.columns([1, 4])
+                                            with col_lbl:
+                                                st.markdown("<p style='font-size:1.1rem; font-weight:bold; margin-top:8px;'>Decisión:</p>", unsafe_allow_html=True)
+                                            with col_rad:
+                                                dec = st.radio(
+                                                    "Seleccione acción:",
+                                                    ["Dejar Pendiente", "Aprobar", "Rechazar"],
+                                                    index=index_val,
+                                                    horizontal=True,
+                                                    key=f"rad_decision_{sug_id}",
+                                                    label_visibility="collapsed"
+                                                )
+                                                # Guardar cambio en el estado de sesión temporal
+                                                st.session_state[session_key][sug_id] = dec
+
+                                    st.write("---")
+
+                                    # Botón de envío del formulario
+                                    btn_apply = st.form_submit_button("💾 Aplicar Decisiones sobre Sinónimos", type="primary")
+
+                                if btn_apply:
+                                    # Leer decisiones directamente del estado de los radios en el submit
+                                    acciones_a_procesar = {}
+                                    for _, row in df_pendientes.iterrows():
+                                        sug_id = normalizar_id(row['ID'])
+                                        val_radio = st.session_state.get(f"rad_decision_{sug_id}", "Dejar Pendiente")
+                                        if val_radio != "Dejar Pendiente":
+                                            acciones_a_procesar[sug_id] = val_radio
+
+                                    if not acciones_a_procesar:
+                                        st.warning("No has seleccionado ninguna acción (Aprobar/Rechazar) para aplicar.")
+                                    else:
+                                        with st.spinner("Procesando decisiones en Google Sheets..."):
+                                            try:
+                                                ws_sin = sh_param.worksheet("CONFIG_SINONIMOS")
+                                                ws_sug = sh_param.worksheet("SUGERENCIAS_SINONIMOS")
+                                                raw_sin = ws_sin.get_all_records()
+                                                df_sin = pd.DataFrame(raw_sin)
+                                                df_sin.columns = [c.strip().upper() for c in df_sin.columns]
+
+                                                # Mapeo en diccionario para buscar y editar rápido
+                                                sinonimos_dict = {}
+                                                for _, r in df_sin.iterrows():
+                                                    sinonimos_dict[str(r['TICKER']).strip().upper()] = str(r['SINONIMOS']).strip()
+
+                                                # Procesar decisiones
+                                                cambio_sugerencias = False
+                                                cambio_sinonimos = False
+
+                                                # Obtener valores crudos de SUGERENCIAS_SINONIMOS para mapear fila exacta por ID
+                                                raw_sug_rows = ws_sug.get_all_values()
+                                                headers_sug = [h.strip().upper() for h in raw_sug_rows[0]]
+                                                id_col_idx = headers_sug.index("ID") + 1
+                                                estado_col_idx = headers_sug.index("ESTADO") + 1
+
+                                                # Iterar sobre las sugerencias que cambiaron
+                                                for sug_id, dec in acciones_a_procesar.items():
+                                                    # Buscar los valores de la sugerencia en la lista original
+                                                    sug_row_data = None
+                                                    row_number = None
+                                                    for idx_row, row_val in enumerate(raw_sug_rows[1:], start=2):
+                                                        if normalizar_id(row_val[id_col_idx - 1]) == sug_id:
+                                                            sug_row_data = row_val
+                                                            row_number = idx_row
+                                                            break
+
+                                                    if not sug_row_data or not row_number:
+                                                        continue
+
+                                                    # Extraer datos de la fila original
+                                                    termino_col_idx = headers_sug.index("TERMINO_SUGERIDO")
+                                                    ticker_col_idx = headers_sug.index("TICKER_SUGERIDO")
+
+                                                    termino = str(sug_row_data[termino_col_idx]).strip()
+                                                    ticker_prop = str(sug_row_data[ticker_col_idx]).strip()
+
+                                                    if dec == "Aprobar":
+                                                        tk_upper = ticker_prop.strip().upper()
+                                                        t_clean = termino.strip()
+
+                                                        if tk_upper in sinonimos_dict:
+                                                            lista_actual = [s.strip().upper() for s in sinonimos_dict[tk_upper].split(",") if s.strip()]
+                                                            if t_clean.upper() not in lista_actual:
+                                                                sinonimos_dict[tk_upper] = sinonimos_dict[tk_upper] + "," + t_clean
+                                                                cambio_sinonimos = True
+                                                        else:
+                                                            sinonimos_dict[tk_upper] = t_clean
                                                             cambio_sinonimos = True
-                                                    else:
-                                                        sinonimos_dict[tk_upper] = t_clean
-                                                        cambio_sinonimos = True
-                                                    
-                                                    ws_sug.update_cell(row_number, estado_col_idx, "PROCESADO")
-                                                    cambio_sugerencias = True
-                                                
-                                                elif dec == "Rechazar":
-                                                    ws_sug.update_cell(row_number, estado_col_idx, "RECHAZADO")
-                                                    cambio_sugerencias = True
-                                                
-                                            # Guardar CONFIG_SINONIMOS de vuelta completa si cambió
-                                            if cambio_sinonimos:
-                                                nuevas_filas_sin = []
-                                                for tk, sins in sinonimos_dict.items():
-                                                    nuevas_filas_sin.append([tk, sins])
-                                                
-                                                ws_sin.clear()
-                                                ws_sin.update(values=[['TICKER', 'SINONIMOS']] + nuevas_filas_sin, range_name='A1', value_input_option='USER_ENTERED')
-                                            
-                                            st.success("¡Decisiones aplicadas con éxito! Las sugerencias aprobadas se han incorporado a la tabla de sinónimos activos.")
-                                        
-                                            # Limpiar estado del editor en session_state para la próxima carga
-                                            if session_key in st.session_state:
-                                                del st.session_state[session_key]
-                                            
-                                            limpiar_cache_dinamico()
-                                            st.rerun()
-                                        except Exception as ex:
-                                            st.error(f"Error procesando aprobaciones: {ex}")
-                except Exception as e:
-                    st.error(f"Error leyendo la hoja SUGERENCIAS_SINONIMOS: {e}")
-                    
-            with sub_t3:
-                # Grilla para otras tablas
-                tablas_reales = ["MAESTRO_ACTIVOS", "PROGRAMA_CEDEARS", "CONFIG_FUENTES", "CONFIG_SINONIMOS", "SUGERENCIAS_SINONIMOS"]
-            
-                if sh_param:
-                    sub_tablas_t3 = st.tabs(tablas_reales)
-                
-                    for idx, tabla_elegida in enumerate(tablas_reales):
-                        with sub_tablas_t3[idx]:
-                            try:
-                                with st.spinner(f"Cargando {tabla_elegida}..."):
-                                    df_param = cargar_datos_hoja(tabla_elegida)
-                            
-                                # Armar configuración de columnas dinámica para facilitar la edición sin tipear
-                                col_config_dinamico = {}
-                                for col_name in df_param.columns:
-                                    col_upper = col_name.strip().upper()
-                                    if col_upper == "ESTADO":
-                                        col_config_dinamico[col_name] = st.column_config.SelectboxColumn(
-                                            col_name,
-                                            help="Seleccione el estado (ACTIVO o INACTIVO)",
-                                            options=["ACTIVO", "INACTIVO"],
-                                            required=True
-                                        )
-                                    elif col_upper == "MONEDA":
-                                        col_config_dinamico[col_name] = st.column_config.SelectboxColumn(
-                                            col_name,
-                                            help="Seleccione la moneda (ARS o USD)",
-                                            options=["ARS", "USD"],
-                                            required=True
-                                        )
 
-                                df_param_mod = st.data_editor(
-                                    df_param, 
-                                    num_rows="dynamic", 
-                                    use_container_width=True,
-                                    column_config=col_config_dinamico,
-                                    key=f"editor_param_grilla_{tabla_elegida}"
-                                )
-                            
-                                if st.button(f"💾 Guardar cambios en {tabla_elegida}", key=f"btn_save_param_grilla_{tabla_elegida}"):
-                                    with st.spinner("Escribiendo datos en Google Sheets..."):
-                                        try:
-                                            ws_param = sh_param.worksheet(tabla_elegida)
-                                            ws_param.clear()
-                                            cabeceras = [df_param_mod.columns.tolist()]
-                                            valores = df_param_mod.values.tolist()
-                                            valores_limpios = [[str(x) if pd.notna(x) else "" for x in row] for row in valores]
-                                        
-                                            ws_param.update(values=cabeceras + valores_limpios, range_name='A1', value_input_option='USER_ENTERED')
-                                            st.success(f"¡Cambios guardados en la tabla paramétrica `{tabla_elegida}`!")
-                                            limpiar_cache_dinamico()
-                                            st.rerun()
-                                        except Exception as ex:
-                                            st.error(f"Error al escribir en Google Sheets: {ex}")
-                            except Exception as e:
-                                st.error(f"Error cargando la tabla paramétrica `{tabla_elegida}`: {e}")
+                                                        ws_sug.update_cell(row_number, estado_col_idx, "PROCESADO")
+                                                        cambio_sugerencias = True
 
+                                                    elif dec == "Rechazar":
+                                                        ws_sug.update_cell(row_number, estado_col_idx, "RECHAZADO")
+                                                        cambio_sugerencias = True
+
+                                                # Guardar CONFIG_SINONIMOS de vuelta completa si cambió
+                                                if cambio_sinonimos:
+                                                    nuevas_filas_sin = []
+                                                    for tk, sins in sinonimos_dict.items():
+                                                        nuevas_filas_sin.append([tk, sins])
+
+                                                    ws_sin.clear()
+                                                    ws_sin.update(values=[['TICKER', 'SINONIMOS']] + nuevas_filas_sin, range_name='A1', value_input_option='USER_ENTERED')
+
+                                                st.success("¡Decisiones aplicadas con éxito! Las sugerencias aprobadas se han incorporado a la tabla de sinónimos activos.")
+
+                                                # Limpiar estado del editor en session_state para la próxima carga
+                                                if session_key in st.session_state:
+                                                    del st.session_state[session_key]
+
+                                                limpiar_cache_dinamico()
+                                                st.rerun(scope="fragment")
+                                            except Exception as ex:
+                                                st.error(f"Error procesando aprobaciones: {ex}")
+                    except Exception as e:
+                        st.error(f"Error leyendo la hoja SUGERENCIAS_SINONIMOS: {e}")
+
+
+                render_synonyms_tab()
             with sub_t4:
                 st.subheader("📨 Panel de Gestión de Feedback")
                 if sh_param:

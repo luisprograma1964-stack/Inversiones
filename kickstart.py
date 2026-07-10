@@ -6,8 +6,8 @@ import pandas as pd
 import auth_google
 import config
 import ia_utils
+from procesamiento import registrar_log, actualizar_estado_proceso
 import notificador_telegram
-from logger_utils import registrar_log, actualizar_estado_proceso
 
 def run_kickstart():
     t_inicio = time.time()
@@ -69,6 +69,7 @@ def run_kickstart():
             registrar_log(ws_log, "INFO", f"Generando sugerencias para {ticker}...", "kickstart_tickers")
             
             # --- VALIDACIÓN DE SUPERVIVENCIA (yfinance) ---
+            ticker_activado = False
             try:
                 t = yf.Ticker(ticker)
                 hist = t.history(period="5d")
@@ -91,13 +92,90 @@ def run_kickstart():
                         notificador_telegram.enviar_mensaje_telegram(f"⚠️ <b>Ticker Deslistado</b>\n\n{msg_dead}")
                     except: pass
                     continue
+                else:
+                    # ES VALIDO. Validamos/Activamos en el MAESTRO_ACTIVOS
+                    try:
+                        celda = ws_ma.find(ticker)
+                        headers = ws_ma.row_values(1)
+                        if celda:
+                            if 'ESTADO' in headers:
+                                current_state = ws_ma.cell(celda.row, headers.index('ESTADO') + 1).value
+                                if str(current_state).strip().upper() != 'ACTIVO':
+                                    ws_ma.update_cell(celda.row, headers.index('ESTADO') + 1, 'ACTIVO')
+                                    ticker_activado = True
+                        else:
+                            # NO EXISTE EN EL MAESTRO. LO CREAMOS!
+                            nueva_fila = []
+                            for h in headers:
+                                h_upper = h.upper()
+                                if h_upper in ['TICKER', 'TICKER_ID']:
+                                    nueva_fila.append(ticker)
+                                elif h_upper == 'ESTADO':
+                                    nueva_fila.append('ACTIVO')
+                                elif h_upper == 'MERCADO':
+                                    nueva_fila.append('US') # default
+                                elif h_upper == 'MONEDA':
+                                    nueva_fila.append('USD')
+                                elif h_upper in ['NOMBRE', 'DESCRIPCION']:
+                                    nueva_fila.append(f'Auto-creado por Kickstart ({ticker})')
+                                else:
+                                    nueva_fila.append('')
+                            ws_ma.append_row(nueva_fila, value_input_option='USER_ENTERED')
+                            ticker_activado = True
+                    except Exception as ex_maestro:
+                        print("Error actualizando maestro:", ex_maestro)
             except Exception as e_yf:
                 pass # Si hay error de red temporal, permitimos que siga
             # ----------------------------------------------
 
+            prompt = f"Actúa como un experto en mercados financieros. Para el activo financiero (acción, ETF, bono o empresa) cuyo Ticker es '{ticker}', dime hasta 5 variaciones de cómo se lo suele nombrar en las noticias (ej. marcas clave, nombre coloquial). IMPORTANTE: No incluyas sufijos ni nombres corporativos largos (como 'Group', 'Inc.', 'SA', 'LLC', 'Corp') si también vas a incluir la versión corta, ya que en la búsqueda de texto la versión corta ya engloba a la larga. Sé minimalista y devuelve SOLAMENTE LOS NOMBRES SEPARADOS POR COMAS, sin explicaciones ni viñetas. Si no lo conoces, devuelve 'DESCONOCIDO'."
             
-            prompt = f"Actúa como un experto en mercados financieros. Para el activo financiero (acción, ETF, bono o empresa) cuyo Ticker es '{ticker}', dime hasta 5 variaciones de cómo se lo suele nombrar en las noticias (ej. el nombre de la empresa completo, marcas clave, nombre coloquial). DEVUELVE SOLAMENTE LOS NOMBRES SEPARADOS POR COMAS, sin explicaciones ni viñetas. Si no lo conoces, devuelve 'DESCONOCIDO'."
-            respuesta = ia_utils.consultar_gemini_generativo(prompt)
+            respuesta = None
+            try:
+                from google import genai
+                import google.genai.types as types
+                from pathlib import Path
+                
+                api_key_path = Path(config.API_KEY_FILE)
+                with open(api_key_path, 'r', encoding='utf-8') as f:
+                    key = f.read().strip()
+                
+                client = genai.Client(api_key=key)
+                
+                modelos_activos = ia_utils.obtener_modelos_activos()
+                candidatos = ["gemini-1.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"]
+                for m in modelos_activos:
+                    if m not in candidatos:
+                        candidatos.append(m)
+                        
+                for m in candidatos:
+                    try:
+                        response = client.models.generate_content(
+                            model=m,
+                            contents=prompt,
+                            config=types.GenerateContentConfig(temperature=0.2)
+                        )
+                        respuesta = response.text
+                        break
+                    except Exception as ex:
+                        error_str = str(ex)
+                        print(f"Error AI con {m}: {error_str}")
+                        if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                            print(f"Cuota agotada en {m}. Esperando 60 segundos antes de reintentar...")
+                            time.sleep(60)
+                            try:
+                                response = client.models.generate_content(
+                                    model=m,
+                                    contents=prompt,
+                                    config=types.GenerateContentConfig(temperature=0.2)
+                                )
+                                respuesta = response.text
+                                break
+                            except Exception as retry_ex:
+                                print(f"Fallo en reintento con {m}: {retry_ex}")
+            except Exception as e_init:
+                print(f"Error AI Init: {e_init}")
+            
             
             if not respuesta or "DESCONOCIDO" in respuesta.upper():
                 registrar_log(ws_log, "WARNING", f"IA no encontró sinónimos obvios para {ticker}.", "kickstart_tickers")
@@ -127,12 +205,14 @@ def run_kickstart():
                 ws_sug.append_rows(sug_rows, value_input_option='USER_ENTERED')
                 nuevos_totales += nuevos_ticker
                 
-                # Notificar a TG
-                for r in sug_rows:
-                    msg = f"🔔 <b>Sugerencia Kickstart (AI)</b>\n\nSe sugiere el término <code>{r[3]}</code> para el activo <b>{r[4]}</b>.\n\n<b>Motivo/Explicación:</b> {r[5]}\n\nRevisalo en el Panel de Administración."
-                    try:
-                        notificador_telegram.enviar_mensaje_telegram(msg)
-                    except: pass
+                # Notificar a TG (Consolidado)
+                msg_tg = f"✅ <b>Kickstart Exitoso para {ticker}</b>\n\n"
+                if ticker_activado:
+                    msg_tg += f"🔹 El activo fue <b>activado/creado</b> exitosamente en el Maestro.\n"
+                msg_tg += f"🔹 Se generaron <b>{nuevos_ticker} sugerencias</b> de sinónimos."
+                try:
+                    notificador_telegram.enviar_mensaje_telegram(msg_tg)
+                except: pass
                     
             time.sleep(2) # Evitar rate limit de Gemini
             
@@ -141,9 +221,9 @@ def run_kickstart():
         actualizar_estado_proceso(ws_status, "OK", msg_fin, "kickstart_tickers", duracion)
         registrar_log(ws_log, "INFO", msg_fin, "kickstart_tickers")
         
-        try:
-            notificador_telegram.enviar_mensaje_telegram(f"✅ <b>Proceso de Inicialización de Tickers (Kickstart)</b> finalizado con éxito.\n{msg_fin}")
-        except: pass
+        # try:
+        #     notificador_telegram.enviar_mensaje_telegram(f"✅ <b>Proceso de Inicialización de Tickers (Kickstart)</b> finalizado con éxito.\n{msg_fin}")
+        # except: pass
 
     except Exception as e:
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"

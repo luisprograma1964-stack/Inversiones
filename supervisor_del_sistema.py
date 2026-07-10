@@ -199,92 +199,185 @@ def ejecutar_supervisor():
         TAREAS OBLIGATORIAS:
         1. GESTIÓN Y REBALANCEO DE CARTERA: 
            - Revisa 'configuracion_usuario' (Mix_Target), 'patrimonio_consolidado_por_propietario' y 'valoracion_y_tenencias_cartera'.
-           - Genera órdenes concretas y directas de rebalanceo segmentadas por propietario (ej: para Luis Agresivo vs Luis Moderado): 'Luis, compra X' o 'Luis, vende Y' para alinear las tenencias reales al target de su perfil de riesgo.
-           - CONSOLIDACIÓN MULTIMONEDA: Usa 'variables_mercado' (Dólar MEP/Blue) para calcular el poder de compra. Si sugieres comprar en USD usando ARS, detalla la conversión estimada.
+           - Genera órdenes concretas y directas de rebalanceo segmentadas por propietario.
         2. RADAR DE OPORTUNIDADES (EXPANSIÓN): 
-           - Identifica activos que el usuario no tiene actualmente pero que muestran alta convicción en 'estado_actual_matriz' (Score >= 8). Acción sugerida: 'Luis, inicia posición en Z'.
-        3. MEJORADOR DE DATOS (SINÓNIMOS Y TICKERS): 
-           - SINÓNIMOS: Si hay 'sugerencias_pendientes_sinonimos' > 0, genera una alerta indicando: 'Luis, tienes X sugerencias de sinónimos pendientes. Por favor revisa la hoja SUGERENCIAS_SINONIMOS y cambia su estado a APROBADO o RECHAZADO.'
-           - NUEVOS TICKERS: Si el mercado habla de algo que no seguimos, dame la fila EXACTA para MAESTRO_ACTIVOS: TICKER_ID;Nombre_Largo;Filtro_Noticias;{ahora_iso};250;GF_BRIDGE;ACTIVO.
-           - ACTUALIZACIÓN COMAFI: Si 'cantidad_nuevos' en 'auditoria_cedears_comafi' es > 0, alerta: 'Luis, se detectaron X nuevos CEDEARs en Comafi. Por favor corre `mantenimiento_cedears_comafi.py` para agregarlos al Maestro.'
-           - OPTIMIZACIÓN DE BÚSQUEDA: Si un activo importante no trae noticias en absoluto, sugiere la acción: 'Luis, cambia el filtro de X por Y en el Maestro' sugiriendo un término de búsqueda más adecuado.
+           - Identifica activos que el usuario no tiene actualmente pero que muestran alta convicción en 'estado_actual_matriz' (Score >= 8).
+        3. MEJORADOR DE DATOS: 
+           - Si un activo importante no trae noticias en absoluto, sugiere la acción: 'Cambia el filtro de X por Y en el Maestro'.
         4. ACTIVACIÓN DE ACTIVOS INACTIVOS: 
-           - Revisa 'tickers_con_noticias_recientes' y cruza con 'maestro_filtros'. Si un activo está en estado 'INACTIVO' en el maestro pero tiene flujo de noticias recientes, genera una alerta para el usuario:
-             Acción: 'Luis, el activo X tiene noticias relevantes pero está INACTIVO en tu maestro. Considera activarlo para que el pipeline técnico calcule sus indicadores y la IA tome decisiones'.
-         5. COMPARATIVA E INTEGRIDAD (AUDITORÍA): 
-            - Detecta si el Paso 4 ignoró noticias.
-            - **AVISO DE DISCREPANCIA**: Compara las fechas en 'datos_tecnicos_vigentes' con las fechas en 'noticias_aprobadas_recientes'. Si el técnico tiene un rezago mayor a 48 horas, genera la alerta correspondiente. Nota: Una diferencia de hasta 24 horas (ej. precios del día anterior vs noticias de hoy) es perfectamente normal y saludable si el mercado aún está operando y la rueda actual no ha cerrado; NO emitas alertas de discrepancia en este caso.
-         6. AUDITORÍA DE BRECHA CAMBIARIA (CCL):
-           - Analiza el campo 'CCL_IMPLICITO' en 'datos_tecnicos_vigentes'. 
-           - Calcula la brecha (tipo de cambio implícito) promedio del mercado. Si algún activo se desvía más de un 2.5% del promedio (presentando un CCL significativamente alto/caro o bajo/barato relativo), genera una alerta:
-             Acción: 'Luis, el CEDEAR de X cotiza localmente con un sobreprecio cambiario de Y% respecto a la media de mercado. Se sugiere evitar compras locales temporales'.
-        7. ANÁLISIS DE CONTRADICCIÓN TÉCNICA: 
-           - Identifica discrepancias severas entre el veredicto de la IA (SENTIMIENTO/SCORE en 'estado_actual_matriz') y la realidad técnica (TREND/RSI en 'datos_tecnicos_vigentes').
-           - Alerta si el Score es alto (>7) en tendencia bajista o bajo (<4) en tendencia alcista sin noticias de peso que lo justifiquen.
-        8. REPORTE DE BLOQUEOS POR ESCALA (15x):
-           - Revisa en 'datos_tecnicos_vigentes' si existen activos con RSI = -1 o FIBO_RET que contenga 'Error (Escala)'.
-           - Acción: 'Luis, el activo X fue bloqueado por seguridad (Escala 15x). Verifica si hay un error de carga o un split no procesado'.
-        9. ALERTAS DE SILENCIO: Activos que suben/bajan fuerte pero nuestro radar de noticias no sabe por qué. Acción: 'Luis, busca manualmente en Twitter o Google qué pasó con X'.
-        10. OPTIMIZACIÓN DE PROMPTS: 
-            - Si el fallo es de criterio financiero: Sugiere un cambio para 'Instrucciones_Fijas'. Debes especificar de forma obligatoria la sección exacta donde se debe acoplar el cambio (por ejemplo, '[SECCIÓN 3: LÍMITES TÉCNICOS Y GUARDRAILS DE SCORE]').
-            - Si el fallo es de descarte de noticias: Sugiere un cambio para 'Prompt_Triage_Noticias'. Debes especificar de forma obligatoria la sección exacta donde se debe acoplar el cambio (por ejemplo, '[SECCIÓN 2: CRITERIOS DE APROBACIÓN Y FILTRO GENERAL]').
-            
-            Las secciones lógicas estructuradas en el sistema para 'Instrucciones_Fijas' son:
-            - [SECCIÓN 1: ROL, MISIÓN Y HORIZONTE]
-            - [SECCIÓN 2: CONFLUENCIA TÉCNICA Y DE CONTEXTO]
-            - [SECCIÓN 3: LÍMITES TÉCNICOS Y GUARDRAILS DE SCORE]
-            - [SECCIÓN 4: REGLAS DE OPERATORIA LOCAL Y BRECHA CAMBIARIA]
-            - [SECCIÓN 5: FORMATO DE SALIDA OBLIGATORIO]
-
-            Las secciones lógicas estructuradas en el sistema para 'Prompt_Triage_Noticias' son:
-            - [SECCIÓN 1: MISIÓN Y FORMATO JSON]
-            - [SECCIÓN 2: CRITERIOS DE APROBACIÓN Y FILTRO GENERAL]
-            - [SECCIÓN 3: TRATAMIENTO DE EMISORES Y CAMBIOS CORPORATIVOS]
-            - [SECCIÓN 4: REGLAS ADICIONALES]
- 
-        ESTRUCTURA DEL INFORME:
-        - ESTRATEGIA DE CARTERA (Rebalanceo de Cartera, órdenes de compra/venta y cotizaciones)
-        - MEJORA DE DATOS (Filtros de búsqueda, nuevos Tickers y Sinónimos)
-        - AUDITORIA DE NOTICIAS VS DECISION (Calidad del Triage)
-        - CONTRADICCIONES TECNICAS (Veredicto IA vs Indicadores)
-        - ERRORES DE ESCALA (Activos bloqueados por seguridad 15x)
-        - SINCRONIZACION DE DATOS (Avisos de discrepancia de fechas)
-        - ALERTAS Y CALIDAD (Anomalías detectadas y ajustes de IA)
-        - OPTIMIZACION DE INSTRUCCIONES IA (Sugerencias estructuradas detallando el prompt, la sección sugerida exacta y la regla a insertar)
-
-        REGLA DE FORMATO CRÍTICA: Comienza directamente con el encabezado de nivel 2 '## ESTRATEGIA DE CARTERA'. No incluyas ningún título de nivel 1 (#) ni preámbulos introductorios, ya que tu informe será concatenado a un encabezado estructurado por el sistema. No uses emojis ni caracteres gráficos en los encabezados ni en el contenido del informe.
+           - Si un activo está INACTIVO pero tiene noticias relevantes, alerta para considerarlo activarlo.
+        5. COMPARATIVA E INTEGRIDAD (AUDITORÍA): 
+           - Detecta si el técnico tiene un rezago mayor a 48 horas frente a las noticias aprobadas.
+        6. ANÁLISIS DE CONTRADICCIÓN TÉCNICA: 
+           - Identifica discrepancias severas entre el veredicto de la IA y la realidad técnica.
+           - REGLA ESPECIAL ARGENTINA: Ignorar valores extremos de RSI (como 100) para pares de divisas como USDARS. Al estar regulados por crawling peg, suben matemáticamente todos los días sin bajas, por lo que el RSI pierde validez y no debe ser reportado como sobrecompra o anomalía.
+        7. ALERTAS DE SILENCIO: Activos que suben/bajan fuerte pero nuestro radar de noticias no sabe por qué.
+        8. OPTIMIZACIÓN DE PROMPTS (CALIDAD DEL TRIAGE Y ESTRATEGIA): 
+           - Si la IA descartó erróneamente una noticia (ej. macroeconomía tomada como corporativa), sugiere de forma explícita cómo ajustar el 'Prompt_Triage_Noticias' detallando la sección lógica.
+           - Secciones lógicas en 'Instrucciones_Fijas': [SECCIÓN 1...], [SECCIÓN 2...], etc.
+           - Secciones lógicas en 'Prompt_Triage_Noticias': [SECCIÓN 1...], [SECCIÓN 2...], etc.
+           
+        FORMATO DE SALIDA (JSON OBLIGATORIO):
+        Debes retornar ÚNICAMENTE un objeto JSON con la siguiente estructura exacta, sin Markdown extra fuera del JSON:
+        {{
+          "resumen_ejecutivo": "Texto breve de 1-2 párrafos resumiendo el estado del sistema y la cartera.",
+          "alertas_criticas_texto": "Texto en viñetas con los errores graves o contradicciones detectadas.",
+          "cuerpo_markdown": "El reporte detallado narrado en Markdown. Comienza directamente con '## ESTRATEGIA DE CARTERA', no incluyas ningún título de nivel 1. Desarrolla aquí todo el informe.",
+          "alertas_inbox": [
+             {{
+               "categoria": "ALERTA_CRITICA",
+               "tipo": "ERROR_TECNICO / CONTRADICCION_TECNICA / BRECHA_CCL",
+               "mensaje": "Mensaje súper claro diseñado para que el usuario me lo copie en el chat. Ej: 'Hay una contradicción en TSLA, por favor analizalo.'"
+             }},
+             {{
+               "categoria": "MEJORA_CONSTANTE",
+               "tipo": "AJUSTE_PROMPT",
+               "mensaje": "Texto claro para que el usuario me lo copie. Ej: 'Actualizá la Sección 2 del Triage agregando esta regla: ...'"
+             }}
+          ]
+        }}
         """
 
-        # 4. CONSULTA A GEMINI (Usamos Pro si está disponible para máxima calidad estratégica, con rotación en caso de error)
+        # 4. CONSULTA A GEMINI (Usamos Pro si está disponible para máxima calidad estratégica)
+        import google.genai.types as types
         modelos_activos = ia_utils.obtener_modelos_activos()
         candidatos = ["gemini-1.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"]
         for m in modelos_activos:
             if m not in candidatos:
                 candidatos.append(m)
 
-        informe = None
+        informe_json_str = None
         ultimo_error = None
         modelo_exitoso = None
 
         for modelo_candidato in candidatos:
-            logger.info(f"Generando informe estratégico con {modelo_candidato}...")
+            logger.info(f"Generando informe estratégico con {modelo_candidato} (JSON mode)...")
             try:
                 response = client.models.generate_content(
                     model=modelo_candidato,
-                    contents=prompt_estrategico
+                    contents=prompt_estrategico,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                    )
                 )
                 if response and response.text:
-                    informe = response.text
+                    informe_json_str = response.text
                     modelo_exitoso = modelo_candidato
                     logger.info(f"¡Informe estratégico generado con éxito usando {modelo_candidato}!")
                     break
             except Exception as e:
                 ultimo_error = e
                 logger.warning(f"Error generando informe con {modelo_candidato}: {e}. Intentando fallback...")
-                time.sleep(1) # Pequeña pausa antes del reintento
+                time.sleep(1)
 
-        if not informe:
+        if not informe_json_str:
             raise RuntimeError(f"Todos los modelos de IA fallaron. Último error: {ultimo_error}")
+
+        try:
+            # Remover posibles bloques markdown de código si la IA ignoró las instrucciones de solo JSON
+            limpio = informe_json_str.strip()
+            if limpio.startswith("```json"): limpio = limpio[7:]
+            if limpio.startswith("```"): limpio = limpio[3:]
+            if limpio.endswith("```"): limpio = limpio[:-3]
+            
+            informe_dict = json.loads(limpio.strip())
+        except Exception as e:
+            logger.error(f"Error parseando el JSON de Gemini: {e}")
+            informe_dict = {
+                "resumen_ejecutivo": "Error parseando respuesta IA",
+                "alertas_criticas_texto": str(e),
+                "cuerpo_markdown": informe_json_str,
+                "alertas_inbox": []
+            }
+
+        # --- PREPARAR ALERTAS DETERMINISTAS ---
+        alertas_inbox_total = []
+        ahora_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Nuevos Cedears
+        for idx, nc in enumerate(nuevos_cedears):
+            alertas_inbox_total.append([
+                f"AL-NC-{int(time.time())}-{idx}",
+                ahora_timestamp,
+                "MEJORA_CONSTANTE",
+                "NUEVO_ACTIVO",
+                f"Nuevo activo detectado en Comafi: {nc}. Presiona [Inicializar Nuevos Activos] para agregarlo al Maestro.",
+                "PENDIENTE"
+            ])
+            
+        # Sinónimos Pendientes
+        if len(df_sugerencias) > 0:
+            alertas_inbox_total.append([
+                f"AL-SIN-{int(time.time())}",
+                ahora_timestamp,
+                "MEJORA_CONSTANTE",
+                "SINONIMO_PENDIENTE",
+                f"Tienes {len(df_sugerencias)} sugerencias de sinónimos pendientes. Ve a la pestaña 'Control de Sinónimos' para aprobarlos.",
+                "PENDIENTE"
+            ])
+            
+        # Errores Técnicos (Escala / -1)
+        if not df_tecnico.empty:
+            for idx, row in df_tecnico.iterrows():
+                try:
+                    rsi = row.get('RSI')
+                    fibo = str(row.get('FIBO_RET', ''))
+                    if rsi == -1 or 'Error' in fibo:
+                        alertas_inbox_total.append([
+                            f"AL-ERR-{int(time.time())}-{idx}",
+                            ahora_timestamp,
+                            "ALERTA_CRITICA",
+                            "ERROR_TECNICO",
+                            f"El activo {row.get('TICKER_ID', 'N/A')} fue bloqueado por seguridad (RSI=-1 o Error Escala 15x). Copia esto y pasáselo a Antigravity.",
+                            "PENDIENTE"
+                        ])
+                except:
+                    pass
+
+
+        # Alerta CCL Determinista
+        if not df_tecnico.empty and 'CCL_IMPLICITO' in df_tecnico.columns:
+            import pandas as pd
+            df_tecnico_ccl = df_tecnico.copy()
+            df_tecnico_ccl['CCL_IMPLICITO'] = pd.to_numeric(df_tecnico_ccl['CCL_IMPLICITO'].astype(str).str.replace(',', '.'), errors='coerce')
+            df_ccl_valid = df_tecnico_ccl.dropna(subset=['CCL_IMPLICITO'])
+            
+            if not df_ccl_valid.empty:
+                ccl_promedio = df_ccl_valid['CCL_IMPLICITO'].mean()
+                tickers_caros = []
+                for idx, row in df_ccl_valid.iterrows():
+                    ccl_activo = row['CCL_IMPLICITO']
+                    if ccl_promedio > 0:
+                        desvio = ((ccl_activo / ccl_promedio) - 1) * 100
+                        if desvio > 2.5:
+                            tickers_caros.append(row['TICKER_ID'])
+                
+                if tickers_caros:
+                    tickers_str = ", ".join(tickers_caros)
+                    alertas_inbox_total.append([
+                        f"AL-CCL-{int(time.time())}",
+                        ahora_timestamp,
+                        "ALERTA_CRITICA",
+                        "BRECHA_CCL",
+                        f"Alerta CCL: Los activos {tickers_str} cotizan con un sobreprecio >2.5% respecto a la media del mercado. Evaluar suspender compras locales.",
+                        "PENDIENTE"
+                    ])
+
+        # Agregar Alertas de IA
+        alertas_ia = informe_dict.get("alertas_inbox", [])
+        for idx, a in enumerate(alertas_ia):
+            cat = str(a.get("categoria", "MEJORA_CONSTANTE")).strip()
+            tip = str(a.get("tipo", "SUGERENCIA_IA")).strip()
+            msg = str(a.get("mensaje", "")).strip()
+            if msg:
+                alertas_inbox_total.append([
+                    f"AL-IA-{int(time.time())}-{idx}",
+                    ahora_timestamp,
+                    cat,
+                    tip,
+                    msg,
+                    "PENDIENTE"
+                ])
 
         # --- GENERAR PUNTO 1: ESTRUCTURA DE INPUTS DE LA IA DECISORA (DETERMINISTA) ---
         campos_tecnicos = ia_utils.CAMPO_TECNICO
@@ -323,27 +416,33 @@ Define la política y ponderaciones que la IA debe contrastar:
 ---
 
 """
-        informe_completo = punto_1_audit + informe
+        informe_completo_md = punto_1_audit + str(informe_dict.get("cuerpo_markdown", ""))
 
         # 5. GUARDAR REPORTE EN GOOGLE SHEETS
         try:
             ws_supervisor = sh.worksheet(config.WS_REPORTE_SUPERVISOR)
             ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            import re
+            resumen = str(informe_dict.get("resumen_ejecutivo", ""))[:800]
+            alertas_txt = str(informe_dict.get("alertas_criticas_texto", ""))[:800]
             
-            alertas = ""
-            match_alertas = re.search(r'## ALERTAS Y CALIDAD(.*?)##', informe_completo, re.DOTALL | re.IGNORECASE)
-            if match_alertas:
-                alertas = match_alertas.group(1).strip()[:800]
-                
-            resumen = ""
-            match_est = re.search(r'## ESTRATEGIA DE CARTERA(.*?)##', informe_completo, re.DOTALL | re.IGNORECASE)
-            if match_est:
-                resumen = match_est.group(1).strip()[:800]
-                
-            row = [ahora_str, resumen, alertas, "N/A", informe_completo]
+            row = [ahora_str, resumen, alertas_txt, "N/A", informe_completo_md]
             ws_supervisor.append_row(row)
-            path_md = "Google Sheets: REPORTE_SUPERVISOR"
+            
+            # Guardar alertas estructuradas
+            if alertas_inbox_total:
+                try:
+                    ws_alertas = sh.worksheet(config.WS_ALERTAS_SUPERVISOR)
+                    ws_alertas.append_rows(alertas_inbox_total)
+                except Exception as ea:
+                    logger.error(f"Error insertando en ALERTAS_SUPERVISOR: {ea}")
+            
+            # Chequear si hubo un error de Telegram (Alerta Crítica)
+            hay_alerta_critica = any(a[2] == "ALERTA_CRITICA" for a in alertas_inbox_total)
+            if hay_alerta_critica:
+                import notificador_telegram
+                notificador_telegram.enviar_mensaje_telegram(f"🚨 <b>[Supervisor]</b> Se han detectado ALERTAS CRÍTICAS en el sistema. Revisa la bandeja de entrada en la Web App de inmediato.")
+                
+            path_md = "Google Sheets: REPORTE_SUPERVISOR y ALERTAS_SUPERVISOR"
             logger.info("[+] Reporte guardado en hoja REPORTE_SUPERVISOR")
         except Exception as esh:
             path_md = "ERROR AL GUARDAR EN SHEETS"
@@ -355,24 +454,14 @@ Define la política y ponderaciones que la IA debe contrastar:
             print(f"\n[OK] Informe de supervisión guardado en: {path_md}\n")
             print("="*60)
             print("INFORME DE SUPERVISIÓN Y MEJORA ESTRATÉGICA:")
-            print(informe_completo)
+            print(informe_completo_md)
             print("="*60)
         except UnicodeEncodeError:
-            try:
-                sys_stdout_encoding = sys.stdout.encoding or 'ascii'
-                safe_informe = informe_completo.encode(sys_stdout_encoding, errors='replace').decode(sys_stdout_encoding)
-                print(f"\n[OK] Informe de supervision guardado en: {path_md}\n")
-                print("="*60)
-                print("INFORME DE SUPERVISION Y MEJORA ESTRATEGICA (Safe Encoding):")
-                print(safe_informe)
-                print("="*60)
-            except Exception:
-                pass
+            pass
         
         logger.info("="*60)
         logger.info("INFORME DE SUPERVISIÓN Y MEJORA")
         logger.info(f"Reporte guardado en: {path_md}")
-        logger.info(informe_completo)
         logger.info("="*60)
  
         # Guardar en log histórico
@@ -383,7 +472,7 @@ Define la política y ponderaciones que la IA debe contrastar:
         import notificador_telegram
         notificador_telegram.enviar_mensaje_telegram(f"✅ <b>[Supervisor]</b> Finalizado con éxito.\n⏱️ Tiempo: {duracion}")
         
-        return informe_completo
+        return informe_completo_md
 
     except Exception as e:
         msg = f"Error en Supervisor: {e}"

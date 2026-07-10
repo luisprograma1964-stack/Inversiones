@@ -199,6 +199,15 @@ Almacena el output del script Supervisor del Sistema en formato de base de datos
 - **D.** `EVALUACION_RIESGO` (Evaluación de riesgo general)
 - **E.** `CUERPO_COMPLETO` (El Markdown completo generado por la IA)
 
+### `ALERTAS_SUPERVISOR`
+Bandeja de entrada (Inbox) interactiva para anomalías y sugerencias detectadas por el Supervisor.
+- **A.** `ID_ALERTA` (Identificador único, ej: AL-20240710-001)
+- **B.** `FECHA_DETECCION` (Timestamp)
+- **C.** `CATEGORIA` (ALERTA_CRITICA o MEJORA_CONSTANTE)
+- **D.** `TIPO` (NUEVO_ACTIVO, AJUSTE_PROMPT, ERROR_TECNICO, etc.)
+- **E.** `MENSAJE_ALERTA` (Texto claro y accionable)
+- **F.** `ESTADO` (PENDIENTE, RESUELTO, IGNORADO)
+
 ### `HISTORIAL_REPORTE_IA`
 El historial acumulado de todas las recomendaciones generadas.
 - **A.** `FECHA` (YYYY-MM-DD HH:MM:SS)
