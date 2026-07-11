@@ -13,13 +13,7 @@ logger = logging.getLogger("AutoTraderIA")
 import config
 import auth_google
 import procesamiento
-
-def log_to_sheets(sh, level, msg):
-    try:
-        ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
-        procesamiento.registrar_log(ws_log, level, msg, origen="AutoTrader")
-    except Exception as e:
-        logger.error(f"No se pudo registrar log en Sheets: {e}")
+import notificador_telegram
 
 def limpiar_numero(val):
     try:
@@ -36,11 +30,11 @@ def ejecutar_auto_trader():
         logger.critical("No se pudo conectar a Google Sheets.")
         return False
         
+    resumen_telegram = ["🤖 *Reporte Auto-Trader IA*"]
+    
     try:
         ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
         procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Auto-Trader simulando operaciones...", nombre_proceso="auto_trader_ia")
-        
-        log_to_sheets(sh, "INFO", "Iniciando Auto-Trader IA para carteras de simulación...")
         
         # 1. Leer Datos
         df_carteras = pd.DataFrame(sh.worksheet(config.WS_CARTERAS).get_all_records())
@@ -57,7 +51,8 @@ def ejecutar_auto_trader():
         fondos_ia = df_carteras[df_carteras['TIPO_CARTERA'].astype(str).str.upper() == 'SIMULACION'].to_dict('records')
         
         if not fondos_ia:
-            log_to_sheets(sh, "INFO", "No se encontraron carteras de simulación para operar.")
+            resumen_telegram.append("⚠️ No se encontraron carteras de simulación activas.")
+            notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
             return True
             
         # Extraer precios actuales
@@ -73,12 +68,17 @@ def ejecutar_auto_trader():
         nuevos_movimientos_caja = []
         hoy = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
+        total_compras = 0
+        total_ventas = 0
+        
         # 3. Iterar por cada Fondo IA
         for fondo in fondos_ia:
             cartera_id = str(fondo.get('CARTERA_ID', '')).strip().upper()
             perfil = str(fondo.get('PERFIL_RIESGO', '')).strip().upper()
             comision_pct = float(fondo.get('COMISION_BROKER', 0.0)) / 100.0
             liq_target = float(fondo.get('PORCENTAJE_LIQUIDEZ', 0.10))
+            
+            resumen_fondo = [f"\n💼 *{cartera_id}* ({perfil})"]
             
             # Obtener saldo de caja (ars)
             df_mi_caja = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'ARS')]
@@ -103,11 +103,10 @@ def ejecutar_auto_trader():
             
             # Filtrar matriz para este perfil
             señales = df_matriz[df_matriz['PERFIL'].astype(str).str.upper() == perfil]
-            
             compras = señales[señales['VEREDICTO_IA'].astype(str).str.upper() == 'COMPRAR']['TICKER'].tolist()
             ventas = señales[señales['VEREDICTO_IA'].astype(str).str.upper() == 'VENDER']['TICKER'].tolist()
             
-            log_to_sheets(sh, "INFO", f"Fondo {cartera_id}: Saldo=${saldo_caja:,.2f} | Caja Mín=${caja_minima:,.2f} | Compras={len(compras)} | Ventas={len(ventas)}")
+            op_ejecutadas = 0
             
             # --- EJECUTAR VENTAS ---
             for tk in ventas:
@@ -136,7 +135,9 @@ def ejecutar_auto_trader():
                             'PRECIO_MERCADO_REF': px
                         })
                         saldo_caja += neto
-                        log_to_sheets(sh, "INFO", f"[{cartera_id}] VENTA EJECUTADA: {qty} {tk} a ${px}. Neto: ${neto:,.2f}")
+                        total_ventas += 1
+                        op_ejecutadas += 1
+                        resumen_fondo.append(f"  🔴 VENDIÓ {qty} {tk} a ${px}")
                         
             # --- EJECUTAR COMPRAS ---
             efectivo_libre = saldo_caja - caja_minima
@@ -173,9 +174,11 @@ def ejecutar_auto_trader():
                                 'PRECIO_MERCADO_REF': px
                             })
                             saldo_caja -= neto
-                            log_to_sheets(sh, "INFO", f"[{cartera_id}] COMPRA EJECUTADA: {qty} {tk} a ${px}. Costo Total: ${neto:,.2f}")
+                            total_compras += 1
+                            op_ejecutadas += 1
+                            resumen_fondo.append(f"  🟢 COMPRÓ {qty} {tk} a ${px}")
             elif compras:
-                log_to_sheets(sh, "INFO", f"[{cartera_id}] OMITIENDO COMPRAS: Efectivo libre insuficiente (Caja Mínima Protegida).")
+                resumen_fondo.append(f"  ⚠️ OMITIÓ {len(compras)} compras (Caja libre insuficiente: ${max(0, efectivo_libre):,.2f})")
                 
             nuevos_movimientos_caja.append({
                 'PROPIETARIO': cartera_id,
@@ -184,6 +187,11 @@ def ejecutar_auto_trader():
                 'SALDO': saldo_caja,
                 'ULTIMA_ACTUALIZACION': hoy
             })
+            
+            if op_ejecutadas == 0 and not compras:
+                resumen_fondo.append("  💤 Sin señales de operación hoy.")
+                
+            resumen_telegram.extend(resumen_fondo)
             
         # 4. GUARDAR EN SHEETS
         if nuevas_transacciones:
@@ -215,7 +223,6 @@ def ejecutar_auto_trader():
                 
             ws_trans.clear()
             ws_trans.update([df_final_trans.columns.values.tolist()] + df_final_trans.values.tolist())
-            log_to_sheets(sh, "INFO", f"Auto-Trader: {len(nuevas_transacciones)} transacciones guardadas.")
             
         if nuevos_movimientos_caja:
             ws_caja = sh.worksheet("CAJA_LIQUIDEZ")
@@ -239,8 +246,12 @@ def ejecutar_auto_trader():
             ws_caja.clear()
             ws_caja.update([df_final_caja.columns.values.tolist()] + df_final_caja.values.tolist())
             
-        procesamiento.actualizar_estado_proceso(ws_status, "COMPLETADO", f"Operaciones simuladas ejecutadas exitosamente.", nombre_proceso="auto_trader_ia")
-        log_to_sheets(sh, "INFO", "Auto-Trader finalizó exitosamente.")
+        procesamiento.actualizar_estado_proceso(ws_status, "COMPLETADO", f"AutoTrader ejecutado.", nombre_proceso="auto_trader_ia")
+        
+        # Enviar resumen a Telegram
+        resumen_telegram.append(f"\n📊 *Total operaciones:* {total_compras} compras, {total_ventas} ventas.")
+        notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
+        
         return True
         
     except Exception as e:
@@ -248,8 +259,8 @@ def ejecutar_auto_trader():
         try:
             ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
             procesamiento.actualizar_estado_proceso(ws_status, "ERROR", f"Fallo Auto-Trader: {str(e)[:100]}", nombre_proceso="auto_trader_ia")
-            log_to_sheets(sh, "ERROR", f"Fallo crítico en Auto-Trader: {e}")
         except: pass
+        notificador_telegram.enviar_mensaje_telegram(f"❌ *Error en Auto-Trader IA:* {e}")
         return False
 
 if __name__ == '__main__':
