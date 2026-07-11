@@ -8,3 +8,4 @@ beautifulsoup4
 telebot
 pyTelegramBotAPI
 lxml
+pandas-ta
