@@ -9,3 +9,6 @@ telebot
 pyTelegramBotAPI
 lxml
 pandas-ta
+telethon
+feedparser
+pygooglenews
