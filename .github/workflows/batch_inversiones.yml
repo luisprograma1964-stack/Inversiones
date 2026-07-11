@@ -25,18 +25,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements_backend.txt
           
-      - name: Inyectar Credenciales
+      - name: Inyectar Credenciales (Base64)
         env:
-          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          JSON_BASE64: ${{ secrets.JSON_FILE_CONTENT_BASE64 }}
+          API_KEY_BASE64: ${{ secrets.API_KEY_FILE_CONTENT_BASE64 }}
         run: |
-          echo "Creando carpeta creds y archivo API key..."
+          echo "Creando carpeta creds y decodificando secretos Base64..."
           mkdir -p creds
-          echo "${GEMINI_API_KEY}" > creds/api_key.txt
+          echo "$API_KEY_BASE64" | base64 --decode > creds/api_key.txt
+          echo "$JSON_BASE64" | base64 --decode > creds/python-sheets-492415-9f916d7c2cd1.json
           
       - name: Ejecutar Orquestador
         env:
-          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
           TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
         run: |
