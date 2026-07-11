@@ -218,7 +218,16 @@ def ejecutar_pipeline():
             cancelar_pipeline(ws_log, ws_status, "Paso 4 (Motor IA) falló", inicio_global)
             return False
         duracion_p4 = (time.time() - t4) / 60
-        logger.info(f"[OK] PASO 4 COMPLETADO EN {duracion_p4:.2f} min")
+        # ==================================================
+        # PASO 5: Auto-Trader IA (Simulación de Carteras)
+        # ==================================================
+        t5 = time.time()
+        logger.info("\n[PASO 5/5] Ejecutando Auto-Trader IA sobre carteras fantasma...")
+        import auto_trader_ia
+        if not auto_trader_ia.ejecutar_auto_trader():
+            logger.warning("[!] El Auto-Trader reportó un error, pero el pipeline continuará.")
+        duracion_p5 = (time.time() - t5) / 60
+        logger.info(f"[OK] PASO 5 COMPLETADO EN {duracion_p5:.2f} min")
 
     except Exception as e:
         return cancelar_pipeline(ws_log, ws_status, f"Error inesperado en orquestador: {e}", inicio_global)
