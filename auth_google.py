@@ -59,7 +59,7 @@ REQUIRED_SHEETS = [
     config.WS_ANALISIS_TECNICO,
     config.WS_MAESTRO_ACTIVOS,
     config.WS_DOWNLOAD_BUFFER,
-    config.WS_CONFIG_IA_USUARIO,
+    config.WS_CARTERAS,
     config.WS_CONFIG_IA_GENERAL,
     config.WS_REPORTE_IA,
     config.WS_MATRIZ_RECOMENDACIONES,

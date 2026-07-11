@@ -88,7 +88,7 @@ def ejecutar_decisor():
 
     try:
         # 1. MAPEO DE USUARIOS
-        usuarios_raw = sh.worksheet(config.WS_CONFIG_IA_USUARIO).get_all_records()
+        usuarios_raw = sh.worksheet(config.WS_CARTERAS).get_all_records()
         # Extraemos la lista única de perfiles de riesgo configurados
         perfiles_set = {str(u['Perfil_Riesgo']).strip().capitalize() for u in usuarios_raw if u.get('Perfil_Riesgo')}
         perfiles_lista = list(perfiles_set)

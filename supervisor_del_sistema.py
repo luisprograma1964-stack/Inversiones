@@ -107,7 +107,7 @@ def ejecutar_supervisor():
         df_maestro = get_df(config.WS_MAESTRO_ACTIVOS)
         df_tecnico = get_df(config.WS_ANALISIS_TECNICO)
         df_noticias = get_df(config.WS_NOTICIAS_SISTEMA)
-        df_ia_usuarios = get_df(config.WS_CONFIG_IA_USUARIO)
+        df_ia_usuarios = get_df(config.WS_CARTERAS)
         df_sinonimos_actuales = get_df(config.WS_CONFIG_SINONIMOS)
         df_mercado = get_df(config.WS_VARIABLES_MERCADO)
         df_descartes = get_df(config.WS_NOTICIAS_DESCARTADAS).tail(20) # Últimos descartes

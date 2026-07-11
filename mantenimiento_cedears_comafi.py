@@ -13,7 +13,8 @@ import time
 import logging_config
 
 logger = logging_config.get_logger(__name__)
-# Tickers esenciales del sistema que no deben ser desactivados aunque no tengan CEDEAR
+
+# Tickers esenciales del sistema que no deben ser desactivados aunque no tengan CEDEAR
 TICKERS_SISTEMA_EXCLUIDOS = {"USDARS", "MERVAL", "9999", "9999_AR", "9999_US"}
 
 def verificar_yahoo(ticker):

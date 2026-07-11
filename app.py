@@ -288,7 +288,7 @@ def hash_password(password):
     return hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
 
 def cargar_carteras_usuario(username, rol):
-    df_carteras = cargar_datos_hoja(config.WS_CONFIG_IA_USUARIO)
+    df_carteras = cargar_datos_hoja(config.WS_CARTERAS)
     if df_carteras.empty: return []
     
     # Normalizar columnas
@@ -371,17 +371,17 @@ if "carteras" not in st.session_state:
         st.session_state["cartera_activa"] = st.session_state["carteras"][0]
 
 if "carteras" in st.session_state and st.session_state["carteras"]:
-    nombres_carteras = [f"{c.get('Usuario_ID', c.get('USUARIO_ID', 'ID_N/A'))} ({c.get('Tipo_Cartera', 'N/A')})" for c in st.session_state["carteras"]]
+    nombres_carteras = [f"{c.get('CARTERA_ID', 'ID_N/A')} ({c.get('TIPO_CARTERA', 'N/A')})" for c in st.session_state["carteras"]]
     idx_activa = 0
     if "cartera_activa" in st.session_state:
         for i, c in enumerate(st.session_state["carteras"]):
-            if c.get('Usuario_ID', c.get('USUARIO_ID')) == st.session_state["cartera_activa"].get("Usuario_ID", st.session_state["cartera_activa"].get("USUARIO_ID")):
+            if c.get('CARTERA_ID') == st.session_state["cartera_activa"].get("CARTERA_ID"):
                 idx_activa = i
                 break
     
     sel = st.sidebar.selectbox("Cartera Activa:", nombres_carteras, index=idx_activa)
     idx_sel = nombres_carteras.index(sel)
-    if st.session_state.get("cartera_activa", {}).get("Usuario_ID", st.session_state.get("cartera_activa", {}).get("USUARIO_ID")) != st.session_state["carteras"][idx_sel].get("Usuario_ID", st.session_state["carteras"][idx_sel].get("USUARIO_ID")):
+    if st.session_state.get("cartera_activa", {}).get("CARTERA_ID") != st.session_state["carteras"][idx_sel].get("CARTERA_ID"):
         st.session_state["cartera_activa"] = st.session_state["carteras"][idx_sel]
         st.rerun()
 else:
@@ -717,7 +717,7 @@ with tab1:
     # Cargar datos
     # Filtro de cartera activa
     _c_activa = st.session_state.get("cartera_activa", {})
-    _p_id = _c_activa.get("Usuario_ID", _c_activa.get("USUARIO_ID", "LUIS"))
+    _p_id = _c_activa.get("CARTERA_ID", "LUIS")
     
     df_val = cargar_y_filtrar_por_cartera("VALORACION_PORTAFOLIO", _p_id)
     df_caja = cargar_y_filtrar_por_cartera("CAJA_LIQUIDEZ", _p_id)
@@ -1082,7 +1082,7 @@ with tab1:
             with col_sel1:
                 op_tipo = st.selectbox("Operación:", ["Compra", "Venta"])
             with col_sel2:
-                _u_id_val = st.session_state.get("cartera_activa", {}).get("USUARIO_ID", st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS"))
+                _u_id_val = st.session_state.get("cartera_activa", {}).get("CARTERA_ID", "LUIS")
                 prop = st.text_input("Cartera (Propietario):", value=_u_id_val, disabled=True, key=f"form_trans_{_u_id_val}")
             with col_sel3:
                 moneda = st.selectbox("Moneda de la Operación:", ["ARS", "USD"])
@@ -1266,7 +1266,7 @@ with tab1:
             with col_c1:
                 tipo_mov = st.selectbox("Tipo de Movimiento:", ["INGRESO", "EGRESO"])
             with col_c2:
-                _u_id_val2 = st.session_state.get("cartera_activa", {}).get("USUARIO_ID", st.session_state.get("cartera_activa", {}).get("Usuario_ID", "LUIS"))
+                _u_id_val2 = st.session_state.get("cartera_activa", {}).get("CARTERA_ID", "LUIS")
                 prop = st.text_input("Cartera (Propietario):", value=_u_id_val2, disabled=True, key=f"form_caja_{_u_id_val2}")
             with col_c3:
                 moneda = st.selectbox("Moneda:", ["ARS", "USD"], key="caja_mon_sel")
@@ -1386,7 +1386,7 @@ with tab1:
         df_maestro = cargar_datos_hoja(config.WS_MAESTRO_ACTIVOS)
     
         _c_activa = st.session_state.get("cartera_activa", {})
-        _p_id = _c_activa.get("Usuario_ID", _c_activa.get("USUARIO_ID", "LUIS"))
+        _p_id = _c_activa.get("CARTERA_ID", "LUIS")
         df_val = cargar_y_filtrar_por_cartera("VALORACION_PORTAFOLIO", _p_id)
     
         if df_matriz.empty:
@@ -1799,7 +1799,7 @@ with tab1:
                                 with st.spinner("Creando cartera..."):
                                     try:
                                         sh_admin = obtener_conexion_sheets()
-                                        ws_us = sh_admin.worksheet(config.WS_CONFIG_IA_USUARIO)
+                                        ws_us = sh_admin.worksheet(config.WS_CARTERAS)
                                         nueva_fila = [nombre_cartera, propietario, perfil_riesgo, tipo_cartera, mix_target, tolerancia]
                                         ws_us.append_row(nueva_fila)
                                         st.success(f"¡Cartera '{nombre_cartera}' creada exitosamente!")
@@ -2258,7 +2258,7 @@ with tab1:
         df_hist_a = cargar_datos_hoja("TRANSACCIONES")
     
         _c_activa = st.session_state.get("cartera_activa", {})
-        _p_id = _c_activa.get("Usuario_ID", _c_activa.get("USUARIO_ID", "LUIS"))
+        _p_id = _c_activa.get("CARTERA_ID", "LUIS")
     
         if not df_hist_a.empty and "PROPIETARIO" in df_hist_a.columns:
             df_hist_a = df_hist_a[df_hist_a["PROPIETARIO"].astype(str).str.upper() == _p_id.upper()]

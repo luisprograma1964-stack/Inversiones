@@ -1,0 +1,5 @@
+Usuario_ID,Propietario,Tipo_Cartera,Perfil_Riesgo,Mix_Target,Tolerancia_Desvio
+LUIS,Luis,REAL,Agresivo,"Acciones Tech: 60%, Cedears Estables: 30%, Liquidez: 10%",0.1
+LUIS_MODERADO,Luis,SIMULACION,Moderado,"ETF Indexados: 50%, Bonos: 30%, Oro/Soberanos: 10%, Liquidez: 10%",0.05
+VICKY,Vicky,REAL,Conservador,"Dólar Billete: 50%, Plazo Fijo/Leliqs: 30%, Obligaciones Negociables: 20%",0.02
+ANTO,Anto,REAL,Conservador,"Fondo Común de Inversión: 60%, Renta Fija: 30%, Liquidez: 10%",0.02
