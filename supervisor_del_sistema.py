@@ -337,7 +337,6 @@ def ejecutar_supervisor():
 
         # Alerta CCL Determinista
         if not df_tecnico.empty and 'CCL_IMPLICITO' in df_tecnico.columns:
-            import pandas as pd
             df_tecnico_ccl = df_tecnico.copy()
             df_tecnico_ccl['CCL_IMPLICITO'] = pd.to_numeric(df_tecnico_ccl['CCL_IMPLICITO'].astype(str).str.replace(',', '.'), errors='coerce')
             df_ccl_valid = df_tecnico_ccl.dropna(subset=['CCL_IMPLICITO'])
