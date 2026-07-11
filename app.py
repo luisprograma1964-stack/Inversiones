@@ -680,11 +680,13 @@ st.write("---")
 
 # Crear las pestañas principales de la aplicación (Dinámicas por rol)
 if pueden_ejecutar:
-    tab1, tab2, tab3, tab_analytics, tab8, tab_admin = st.tabs([
+    tab1, tab2, tab3, tab_analytics, tab_noticias, tab_glosario, tab8, tab_admin = st.tabs([
         ":material/pie_chart: Resumen de Cartera",
         ":material/account_balance_wallet: Operaciones y Caja",
         ":material/smart_toy: Matriz de Decisiones IA",
         ":material/query_stats: Analytics (Hit-Rate)",
+        ":material/newspaper: Resumen de Noticias",
+        ":material/menu_book: Glosario Financiero",
         ":material/forum: Sugerencias y Feedback",
         ":material/admin_panel_settings: Panel de Administración"
     ])
@@ -696,11 +698,13 @@ if pueden_ejecutar:
             ":material/terminal: Consola de Logs"
         ])
 else:
-    tab1, tab2, tab3, tab_analytics, tab8 = st.tabs([
+    tab1, tab2, tab3, tab_analytics, tab_noticias, tab_glosario, tab8 = st.tabs([
         ":material/pie_chart: Resumen de Cartera",
         ":material/account_balance_wallet: Operaciones y Caja",
         ":material/smart_toy: Matriz de Decisiones IA",
         ":material/query_stats: Analytics (Hit-Rate)",
+        ":material/newspaper: Resumen de Noticias",
+        ":material/menu_book: Glosario Financiero",
         ":material/forum: Sugerencias y Feedback"
     ])
     class DummyTab:
@@ -2344,7 +2348,80 @@ with tab1:
             st.info("Esperando veredictos futuros para calcular el rendimiento.")
 
     # ==========================================
-    # PESTAÑA 8: SUGERENCIAS Y FEEDBACK FAMILIAR
+    
+# ==========================================
+# PESTAÑA: RESUMEN DE NOTICIAS
+# ==========================================
+with tab_noticias:
+    st.header(":material/newspaper: Resumen de Noticias y Clima de Mercado")
+    st.info("Esta sección resume los artículos financieros más recientes consumidos por la IA.")
+    
+    try:
+        df_noticias = cargar_datos_hoja(config.WS_NOTICIAS_SISTEMA)
+        if not df_noticias.empty:
+            # Sort by FECHA desc
+            df_noticias['FECHA'] = pd.to_datetime(df_noticias['FECHA'], errors='coerce')
+            df_noticias = df_noticias.sort_values(by='FECHA', ascending=False)
+            
+            # Filters
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                filtro_tk = st.selectbox("Filtrar por Ticker:", ["Todos"] + sorted(list(df_noticias['TICKER_ID'].unique())))
+            with col2:
+                filtro_sent = st.selectbox("Sentimiento:", ["Todos", "POSITIVO", "NEGATIVO", "NEUTRAL"])
+                
+            df_fil = df_noticias.copy()
+            if filtro_tk != "Todos":
+                df_fil = df_fil[df_fil['TICKER_ID'] == filtro_tk]
+            if filtro_sent != "Todos":
+                df_fil = df_fil[df_fil['SENTIMIENTO'].str.upper() == filtro_sent.upper()]
+                
+            st.write("---")
+            for _, row in df_fil.iterrows():
+                with st.container(border=True):
+                    cols = st.columns([1, 4, 1])
+                    with cols[0]:
+                        s_color = "🟢" if "POSITIVO" in str(row.get('SENTIMIENTO','')).upper() else "🔴" if "NEGATIVO" in str(row.get('SENTIMIENTO','')).upper() else "🟡"
+                        st.subheader(f"{s_color} {row.get('TICKER_ID','')}")
+                        st.caption(str(row.get('FECHA',''))[:10])
+                    with cols[1]:
+                        st.markdown(f"**{row.get('TITULAR','')}**")
+                        st.write(row.get('RESUMEN_IA',''))
+                    with cols[2]:
+                        st.markdown(f"*{row.get('FUENTE','')}*")
+                        if str(row.get('URL','')).startswith("http"):
+                            st.link_button("Leer Artículo", row.get('URL',''))
+        else:
+            st.warning("No hay noticias registradas en el sistema.")
+    except Exception as e:
+        st.error(f"Error al cargar noticias: {e}")
+
+# ==========================================
+# PESTAÑA: GLOSARIO FINANCIERO
+# ==========================================
+with tab_glosario:
+    st.header(":material/menu_book: Glosario Financiero")
+    st.markdown("¿No entendés un término que usó la IA en su recomendación? Buscalo acá.")
+    
+    try:
+        df_glosario = cargar_datos_hoja("GLOSARIO")
+        if not df_glosario.empty:
+            busqueda = st.text_input("🔍 Buscar término (ej: MACD, PER, CEDEAR):")
+            
+            if busqueda:
+                df_glo = df_glosario[df_glosario['TÉRMINO'].str.contains(busqueda, case=False, na=False) | df_glosario['DEFINICIÓN'].str.contains(busqueda, case=False, na=False)]
+            else:
+                df_glo = df_glosario
+                
+            for _, row in df_glo.iterrows():
+                with st.expander(f"**{row.get('TÉRMINO','')}** ({row.get('CATEGORÍA','')})"):
+                    st.write(row.get('DEFINICIÓN',''))
+        else:
+            st.warning("El Glosario está vacío.")
+    except Exception as e:
+        st.error(f"Error al cargar el glosario: {e}")
+
+# PESTAÑA 8: SUGERENCIAS Y FEEDBACK FAMILIAR
     # ==========================================
     with tab8:
         st.header(":material/forum: Buzón de Sugerencias y Feedback")
