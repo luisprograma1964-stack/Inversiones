@@ -76,9 +76,10 @@ def ejecutar_pipeline():
                 return txt and len(txt) > 100 and "#ERROR" not in txt and "#N/A" not in txt
                 
             import os
+            base_dir = os.path.dirname(os.path.abspath(__file__))
             # Archivo 1: instrucciones_fijas.txt
             if es_valido(instrucciones_sheet):
-                path_inst = os.path.join("C:\\Para mi\\Inversiones", "instrucciones_fijas.txt")
+                path_inst = os.path.join(base_dir, "instrucciones_fijas.txt")
                 distinto = True
                 if os.path.exists(path_inst):
                     with open(path_inst, "r", encoding="utf-8") as f:
@@ -93,7 +94,7 @@ def ejecutar_pipeline():
                     
             # Archivo 2: prompt_triage.txt
             if es_valido(triage_sheet):
-                path_triage = os.path.join("C:\\Para mi\\Inversiones", "prompt_triage.txt")
+                path_triage = os.path.join(base_dir, "prompt_triage.txt")
                 distinto = True
                 if os.path.exists(path_triage):
                     with open(path_triage, "r", encoding="utf-8") as f:

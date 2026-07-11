@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 
 # Agregar la ruta absoluta al path para importar módulos locales
-WORKSPACE_DIR = "C:\\Para mi\\Inversiones"
+WORKSPACE_DIR = os.path.dirname(os.path.abspath(__file__))
 if WORKSPACE_DIR not in sys.path:
     sys.path.append(WORKSPACE_DIR)
 
