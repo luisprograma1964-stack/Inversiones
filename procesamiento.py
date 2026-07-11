@@ -474,6 +474,9 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
         
         df_limpio = df[df['FECHA_DT'] >= limite].copy()
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+        
+        import numpy as np
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -542,6 +545,9 @@ def limpiar_log_sistema(sh, dias_a_mantener=None):
         
         df_limpio = df[df['FECHA_DT'] >= limite].copy()
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+        
+        import numpy as np
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -642,6 +648,12 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
         
         df_limpio = df[df['FECHA_DT'] >= limite].copy()
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+        
+        import numpy as np
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
+        
+        import numpy as np
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -813,6 +825,9 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
         
         df_limpio = df[df['FECHA_DT'] >= limite].copy()
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+        
+        import numpy as np
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -861,6 +876,9 @@ def limpiar_reporte_supervisor(sh, dias_a_mantener=30):
         
         df_limpio = df[df['FECHA_DT'] >= limite].copy()
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
+        
+        import numpy as np
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
         
         eliminados = total_antes - len(df_limpio)
         if eliminados > 0:

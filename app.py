@@ -2364,13 +2364,23 @@ with tab_noticias:
             df_noticias = df_noticias.sort_values(by='FECHA', ascending=False)
             
             # Filters
-            col1, col2 = st.columns([1, 1])
+            col1, col2, col3 = st.columns([1, 1, 1])
             with col1:
-                filtro_tk = st.selectbox("Filtrar por Ticker:", ["Todos"] + sorted(list(df_noticias['TICKER_ID'].unique())))
+                filtro_tk = st.selectbox("Filtrar por Ticker:", ["Todos"] + sorted(list(df_noticias['TICKER_ID'].astype(str).unique())))
             with col2:
                 filtro_sent = st.selectbox("Sentimiento:", ["Todos", "POSITIVO", "NEGATIVO", "NEUTRAL"])
+            with col3:
+                filtro_dias = st.selectbox("Antigüedad:", ["Últimos 2 días", "Última semana", "Todas"])
                 
             df_fil = df_noticias.copy()
+            
+            max_date = df_fil['FECHA'].max()
+            if not pd.isna(max_date):
+                if filtro_dias == "Últimos 2 días":
+                    df_fil = df_fil[df_fil['FECHA'] >= (max_date - pd.Timedelta(days=2))]
+                elif filtro_dias == "Última semana":
+                    df_fil = df_fil[df_fil['FECHA'] >= (max_date - pd.Timedelta(days=7))]
+                    
             if filtro_tk != "Todos":
                 df_fil = df_fil[df_fil['TICKER_ID'] == filtro_tk]
             if filtro_sent != "Todos":
