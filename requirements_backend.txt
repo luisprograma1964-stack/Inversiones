@@ -1,0 +1,10 @@
+pandas
+gspread
+google-genai
+yfinance
+requests
+python-dotenv
+beautifulsoup4
+telebot
+pyTelegramBotAPI
+lxml
