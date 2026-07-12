@@ -9,3 +9,8 @@ beautifulsoup4
 telebot
 pyTelegramBotAPI
 lxml
+plotly
+telethon
+feedparser
+pandas-ta
+pygooglenews
