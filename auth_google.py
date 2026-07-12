@@ -20,8 +20,12 @@ def conectar():
             # Intentar primero con Streamlit Secrets (Streamlit Cloud)
             try:
                 import streamlit as st
+                import json
                 if "gcp_service_account" in st.secrets:
-                    gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
+                    secret_val = st.secrets["gcp_service_account"]
+                    if isinstance(secret_val, str):
+                        secret_val = json.loads(secret_val)
+                    gc = gspread.service_account_from_dict(secret_val)
                     sh = gc.open(config.SHEET_NAME)
                     return sh
             except Exception:

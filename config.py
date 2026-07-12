@@ -93,3 +93,28 @@ WS_HISTORIAL_VEREDICTOS = os.getenv('WS_HISTORIAL_VEREDICTOS', 'HISTORIAL_VEREDI
 
 WS_REPORTE_SUPERVISOR = os.getenv("WS_REPORTE_SUPERVISOR", "REPORTE_SUPERVISOR")
 WS_ALERTAS_SUPERVISOR = os.getenv("WS_ALERTAS_SUPERVISOR", "ALERTAS_SUPERVISOR")
+
+def get_gemini_api_key():
+    """Obtiene la API Key de Gemini desde Streamlit Secrets, variables de entorno o archivo local."""
+    # 1. Intentar Streamlit Secrets
+    try:
+        import streamlit as st
+        if "GEMINI_API_KEY" in st.secrets:
+            return st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        pass
+    
+    # 2. Intentar variables de entorno (GitHub Actions, etc)
+    env_key = os.getenv("GEMINI_API_KEY")
+    if env_key:
+        return env_key
+        
+    # 3. Fallback a archivo local
+    api_key_path = Path(API_KEY_FILE)
+    if api_key_path.exists():
+        with open(api_key_path, 'r', encoding='utf-8') as f:
+            key = f.read().strip()
+            if key:
+                return key
+                
+    raise ValueError(f"No se encontró la API Key de Gemini. Verifica los Streamlit Secrets, variables de entorno o el archivo local {API_KEY_FILE}")

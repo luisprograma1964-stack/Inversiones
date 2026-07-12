@@ -2,3 +2,13 @@
 luisprograma1964@gmail.com
 vicky8575
 -- no borrar
+https://www.pythonanywhere.com/registration/register/beginner/
+luisprograma1964 //uusario
+bsas2607luis1964
+
+git clone https://github.com/luisprograma1964-stack/Inversiones.git
+
+/home/luisprograma1964/.virtualenvs/mi_entorno/bin/python 
+/home/luisprograma1964/Inversiones/ensamblador.py
+
+----

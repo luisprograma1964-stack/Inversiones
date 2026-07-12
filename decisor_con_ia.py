@@ -26,15 +26,7 @@ def inicializar_motor_ia():
     if not sh:
         raise RuntimeError("No se pudo conectar a Google Sheets con las credenciales configuradas.")
 
-    api_key_path = Path(config.API_KEY_FILE)
-    if not api_key_path.exists():
-        raise FileNotFoundError(f"Archivo de API KEY no encontrado: {config.API_KEY_FILE}")
-
-    with open(api_key_path, 'r', encoding='utf-8') as f:
-        key = f.read().strip()
-
-    if not key:
-        raise ValueError(f"El archivo de API KEY está vacío: {config.API_KEY_FILE}")
+    key = config.get_gemini_api_key()
 
     client = genai.Client(api_key=key)
     return sh, client

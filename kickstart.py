@@ -137,10 +137,7 @@ def run_kickstart():
                 import google.genai.types as types
                 from pathlib import Path
                 
-                api_key_path = Path(config.API_KEY_FILE)
-                with open(api_key_path, 'r', encoding='utf-8') as f:
-                    key = f.read().strip()
-                
+                key = config.get_gemini_api_key()                
                 client = genai.Client(api_key=key)
                 
                 candidatos = ia_utils.obtener_modelos_activos()
