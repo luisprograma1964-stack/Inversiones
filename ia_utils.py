@@ -143,7 +143,7 @@ def obtener_modelos_activos():
 
     # 2. Fallback: lista estática si el Health Check no se ejecutó o falló (sin prefijo models/)
     pref_clean = MODELO_PREF.replace("models/", "") if MODELO_PREF else None
-    candidatos = [pref_clean, "gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+    candidatos = [pref_clean, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.0-flash-lite"]
     
     vistos = set()
     ordenados = []

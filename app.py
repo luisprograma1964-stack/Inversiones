@@ -33,8 +33,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-
-
 # --- 1. ESTADO GLOBAL PERSISTENTE (Seguro por Hilos) ---
 @st.cache_resource
 def obtener_estado_global():
@@ -329,13 +327,12 @@ def validar_credenciales(username, password):
 
 # --- CONTROL DE ACCESO (LOGIN DE USUARIO) ---
 if "usuario" not in st.session_state:
-    st.markdown("""
-        <div style='text-align: center; padding: 30px;'>
-            <h1 style='color: #1E3A8A; font-family: Outfit, sans-serif; font-size: 32px;'>📈 Portal Familiar de Inversiones</h1>
-            <p style='color: #6B7280; font-size: 16px;'>Por favor, inicie sesión para acceder al panel de control.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    col_img1, col_img2, col_img3 = st.columns([4.2, 1.6, 4.2])
+    with col_img2:
+        if os.path.exists(os.path.join(WORKSPACE_DIR, "logo_bm.png")):
+            st.image(os.path.join(WORKSPACE_DIR, "logo_bm.png"), use_container_width=True)
+            
+
     col_l1, col_l2, col_l3 = st.columns([4, 4, 4])
     with col_l2:
         with st.form("login_form", clear_on_submit=False):
@@ -360,10 +357,22 @@ if "usuario" not in st.session_state:
                             st.rerun()
                         else:
                             st.error(status_msg)
+                            
+        st.markdown("""
+            <div style='text-align: center; margin-top: 15px;'>
+                <p style='color: #6B7280; font-size: 14px;'>Por favor, inicie sesión para acceder al panel de control.</p>
+            </div>
+        """, unsafe_allow_html=True)
     st.stop()
 
 # --- 5. BARRA LATERAL (MONITOR DE DIVISAS Y BRECHA CAMBIARIA) ---
-st.sidebar.markdown(f":material/person: **Usuario**: `{st.session_state['usuario']['nombre']}` ({st.session_state['usuario']['rol']})")
+sb_col1, sb_col2 = st.sidebar.columns([3, 7])
+with sb_col1:
+    logo_path = os.path.join(WORKSPACE_DIR, "logo_bm.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, use_container_width=True)
+with sb_col2:
+    st.markdown(f"<div style='margin-top: 10px;'><b>Usuario:</b><br/>`{st.session_state['usuario']['nombre']}`<br/><small>({st.session_state['usuario']['rol']})</small></div>", unsafe_allow_html=True)
 
 if "carteras" not in st.session_state:
     st.session_state["carteras"] = cargar_carteras_usuario(st.session_state["usuario"]["nombre"], st.session_state["usuario"]["rol"])
@@ -387,12 +396,7 @@ if "carteras" in st.session_state and st.session_state["carteras"]:
 else:
     st.sidebar.warning("No tienes carteras asignadas.")
 
-if st.sidebar.button("🚪 Cerrar Sesión", key="logout_btn", use_container_width=True):
-    for key in ["usuario", "carteras", "cartera_activa"]:
-        if key in st.session_state:
-            del st.session_state[key]
-    st.rerun()
-st.sidebar.markdown("---")
+
 
 def obtener_variables_cambiarias():
     df_mercado = cargar_datos_hoja(config.WS_VARIABLES_MERCADO)
@@ -571,43 +575,29 @@ def render_semaforo_sidebar():
     estado_sheets = "LIBRE"
     detalle_sheets = ""
 
-    nombre_proceso = "Proceso"
-    if not df_semaforo_side.empty:
-        col_proceso = next((c for c in df_semaforo_side.columns if "PROCESO" in c), None)
-        col_estado = next((c for c in df_semaforo_side.columns if "ESTADO" in c), None)
-        col_detalle = next((c for c in df_semaforo_side.columns if "DETALLE" in c), None)
-        col_fecha_hora = next((c for c in df_semaforo_side.columns if "CORRIDA" in c or "FECHA" in c or "HORA" in c), None)
     
-        if col_proceso and col_estado and col_fecha_hora:
-            procesos_clave = ["ensamblador", "decisor_con_ia", "supervisor_del_sistema"]
-        
-            if hay_proceso_corriendo_local:
-                st.warning(f":material/settings: Corriendo localmente:\n`{estado_global['activo']}`")
+    if not df_semaforo_side.empty:
+        if hay_proceso_corriendo_local:
+            st.warning(f":material/settings: Corriendo localmente:\n`{estado_global['activo']}`")
             
-            for proc_name in procesos_clave:
-                row_proc = df_semaforo_side[df_semaforo_side[col_proceso].astype(str).str.lower() == proc_name]
-                if not row_proc.empty:
-                    row = row_proc.iloc[0]
-                    estado_sheets = str(row[col_estado]).strip().upper()
-                    detalle_sheets = str(row[col_detalle]) if col_detalle else ""
-                    fecha_sheets = str(row[col_fecha_hora]).strip()
-                
-                    # Formatear el nombre para que se vea lindo
-                    display_name = proc_name.replace("_", " ").title()
-                    if "Ensamblador" in display_name: display_name = "Pipeline (Ensamblador)"
-                    if "Decisor" in display_name: display_name = "IA Decisora"
-                    if "Supervisor" in display_name: display_name = "Supervisor IA"
-                
-                    if "PROCESANDO" in estado_sheets:
-                        st.warning(f":material/pending: **{display_name}**\n{detalle_sheets[:60]}\n⏱️ `{fecha_sheets}`")
-                    elif "ERROR" in estado_sheets or "FAIL" in estado_sheets or "FALL" in estado_sheets:
-                        st.error(f":material/cancel: **{display_name}** (Error)\n{detalle_sheets[:60]}\n⏱️ `{fecha_sheets}`")
-                    elif "CANCEL" in estado_sheets or "ABORT" in estado_sheets:
-                        st.error(f":material/warning: **{display_name}** (Cancelado)\n⏱️ `{fecha_sheets}`")
-                    elif "COMPLET" in estado_sheets or "OK" in estado_sheets or "EXIT" in estado_sheets or "ÉXIT" in estado_sheets:
-                        st.success(f":material/check_circle: **{display_name}** (OK)\n⏱️ `{fecha_sheets}`")
-                    else:
-                        st.info(f":material/info: **{display_name}**\n⏱️ `{fecha_sheets}`")
+        # Filtrar la fila del ensamblador
+        row_proc = df_semaforo_side[df_semaforo_side["NOMBRE_PROCESO"].astype(str).str.lower() == "ensamblador"]
+        if not row_proc.empty:
+            row = row_proc.iloc[0]
+        else:
+            row = df_semaforo_side.iloc[0]
+            
+        estado = str(row.get("ESTADO", "N/A")).strip().upper()
+        if estado == "OK":
+            st.success(f"✅ **Proceso Global Completado**\n🕒 {row.get('ULTIMA_CORRIDA', 'N/A')}\n⏱️ {row.get('TIEMPO_EJECUCION', 'N/A')}")
+        elif estado == "ERROR":
+            st.error(f"❌ **Error en Ejecución**\n🕒 {row.get('ULTIMA_CORRIDA', 'N/A')}\n⏱️ {row.get('TIEMPO_EJECUCION', 'N/A')}")
+        elif estado == "PROCESANDO":
+            st.warning(f"⏳ **Ejecutando...**\n🕒 {row.get('ULTIMA_CORRIDA', 'N/A')}\n⏱️ {row.get('TIEMPO_EJECUCION', 'N/A')}")
+        else:
+            st.info(f"⚠️ **{estado}**\n🕒 {row.get('ULTIMA_CORRIDA', 'N/A')}\n⏱️ {row.get('TIEMPO_EJECUCION', 'N/A')}")
+    else:
+        st.info("Sin datos del proceso.")
 
     st.markdown("---")
     st.subheader(":material/settings: Ejecución Rápida")
@@ -635,16 +625,8 @@ def render_semaforo_sidebar():
 
     # Deshabilitar botones si algo corre de fondo o si no tiene permisos
 
-    if st.button(":material/refresh: Ejecutar Ensamblador (Completo)", disabled=hay_proceso_corriendo_local or not pueden_ejecutar):
+    if st.button(":material/refresh: Ejecutar Motor Inteligente (Completo)", disabled=hay_proceso_corriendo_local or not pueden_ejecutar, type="primary"):
         disparar_proceso_fondo("ensamblador.py")
-        st.rerun()
-
-    if st.button(":material/search: Control de Calidad (QA)", disabled=hay_proceso_corriendo_local or not pueden_ejecutar):
-        disparar_proceso_fondo("TEST/homologador.py")
-        st.rerun()
-
-    if st.button(":material/assignment: Correr Supervisor", disabled=hay_proceso_corriendo_local or not pueden_ejecutar):
-        disparar_proceso_fondo("supervisor_del_sistema.py")
         st.rerun()
 
     if not pueden_ejecutar:
@@ -755,40 +737,105 @@ with tab1:
         df_val_filtered = df_val
         df_caja_filtered = df_caja
 
-        # Calcular Métricas
-        total_valuacion_cedears = df_val_filtered["VALOR_ACTUAL"].sum() if not df_val_filtered.empty and "VALOR_ACTUAL" in df_val_filtered else 0.0
-        total_saldos_caja = df_caja_filtered["SALDO"].sum() if not df_caja_filtered.empty and "SALDO" in df_caja_filtered else 0.0
-        patrimonio_neto = total_valuacion_cedears + total_saldos_caja
-        
         # Filtrar activos reales para deltas (excluyendo totales de Sheets si hubiese)
         df_real_assets = df_val_filtered[~df_val_filtered["TICKER"].isin(["-TOTAL-", "-CASH-"])] if not df_val_filtered.empty else pd.DataFrame()
-        rent_nominal = df_real_assets["RENTABILIDAD_NOMINAL"].sum() if not df_real_assets.empty and "RENTABILIDAD_NOMINAL" in df_real_assets else 0.0
-        aportes_netos = df_real_assets["APORTES_NETOS"].sum() if not df_real_assets.empty and "APORTES_NETOS" in df_real_assets else 0.0
-        rent_porc = (rent_nominal / aportes_netos * 100) if aportes_netos > 0 else 0.0
         
-        liquidez_porc = (total_saldos_caja / patrimonio_neto * 100) if patrimonio_neto > 0 else 0.0
+        # Calcular Métricas de Inversiones discriminando monedas
+        total_valuacion_cedears_usd = 0.0
+        rent_nominal_usd = 0.0
+        aportes_netos_usd = 0.0
         
+        tipo_cambio = mep_v if mep_v > 0 else (ccl_prom if ccl_prom > 0 else 1000.0)
+        
+        for _, row in df_real_assets.iterrows():
+            mon = str(row.get("MONEDA", "ARS")).strip().upper()
+            val_act = float(row.get("VALOR_ACTUAL", 0.0))
+            rent_nom = float(row.get("RENTABILIDAD_NOMINAL", 0.0))
+            apor = float(row.get("APORTES_NETOS", 0.0))
+            
+            if mon == "USD":
+                total_valuacion_cedears_usd += val_act
+                rent_nominal_usd += rent_nom
+                aportes_netos_usd += apor
+            else:
+                total_valuacion_cedears_usd += (val_act / tipo_cambio) if tipo_cambio > 0 else 0.0
+                rent_nominal_usd += (rent_nom / tipo_cambio) if tipo_cambio > 0 else 0.0
+                aportes_netos_usd += (apor / tipo_cambio) if tipo_cambio > 0 else 0.0
+        
+        # Calcular costo base de la inversión (para el % de la tarjeta CEDEARs)
+        costo_inversion_usd = total_valuacion_cedears_usd - rent_nominal_usd
+        rent_porc_inversion = (rent_nominal_usd / costo_inversion_usd * 100) if costo_inversion_usd > 0 else 0.0
+        
+        # Calcular caja
+        saldo_ars = 0.0
+        saldo_usd = 0.0
+        if not df_caja_filtered.empty and "SALDO" in df_caja_filtered and "MONEDA" in df_caja_filtered:
+            saldo_ars = df_caja_filtered[df_caja_filtered["MONEDA"].astype(str).str.upper() == "ARS"]["SALDO"].sum()
+            saldo_usd = df_caja_filtered[df_caja_filtered["MONEDA"].astype(str).str.upper() == "USD"]["SALDO"].sum()
+            
+        caja_ponderada_usd = saldo_usd + (saldo_ars / tipo_cambio) if tipo_cambio > 0 else saldo_usd
+        patrimonio_neto_usd = total_valuacion_cedears_usd + caja_ponderada_usd
+        liquidez_porc = (caja_ponderada_usd / patrimonio_neto_usd * 100) if patrimonio_neto_usd > 0 else 0.0
+
+        # Calcular aportes totales del portfolio (para el % de la tarjeta Patrimonio)
+        aportes_totales_usd = 0.0
+        df_totales = df_val_filtered[df_val_filtered["TICKER"] == "-TOTAL-"]
+        for _, row in df_totales.iterrows():
+            mon = str(row.get("MONEDA", "ARS")).strip().upper()
+            apor = float(row.get("APORTES_NETOS", 0.0))
+            aportes_totales_usd += apor if mon == "USD" else (apor / tipo_cambio if tipo_cambio > 0 else 0.0)
+            
+        rent_porc_patrimonio = (rent_nominal_usd / aportes_totales_usd * 100) if aportes_totales_usd > 0 else 0.0
+        
+        # Valores brutos de inversión para mostrar
+        inversion_usd = 0.0
+        inversion_ars = 0.0
+        if not df_real_assets.empty and "MONEDA" in df_real_assets.columns and "VALOR_ACTUAL" in df_real_assets.columns:
+            inversion_usd = pd.to_numeric(df_real_assets[df_real_assets["MONEDA"].astype(str).str.upper() == "USD"]["VALOR_ACTUAL"], errors='coerce').fillna(0).sum()
+            inversion_ars = pd.to_numeric(df_real_assets[df_real_assets["MONEDA"].astype(str).str.upper() == "ARS"]["VALOR_ACTUAL"], errors='coerce').fillna(0).sum()
+
+        # Matriz de valores según el excel del usuario (Redondeados para consistencia visual)
+        inv_raw_usd = round(inversion_usd, 0)
+        inv_raw_ars = round(inversion_ars, 0)
+        inv_total_usd = round(inv_raw_usd + (inv_raw_ars / tipo_cambio if tipo_cambio > 0 else 0.0), 0)
+        
+        liq_raw_usd = round(saldo_usd, 0)
+        liq_raw_ars = round(saldo_ars, 0)
+        liq_total_usd = round(liq_raw_usd + (liq_raw_ars / tipo_cambio if tipo_cambio > 0 else 0.0), 0)
+        
+        pat_raw_usd = inv_raw_usd + liq_raw_usd
+        pat_raw_ars = inv_raw_ars + liq_raw_ars
+        pat_total_usd = inv_total_usd + liq_total_usd
+
+        def sub_row(usd_val, ars_val):
+            return f"<div style='font-size:1.05rem; margin-top:5px; line-height:1.5;'><b>US$:</b> ${usd_val:,.0f}<br><b>AR$:</b> ${ars_val:,.0f}</div>"
+
         # Tarjetas Métricas
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric(
-                label=f"Patrimonio Neto ({_p_id})", 
-                value=f"${patrimonio_neto:,.2f}", 
-                delta=f"${rent_nominal:+,.2f} ({rent_porc:+.2f}%)"
+                label="Patrimonio Total Val. (U$S)", 
+                value=f"${pat_total_usd:,.0f}", 
+                delta=f"{'-' if rent_nominal_usd < 0 else ''}${abs(rent_nominal_usd):,.0f} USD ({rent_porc_patrimonio:+.2f}%)",
+                delta_color="normal"
             )
+            st.markdown(sub_row(pat_raw_usd, pat_raw_ars), unsafe_allow_html=True)
         with col2:
             st.metric(
-                label=f"Valuación CEDEARs ({_p_id})", 
-                value=f"${total_valuacion_cedears:,.2f}", 
-                delta=f"${rent_nominal:+,.2f} (Ganancia Acum.)"
+                label="Inversión Val. (U$S)", 
+                value=f"${inv_total_usd:,.0f}", 
+                delta=f"Ganancia Eq: {'-' if rent_nominal_usd < 0 else ''}${abs(rent_nominal_usd):,.0f} ({rent_porc_inversion:+.2f}%)",
+                delta_color="normal"
             )
+            st.markdown(sub_row(inv_raw_usd, inv_raw_ars), unsafe_allow_html=True)
         with col3:
             st.metric(
-                label=f"Efectivo Total Caja ({_p_id})", 
-                value=f"${total_saldos_caja:,.2f}", 
-                delta=f"{liquidez_porc:.1f}% del capital",
-                delta_color="normal" if total_saldos_caja > 0 else "off"
+                label="Liquidez Val. (U$S)", 
+                value=f"${liq_total_usd:,.0f}", 
+                delta=f"Equivalente a Dólar MEP" if liq_total_usd > 0 else None,
+                delta_color="off"
             )
+            st.markdown(sub_row(liq_raw_usd, liq_raw_ars), unsafe_allow_html=True)
         
         st.write("---")
         
@@ -836,8 +883,14 @@ with tab1:
         
         st.write("---")
         if not df_val_filtered.empty:
-            st.subheader(f"Tenencias Consolidadas ({_p_id})")
-            st.dataframe(df_val_filtered, use_container_width=True)
+            st.subheader("Tenencias Consolidadas")
+            df_disp = df_val_filtered.copy()
+            if "ULTIMA_ACTUALIZACION" in df_disp.columns:
+                df_disp["ULTIMA_ACTUALIZACION"] = df_disp["ULTIMA_ACTUALIZACION"].astype(object)
+                mask = pd.to_numeric(df_disp["ULTIMA_ACTUALIZACION"], errors='coerce').notna()
+                if mask.any():
+                    df_disp.loc[mask, "ULTIMA_ACTUALIZACION"] = pd.to_datetime(df_disp.loc[mask, "ULTIMA_ACTUALIZACION"].astype(float), unit='D', origin='1899-12-30').dt.strftime('%Y-%m-%d %H:%M:%S')
+            st.dataframe(df_disp, use_container_width=True)
 
     # ==========================================
     # SECCIÓN: ANÁLISIS TÉCNICO AVANZADO (CANDLESTICKS & RSI)
@@ -1130,7 +1183,7 @@ with tab1:
                 col_t1, col_t2 = st.columns(2)
                 with col_t1:
                     fecha_op = st.date_input("Fecha de Operación:", datetime.now())
-                    cantidad = st.number_input("Cantidad nominal:", min_value=0.0, value=0.0, step=1.0)
+                    cantidad = st.number_input("Cantidad nominal:", min_value=0, value=0, step=1)
                     broker_sel = st.selectbox("Broker/Cuenta:", lista_brokers)
                 with col_t2:
                     # Add suggested value fetch
@@ -1257,6 +1310,9 @@ with tab1:
                                 ws_caja.append_row(nueva_fila_caja, value_input_option="USER_ENTERED")
                             
                                 st.success("💾 Transacción y movimiento de caja registrados exitosamente!")
+                                st.info("🔄 Recalculando valoraciones del portafolio en línea...")
+                                import valorador_cartera
+                                valorador_cartera.ejecutar_valoracion()
                                 limpiar_cache_dinamico()
                                 st.rerun()
                             except Exception as e:
@@ -1310,17 +1366,19 @@ with tab1:
                                 row_dict = {
                                     "FECHA": fecha_str,
                                     "PROPIETARIO": prop,
-                                    "TIPO_MOVIMIENTO": tipo_mov,
-                                    "TIPO": tipo_mov,
+                                    "MOVIMIENTO": tipo_mov,
                                     "MONTO": str(monto).replace('.', ','),
                                     "MONEDA": moneda,
-                                    "DETALLE": detalle_mov,
+                                    "CONCEPTO": detalle_mov,
                                     "FECHA_ACTUALIZACION": ahora_completo
                                 }
                         
                                 nueva_fila = [row_dict.get(h, "") for h in headers]
                                 ws_caja_sheet.append_row(nueva_fila, value_input_option="USER_ENTERED")
                                 st.success("¡Movimiento de caja registrado exitosamente!")
+                                st.info("🔄 Recalculando valoraciones del portafolio en línea...")
+                                import valorador_cartera
+                                valorador_cartera.ejecutar_valoracion()
                                 limpiar_cache_dinamico()
                                 st.rerun()
                             except Exception as e:
@@ -2172,21 +2230,46 @@ with tab1:
                         cargar_logs_recientes.clear()
                         st.rerun()
                 
-                # 1. Planilla del Semáforo (ESTADO_PROCESOS)
-                st.subheader(":material/traffic: Tabla Semáforo (Estado de Procesos)")
+                # 1. Estado de la Última Ejecución (Semáforo)
+                st.subheader(":material/traffic: Estado de la Última Ejecución")
                 df_semaforo = cargar_datos_semaforo()
                 if not df_semaforo.empty:
-                    df_semaforo_show = df_semaforo.copy()
-                    if "ESTADO" in df_semaforo_show.columns:
-                        df_semaforo_show["ESTADO"] = df_semaforo_show["ESTADO"].astype(str).str.strip().str.upper().map({
-                            "OK": "✅ OK",
-                            "ERROR": "❌ ERROR",
-                            "PROCESANDO": "⏳ PROCESANDO",
-                            "ALERTA": "⚠️ ALERTA"
-                        }).fillna(df_semaforo_show["ESTADO"])
-                    st.dataframe(df_semaforo_show, use_container_width=True)
+                    # Extraer la fila del ensamblador
+                    row_proc = df_semaforo[df_semaforo["NOMBRE_PROCESO"].astype(str).str.lower() == "ensamblador"]
+                    if not row_proc.empty:
+                        row = row_proc.iloc[0]
+                    else:
+                        row = df_semaforo.iloc[0]
+                        
+                    estado = str(row.get("ESTADO", "N/A")).strip().upper()
+                    
+                    if estado == "OK":
+                        st.success(f"✅ **Proceso Global Completado Exitosamente**  \n🕒 **Iniciado:** {row.get('ULTIMA_CORRIDA', 'N/A')} | ⏱️ **Tiempo Consumido:** {row.get('TIEMPO_EJECUCION', 'N/A')}")
+                    elif estado == "ERROR":
+                        st.error(f"❌ **Error en Ejecución del Proceso**  \n🕒 **Iniciado:** {row.get('ULTIMA_CORRIDA', 'N/A')} | ⏱️ **Tiempo Consumido:** {row.get('TIEMPO_EJECUCION', 'N/A')}")
+                    elif estado == "PROCESANDO":
+                        st.warning(f"⏳ **Ejecutando Motor de Inteligencia...**  \n🕒 **Iniciado:** {row.get('ULTIMA_CORRIDA', 'N/A')} | ⏱️ **Tiempo Consumido:** {row.get('TIEMPO_EJECUCION', 'N/A')}")
+                    else:
+                        st.info(f"⚠️ **{estado}**  \n🕒 **Iniciado:** {row.get('ULTIMA_CORRIDA', 'N/A')} | ⏱️ **Tiempo Consumido:** {row.get('TIEMPO_EJECUCION', 'N/A')}")
                 else:
-                    st.info("No se pudieron cargar los datos de la tabla semáforo. Presiona 'Refrescar Datos'.")
+                    st.info("No se pudieron cargar los datos de estado. Presiona 'Forzar Refresco de Datos'.")
+                
+                # MOSTRAR TABLA DE ESTADO PROCESOS A PEDIDO DEL USUARIO
+                if not df_semaforo.empty:
+                    st.write("**Detalle de Subprocesos:**")
+                    df_display = df_semaforo.copy()
+                    
+                    def format_estado_col(val):
+                        v = str(val).strip().upper()
+                        if v == "OK": return "🟢 OK"
+                        if v == "ERROR": return "🔴 ERROR"
+                        if v == "PROCESANDO": return "🟡 PROCESANDO"
+                        return f"⚪ {v}"
+                        
+                    if "ESTADO" in df_display.columns:
+                        df_display["ESTADO"] = df_display["ESTADO"].apply(format_estado_col)
+                        
+                    st.dataframe(df_display, use_container_width=True, hide_index=True)
                 
                 st.write("---")
 
@@ -2209,7 +2292,7 @@ with tab1:
                 
                 if log_content != "":
                     with st.expander(":material/edit_note: Bitácora de la Última Corrida (Consola)", expanded=True):
-                        if hay_proceso_corriendo:
+                        if estado_global["activo"] is not None:
                             st.warning(f":material/settings: Corriendo de fondo: `{estado_global['activo']}` (Estado: {estado_global['status']})")
                         elif "[FAIL]" in log_content or "ERROR" in log_content.upper() or "FALL" in log_content.upper():
                             st.error(f":material/cancel: Corrida Finalizada con Errores.")
@@ -2483,3 +2566,9 @@ with tab_glosario:
                                 pass
                         except Exception as ex_f:
                             st.error(f"Error al enviar sugerencia: {ex_f}")
+
+if st.sidebar.button("🚪 Cerrar Sesión", key="logout_btn_bottom", use_container_width=True):
+    for key in ["usuario", "carteras", "cartera_activa"]:
+        if key in st.session_state:
+            del st.session_state[key]
+    st.rerun()

@@ -499,14 +499,35 @@ def ejecutar_captura_noticias():
             ws_sugerencias.append_rows(sugerencias_batch, value_input_option='RAW')
             logger.info(f"    [!] {len(sugerencias_batch)} sugerencias de sinónimos detectadas.")
             
+        # --- BOLETÍN DE NOTICIAS PARA VICKY ---
+        if aprobadas_batch:
             import notificador_telegram
-            for sug in sugerencias_batch:
-                titular = sug[1]
-                termino = sug[3]
-                ticker = sug[4]
-                explicacion = sug[5] if len(sug) > 5 else "Generado por IA"
-                msg_tg = f"🔔 <b>Sugerencia de Sinónimo (AI)</b>\n\nSe sugiere el término <code>{termino}</code> para el activo <b>{ticker}</b>.\n\n<b>Titular original:</b> {titular}\n<b>Motivo/Explicación:</b> {explicacion}\n\nRevisalo en el Panel de Administración."
-                notificador_telegram.enviar_mensaje_telegram(msg_tg)
+            # Ordenar por importancia (Prioridad 1: Activos específicos, 2: Locales (9999_AR), 3: Global (9999_US))
+            def score_prioridad(noticia):
+                ticker = str(noticia[2])
+                if ticker == "9999_AR": return 2
+                if ticker == "9999_US": return 3
+                return 1 # Ticker específico tiene más prioridad
+
+            aprobadas_ordenadas = sorted(aprobadas_batch, key=score_prioridad)
+            
+            msg_boletin = "📰 <b>Resumen Diario de Noticias Relevantes</b>\n\n"
+            
+            for noti in aprobadas_ordenadas:
+                ticker = noti[2]
+                titular = noti[3]
+                url = noti[6]
+                sentimiento = noti[9]
+                
+                # Emoji según sentimiento
+                emoji_sent = "🟢" if "POSITIV" in str(sentimiento).upper() else ("🔴" if "NEGATIV" in str(sentimiento).upper() else "⚪")
+                
+                msg_boletin += f"{emoji_sent} <b>[{ticker}]</b> {titular}\n"
+                if url and str(url).startswith("http"):
+                    msg_boletin += f"🔗 <a href='{url}'>Leer más</a>\n"
+                msg_boletin += "\n"
+                
+            notificador_telegram.enviar_mensaje_telegram(msg_boletin, destinatario="VICKY")
 
         # 6. Finalización y Logs
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"

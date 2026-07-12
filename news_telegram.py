@@ -25,7 +25,23 @@ async def capturar_mensajes(canales):
     client = TelegramClient('creds/anon', config.TELEGRAM_API_ID, config.TELEGRAM_API_HASH)
     
     try:
-        await client.start()
+        # Obtener token dinámicamente desde la hoja de Sheets
+        import auth_google
+        sh = auth_google.conectar()
+        token = None
+        if sh:
+            try:
+                ws = sh.worksheet(config.WS_CONFIG_IA_GENERAL)
+                data = ws.get_all_records()
+                if data:
+                    token = str(data[0].get("TELEGRAM_TOKEN", "")).strip()
+            except Exception:
+                pass
+                
+        if token and "ERROR" not in token:
+            await client.start(bot_token=token)
+        else:
+            await client.start() # Fallback, requerirá interacción manual la primera vez
         for canal in canales:
             try:
                 entity = await client.get_entity(canal)

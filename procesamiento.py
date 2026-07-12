@@ -429,14 +429,17 @@ def limpiar_historico_valores(sh, dias_a_mantener=None):
 def limpiar_reporte_ia(sh, dias_a_mantener=None):
     """
     Limpia la hoja REPORTE_IA, manteniendo solo los registros de los últimos X días.
+def limpiar_historial_veredictos(sh, dias_a_mantener=None):
+    """
+    Limpia la hoja HISTORIAL_VEREDICTOS, manteniendo solo los registros de los últimos X días.
     Evita que el crecimiento infinito de la hoja ralentice las consultas de la IA.
     """
-    ws_reporte = sh.worksheet(config.WS_REPORTE_IA)
+    ws_reporte = sh.worksheet(config.WS_HISTORIAL_VEREDICTOS)
     ws_log = sh.worksheet(config.WS_LOG_SISTEMA)
     ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
     
     if dias_a_mantener is None:
-        dias_a_mantener = getattr(config, 'DIAS_KEEP_REPORTE_IA', 100)
+        dias_a_mantener = getattr(config, 'DIAS_KEEP_HISTORIAL_VEREDICTOS', 100)
 
     try:
         t_inicio = time.time()
@@ -444,20 +447,20 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
         total_actual = len(data)
         
         # Verificar si ya se limpió hoy consultando ESTADO_PROCESOS
-        ya_limpio_hoy = ya_ejecutado_hoy(ws_status, "limpieza_ia")
+        ya_limpio_hoy = ya_ejecutado_hoy(ws_status, "limpieza_historial_veredictos")
 
         # Solo limpiar si supera el umbral o si es el primer run del día
         if total_actual < config.UMBRAL_FILAS_REPORTE and ya_limpio_hoy:
             logger.info(f"    [-] Saltando limpieza de reporte (Filas: {total_actual}, ya limpio hoy)")
             return
 
-        msg_inicio = f"Iniciando limpieza de {config.WS_REPORTE_IA} ({dias_a_mantener} días)..."
+        msg_inicio = f"Iniciando limpieza de {config.WS_HISTORIAL_VEREDICTOS} ({dias_a_mantener} días)..."
         logger.info(f"[*] {msg_inicio}")
-        registrar_log(ws_log, "INFO", msg_inicio, "limpieza_ia")
+        registrar_log(ws_log, "INFO", msg_inicio, "limpieza_historial_veredictos")
 
-        actualizar_estado_proceso(ws_status, "PROCESANDO", "Limpiando reporte IA...", "limpieza_ia")
+        actualizar_estado_proceso(ws_status, "PROCESANDO", "Limpiando reporte IA...", "limpieza_historial_veredictos")
         if not data:
-            actualizar_estado_proceso(ws_status, "OK", "Sin datos para limpiar", "limpieza_ia", tiempo_ejecucion="0.00 min")
+            actualizar_estado_proceso(ws_status, "OK", "Sin datos para limpiar", "limpieza_historial_veredictos", tiempo_ejecucion="0.00 min")
             return
 
         df = pd.DataFrame(data)
@@ -465,7 +468,7 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
         total_antes = len(df)
 
         if 'FECHA' not in df.columns:
-            registrar_log(ws_log, "ERROR", "Columna FECHA no encontrada en REPORTE_IA.", "limpieza_ia")
+            registrar_log(ws_log, "ERROR", "Columna FECHA no encontrada en HISTORIAL_VEREDICTOS.", "limpieza_historial_veredictos")
             return
 
         # Convertir a datetime y filtrar por antigüedad
@@ -480,11 +483,11 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
-            msg_skip = f"Saltando escritura de REPORTE_IA: solo se identificaron {eliminados} filas viejas para borrar (umbral mínimo: {getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50)})."
+            msg_skip = f"Saltando escritura de HISTORIAL_VEREDICTOS: solo se identificaron {eliminados} filas viejas para borrar (umbral mínimo: {getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50)})."
             logger.info(f"    [-] {msg_skip}")
-            registrar_log(ws_log, "INFO", msg_skip, "limpieza_ia")
+            registrar_log(ws_log, "INFO", msg_skip, "limpieza_historial_veredictos")
             duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
-            actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_ia", tiempo_ejecucion=duracion)
+            actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_historial_veredictos", tiempo_ejecucion=duracion)
             return
 
         # Sobrescribir la hoja con los datos vigentes usando el sistema de lotes
@@ -498,14 +501,14 @@ def limpiar_reporte_ia(sh, dias_a_mantener=None):
                 end_idx = min((i + 1) * config.CHUNK_SIZE_SHEETS, len(df_limpio))
                 ws_reporte.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
 
-        msg_fin = f"Limpieza REPORTE_IA completada. Se eliminaron {eliminados} registros."
+        msg_fin = f"Limpieza HISTORIAL_VEREDICTOS completada. Se eliminaron {eliminados} registros."
         logger.info(f"[OK] {msg_fin}")
-        registrar_log(ws_log, "INFO", msg_fin, "limpieza_ia")
+        registrar_log(ws_log, "INFO", msg_fin, "limpieza_historial_veredictos")
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
-        actualizar_estado_proceso(ws_status, "OK", msg_fin, "limpieza_ia", tiempo_ejecucion=duracion)
+        actualizar_estado_proceso(ws_status, "OK", msg_fin, "limpieza_historial_veredictos", tiempo_ejecucion=duracion)
     except Exception as e:
-        registrar_log(ws_log, "ERROR", f"Error en limpieza_ia: {e}", "limpieza_ia")
-        actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_ia", tiempo_ejecucion="0.00 min")
+        registrar_log(ws_log, "ERROR", f"Error en limpieza_historial_veredictos: {e}", "limpieza_historial_veredictos")
+        actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_historial_veredictos", tiempo_ejecucion="0.00 min")
 
 def limpiar_log_sistema(sh, dias_a_mantener=None):
     """
@@ -650,10 +653,8 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
         
         import numpy as np
-        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
-        
-        import numpy as np
-        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan)
+        df_limpio = df_limpio.where(pd.notnull(df_limpio), "")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -673,6 +674,7 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
                 start_idx = i * config.CHUNK_SIZE_SHEETS
                 end_idx = min((i + 1) * config.CHUNK_SIZE_SHEETS, len(df_limpio))
                 ws_noticias.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
+                time.sleep(2) # PREVENIR ERROR 429 QUOTA EXCEEDED
 
         msg_fin = f"Limpieza completada. Se eliminaron {eliminados} descartes viejos."
         logger.info(f"[OK] {msg_fin}")
@@ -827,7 +829,8 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
         
         import numpy as np
-        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan)
+        df_limpio = df_limpio.where(pd.notnull(df_limpio), "")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -847,6 +850,7 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
                 start_idx = i * config.CHUNK_SIZE_SHEETS
                 end_idx = min((i + 1) * config.CHUNK_SIZE_SHEETS, len(df_limpio))
                 ws_noticias.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
+                time.sleep(2) # PREVENIR ERROR 429 QUOTA EXCEEDED
 
         msg_fin = f"Limpieza completada. Se eliminaron {eliminados} noticias aprobadas viejas."
         logger.info(f"[OK] {msg_fin}")

@@ -34,8 +34,9 @@ def run_kickstart():
         df_sin.columns = [str(c).strip().upper() for c in df_sin.columns]
         
         # 3. Filtrar Activos sin Sinónimos
-        if 'ESTADO' in df_ma.columns and 'TICKER' in df_ma.columns:
-            activos = df_ma[df_ma['ESTADO'].astype(str).str.upper() == 'ACTIVO']['TICKER'].dropna().unique()
+        col_tk = 'TICKER_ID' if 'TICKER_ID' in df_ma.columns else ('TICKER' if 'TICKER' in df_ma.columns else None)
+        if 'ESTADO' in df_ma.columns and col_tk:
+            activos = df_ma[df_ma['ESTADO'].astype(str).str.upper() == 'ACTIVO'][col_tk].dropna().unique()
         else:
             activos = []
             
@@ -142,11 +143,7 @@ def run_kickstart():
                 
                 client = genai.Client(api_key=key)
                 
-                modelos_activos = ia_utils.obtener_modelos_activos()
-                candidatos = ["gemini-1.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"]
-                for m in modelos_activos:
-                    if m not in candidatos:
-                        candidatos.append(m)
+                candidatos = ia_utils.obtener_modelos_activos()
                         
                 for m in candidatos:
                     try:

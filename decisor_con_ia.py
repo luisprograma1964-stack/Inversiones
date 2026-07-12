@@ -140,7 +140,6 @@ def ejecutar_decisor():
 
         gen_data = sh.worksheet(config.WS_CONFIG_IA_GENERAL).get_all_records()[0]
         ws_gen = {k.strip(): v for k, v in gen_data.items()}
-        ws_reporte = sh.worksheet(config.WS_REPORTE_IA)
         ws_matriz = sh.worksheet(config.WS_MATRIZ_RECOMENDACIONES)
         ws_historial = sh.worksheet(config.WS_HISTORIAL_VEREDICTOS)
 
@@ -354,14 +353,13 @@ def ejecutar_decisor():
                                             detalle = f"{detalle} [Alerta MEP: Brecha cambiaria alta de +{desvio_mep_pct:.1f}% respecto al Dólar MEP (CCL: {ccl_activo:.1f} vs MEP: {dolar_mep:.1f})]"
                                     elif desvio_mep <= 0.015:
                                         if "BULL" in sentimiento or "COMPR" in sentimiento:
-                                            msg_tele = (
-                                                f"⚡ *[Oportunidad]* El CEDEAR *{ticker.upper()}* presenta brecha cambiaria baja del "
-                                                f"{desvio_mep * 100:.1f}% respecto al MEP de referencia (${dolar_mep:.1f}) y "
-                                                f"sentimiento alcista ({sentimiento}) para el perfil *{usuario_final}*."
-                                            )
-                                            notificador_telegram.enviar_mensaje_telegram(msg_tele)
-
-                                # 2. Desvío clásico contra la media de Cedears (para confluencia de mercado)
+                                            # msg_tele = (
+                                            #     f"⚡ *[Oportunidad]* El CEDEAR *{ticker.upper()}* presenta brecha cambiaria baja del "
+                                            #     f"{desvio_mep * 100:.1f}% respecto al MEP de referencia (${dolar_mep:.1f}) y "
+                                            #     f"sentimiento alcista ({sentimiento}) para el perfil *{usuario_final}*."
+                                            # )
+                                            # notificador_telegram.enviar_mensaje_telegram(msg_tele)
+                                            pass                                # 2. Desvío clásico contra la media de Cedears (para confluencia de mercado)
                                 if ccl_promedio > 0:
                                     desvio_ccl = (ccl_activo - ccl_promedio) / ccl_promedio
                                     if desvio_ccl > 0.025:
@@ -387,10 +385,12 @@ def ejecutar_decisor():
                         if "CONTRADICCION" in sentimiento:
                             logger.warning(f"Contradicción registrada para {usuario_final}")
 
+                        precio_ars = str(row.get('CIERRE', row.get('PRECIO', '0'))).replace('.', ',')
                         filas_grabar.append([
                             ahora_str, ticker.upper(), usuario_final,
                             sentimiento,
-                            veredicto_final
+                            veredicto_final,
+                            precio_ars
                         ])
                         perfiles_hallados.append(usuario_final)
 
@@ -456,7 +456,6 @@ def ejecutar_decisor():
         ws_analisis.update([df_tecnico.columns.values.tolist()] + df_tecnico.values.tolist())
         
         if reporte_acumulado:
-            ws_reporte.append_rows(reporte_acumulado)
             try:
                 ws_historial.append_rows(reporte_acumulado)
                 logger.info("[+] Historial de veredictos guardado en HISTORIAL_VEREDICTOS.")

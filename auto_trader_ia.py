@@ -159,20 +159,34 @@ def ejecutar_auto_trader():
                             neto = bruto + comision 
                             
                             nuevas_transacciones.append({
-                                'FECHA': hoy,
+                                'FECHA': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                 'PROPIETARIO': cartera_id,
                                 'BROKER_CUENTA': 'AUTO_TRADER_IA',
                                 'ACTIVO': tk,
                                 'ESPECIE': 'CEDEAR/ACCION',
-                                'OPERACIÓN': 'COMPRA',
-                                'CANTIDAD': qty,
-                                'PRECIO_UNITARIO': px,
+                                'OPERACIÓN': 'Compra',
+                                'OPERACION': 'Compra',
+                                'CANTIDAD': str(qty).replace('.', ','),
+                                'PRECIO_UNITARIO': str(px).replace('.', ','),
                                 'MONEDA': 'ARS',
-                                'COMISIÓN_TOTAL': comision,
+                                'COMISIÓN_TOTAL': str(comision).replace('.', ','),
+                                'COMISION_TOTAL': str(comision).replace('.', ','),
                                 'OBSERVACIONES': 'Compra dictaminada por IA',
-                                'TOTAL_NETO': neto,
-                                'PRECIO_MERCADO_REF': px
+                                'TOTAL_NETO': str(neto).replace('.', ','),
+                                'PRECIO_MERCADO_REF': str(px).replace('.', ','),
+                                'FECHA_ACTUALIZACION': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             })
+                            
+                            nuevos_movimientos_caja.append({
+                                'FECHA': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                'PROPIETARIO': cartera_id,
+                                'MOVIMIENTO': 'EGRESO',
+                                'MONTO': str(neto).replace('.', ','),
+                                'MONEDA': 'ARS',
+                                'CONCEPTO': f'Operación Compra - {qty}x {tk}',
+                                'FECHA_ACTUALIZACION': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            })
+                            
                             saldo_caja -= neto
                             total_compras += 1
                             op_ejecutadas += 1
@@ -180,13 +194,7 @@ def ejecutar_auto_trader():
             elif compras:
                 resumen_fondo.append(f"  ⚠️ OMITIÓ {len(compras)} compras (Caja libre insuficiente: ${max(0, efectivo_libre):,.2f})")
                 
-            nuevos_movimientos_caja.append({
-                'PROPIETARIO': cartera_id,
-                'MONEDA': 'ARS',
-                'TIPO_CUENTA': 'Comitente',
-                'SALDO': saldo_caja,
-                'ULTIMA_ACTUALIZACION': hoy
-            })
+
             
             if op_ejecutadas == 0 and not compras:
                 resumen_fondo.append("  💤 Sin señales de operación hoy.")
@@ -225,32 +233,35 @@ def ejecutar_auto_trader():
             ws_trans.update([df_final_trans.columns.values.tolist()] + df_final_trans.values.tolist())
             
         if nuevos_movimientos_caja:
-            ws_caja = sh.worksheet("CAJA_LIQUIDEZ")
-            df_caja_old = pd.DataFrame(ws_caja.get_all_records())
+            ws_caja = sh.worksheet("MOVIMIENTOS_CAJA")
+            caja_data = ws_caja.get_all_records()
+            df_caja_old = pd.DataFrame(caja_data)
             df_nuevos_caja = pd.DataFrame(nuevos_movimientos_caja)
             
-            if not df_caja_old.empty:
-                for _, row in df_nuevos_caja.iterrows():
-                    prop = row['PROPIETARIO']
-                    mon = row['MONEDA']
-                    idx = df_caja_old.index[(df_caja_old['PROPIETARIO'].astype(str).str.upper() == str(prop).upper()) & (df_caja_old['MONEDA'].astype(str).str.upper() == str(mon).upper())]
-                    if not idx.empty:
-                        df_caja_old.loc[idx, 'SALDO'] = row['SALDO']
-                        df_caja_old.loc[idx, 'ULTIMA_ACTUALIZACION'] = row['ULTIMA_ACTUALIZACION']
-                    else:
-                        df_caja_old = pd.concat([df_caja_old, pd.DataFrame([row])], ignore_index=True)
-                df_final_caja = df_caja_old
-            else:
+            cols_caja = ['FECHA', 'PROPIETARIO', 'MOVIMIENTO', 'MONTO', 'MONEDA', 'CONCEPTO', 'FECHA_ACTUALIZACION']
+            for c in cols_caja:
+                if c not in df_nuevos_caja.columns:
+                    df_nuevos_caja[c] = ""
+            df_nuevos_caja = df_nuevos_caja[cols_caja]
+            
+            if df_caja_old.empty:
                 df_final_caja = df_nuevos_caja
+            else:
+                df_final_caja = pd.concat([df_caja_old, df_nuevos_caja], ignore_index=True)
                 
             ws_caja.clear()
             ws_caja.update([df_final_caja.columns.values.tolist()] + df_final_caja.values.tolist())
             
-        procesamiento.actualizar_estado_proceso(ws_status, "COMPLETADO", f"AutoTrader ejecutado.", nombre_proceso="auto_trader_ia")
+            # Recalcular valoraciones automáticamente tras asentar los movimientos
+            import valorador_cartera
+            valorador_cartera.ejecutar_valoracion()
+            
+        procesamiento.actualizar_estado_proceso(ws_status, "OK", f"AutoTrader ejecutado.", nombre_proceso="auto_trader_ia")
+        
         
         # Enviar resumen a Telegram
         resumen_telegram.append(f"\n📊 *Total operaciones:* {total_compras} compras, {total_ventas} ventas.")
-        notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
+        # notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
         
         return True
         

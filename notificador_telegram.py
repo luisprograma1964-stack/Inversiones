@@ -2,11 +2,11 @@ import requests
 import auth_google
 import config
 
-def enviar_mensaje_telegram(mensaje):
+def enviar_mensaje_telegram(mensaje, destinatario="DEFAULT"):
     """
     Envía un mensaje de texto formateado en HTML a un canal de Telegram.
     Lee el token y chat_id en tiempo de ejecución desde la hoja CONFIG_IA_GENERAL.
-    Falla silenciosamente si las credenciales no están configuradas para asegurar resiliencia.
+    Soporta destinatario="VICKY" para enviarlo al chat personal de Vicky.
     """
     try:
         sh = auth_google.conectar()
@@ -20,7 +20,11 @@ def enviar_mensaje_telegram(mensaje):
             
         row = data[0]
         token = str(row.get("TELEGRAM_TOKEN", "")).strip()
-        chat_id = str(row.get("TELEGRAM_CHAT_ID", "")).strip()
+        
+        if destinatario == "VICKY":
+            chat_id = str(row.get("TELEGRAM_CHAT_ID_VICKY", "")).strip()
+        else:
+            chat_id = str(row.get("TELEGRAM_CHAT_ID", "")).strip()
         
         # Filtro de credenciales válidas
         if not token or not chat_id or token == "" or chat_id == "" or "ERROR" in token:

@@ -97,10 +97,16 @@ def ejecutar_valoracion():
 
         # Limpiar precios del análisis técnico
         precios_actuales = {}
+        ccl_prom = 1500.0
         if not df_tecnico.empty:
             df_tecnico['PRECIO_ACTUAL'] = df_tecnico['PRECIO_ACTUAL'].apply(clean_num)
             df_tecnico['TICKER_ID'] = df_tecnico['TICKER_ID'].astype(str).str.strip().str.upper()
             precios_actuales = df_tecnico.set_index('TICKER_ID')['PRECIO_ACTUAL'].to_dict()
+            if 'CCL_IMPLICITO' in df_tecnico.columns:
+                ccls = df_tecnico['CCL_IMPLICITO'].apply(clean_num)
+                ccls = ccls[ccls > 500]
+                if not ccls.empty:
+                    ccl_prom = ccls.mean()
 
         # Limpiar saldos de caja
         saldos_caja = {}
@@ -182,6 +188,14 @@ def ejecutar_valoracion():
                         
                         # Buscar precio actual en análisis técnico
                         precio_actual = precios_actuales.get(t, 0.0)
+                        
+                        # Si es una transacción en ARS y el precio vino en USD, convertimos usando Ratio y CCL
+                        if mon == 'ARS' and precio_actual > 0 and precio_actual < 5000:
+                            # Ratios aproximados comunes (si es mayor a 5000 probablemente ya esté en ARS)
+                            ratios = {"AAPL": 10, "TSLA": 15, "SPY": 20, "QQQ": 20, "MSFT": 30, "AMZN": 144, "GOOGL": 58, "META": 24, "AMD": 10, "NVDA": 24, "KO": 5, "MCD": 12, "DIS": 12, "MELI": 60}
+                            ratio = ratios.get(t, 10)
+                            precio_actual = (precio_actual * ccl_prom) / ratio
+                            
                         if precio_actual == 0.0:
                             # Fallback al último precio registrado de transacciones
                             if not df_t.empty:

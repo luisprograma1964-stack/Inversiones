@@ -72,7 +72,7 @@ def limpiar_reportes_antiguos(dias=30):
 
 def ejecutar_supervisor():
     import notificador_telegram
-    notificador_telegram.enviar_mensaje_telegram("🚀 <b>[Supervisor]</b> Iniciando Análisis y Auditoría del Sistema...")
+    # notificador_telegram.enviar_mensaje_telegram("🚀 <b>[Supervisor]</b> Iniciando Análisis y Auditoría del Sistema...")
     print("[*] Iniciando Supervisor del Sistema...")
     logger.info("" + "X"*60)
     logger.info(f"SUPERVISOR Y MEJORADOR DEL SISTEMA | {datetime.now().strftime('%H:%M:%S')}")
@@ -114,7 +114,8 @@ def ejecutar_supervisor():
         df_sug_raw = get_df(config.WS_SUGERENCIAS_SINONIMOS)
         df_valoracion = get_df("VALORACION_PORTAFOLIO")
         df_caja = get_df(config.WS_CAJA_LIQUIDEZ)
-        
+        df_procesos = get_df(config.WS_ESTADO_PROCESOS)
+        df_logs = get_df(config.WS_LOG_SISTEMA)
         # 1.1 Filtrar sugerencias de sinónimos pendientes en toda la hoja (no solo las últimas 20)
         if not df_sug_raw.empty:
             # Si el campo ESTADO está vacío, se asume PENDIENTE por compatibilidad
@@ -144,15 +145,15 @@ def ejecutar_supervisor():
                     pass
 
         # 1.4 Cálculo de Equity Consolidado (ARS/USD) por Propietario
-        dolar_mep = 1.0
+        dolar_mep = 1350.0 # Fallback realista
         if not df_mercado.empty:
-            mask_mep = df_mercado['DATO'].astype(str).str.contains('MEP', case=False, na=False)
-            if any(mask_mep):
+            mask_dolar = df_mercado['DATO'].astype(str).str.contains('MEP|Comafi|CCL', case=False, na=False)
+            if any(mask_dolar):
                 try:
-                    val_mep = str(df_mercado[mask_mep]['VALOR_PROM'].iloc[0]).replace(',', '.')
-                    dolar_mep = float(val_mep)
+                    val_dolar = str(df_mercado[mask_dolar]['VALOR_PROM'].iloc[0]).replace(',', '.')
+                    dolar_mep = float(val_dolar)
                 except Exception:
-                    dolar_mep = 1.0
+                    pass
         
         patrimonios_por_propietario = {}
         if not df_caja.empty:
@@ -250,10 +251,7 @@ def ejecutar_supervisor():
         # 4. CONSULTA A GEMINI (Usamos Pro si está disponible para máxima calidad estratégica)
         import google.genai.types as types
         modelos_activos = ia_utils.obtener_modelos_activos()
-        candidatos = ["gemini-1.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"]
-        for m in modelos_activos:
-            if m not in candidatos:
-                candidatos.append(m)
+        candidatos = ia_utils.obtener_modelos_activos()
 
         informe_json_str = None
         ultimo_error = None
@@ -383,6 +381,59 @@ def ejecutar_supervisor():
                     f"¡ALERTA DE APAGÓN! La noticia más reciente en el sistema tiene {int(antiguedad_horas)} horas de antigüedad. El scraper podría estar fallando o bloqueado.",
                     "PENDIENTE"
                 ])
+
+        # Alerta de Recomendaciones Obsoletas (> 2hs)
+        if not df_matriz.empty and 'FECHA' in df_matriz.columns:
+            try:
+                df_matriz_fechas = pd.to_datetime(df_matriz['FECHA'], errors='coerce')
+                min_fecha_matriz = df_matriz_fechas.min()
+                if pd.notna(min_fecha_matriz):
+                    antiguedad_recs = (datetime.now() - min_fecha_matriz).total_seconds() / 3600
+                    if antiguedad_recs > 2:
+                        alertas_inbox_total.append([
+                            f"AL-MATRIZ-{int(time.time())}",
+                            ahora_timestamp,
+                            "ALERTA_CRITICA",
+                            "RECOMENDACIONES_OBSOLETAS",
+                            f"ALERTA CRITICA: Se detectaron recomendaciones en la Matriz con más de 2 horas de antigüedad ({int(antiguedad_recs)}hs). El motor de IA (decisor_con_ia) no se ejecutó inmediatamente después del análisis técnico o falló. Las decisiones en el dashboard son obsoletas y peligrosas.",
+                            "PENDIENTE"
+                        ])
+        # Alerta de Procesos en Error (Motor Caído)
+        if not df_procesos.empty and 'ESTADO' in df_procesos.columns:
+            procesos_caidos = df_procesos[df_procesos['ESTADO'].astype(str).str.strip().str.upper() == 'ERROR']
+            for _, proc in procesos_caidos.iterrows():
+                nombre_proc = proc.get('NOMBRE_PROCESO', 'Desconocido')
+                detalle_err = proc.get('DETALLE', 'Sin detalle')
+                alertas_inbox_total.append([
+                    f"AL-PROC-{int(time.time())}",
+                    ahora_timestamp,
+                    "ALERTA_CRITICA",
+                    "PROCESO_CAIDO",
+                    f"ALERTA CRITICA: El proceso '{nombre_proc}' se encuentra en estado ERROR. Detalle: {detalle_err}",
+                    "PENDIENTE"
+                ])
+
+        # Alerta de Errores Críticos Recientes en el Log del Sistema (Últimas 12 horas)
+        if not df_logs.empty and 'FECHA' in df_logs.columns and 'NIVEL' in df_logs.columns:
+            try:
+                df_logs_fechas = pd.to_datetime(df_logs['FECHA'], errors='coerce')
+                doce_horas_atras = datetime.now() - pd.Timedelta(hours=12)
+                errores_recientes = df_logs[
+                    (df_logs['NIVEL'].astype(str).str.strip().str.upper() == 'ERROR') & 
+                    (df_logs_fechas >= doce_horas_atras)
+                ]
+                if not errores_recientes.empty:
+                    alertas_inbox_total.append([
+                        f"AL-LOGS-{int(time.time())}",
+                        ahora_timestamp,
+                        "ALERTA_CRITICA",
+                        "ERRORES_SISTEMA",
+                        f"ALERTA CRITICA: Se detectaron {len(errores_recientes)} errores en el log del sistema (LOG_SISTEMA) en las últimas 12 horas. Revisa la consola para más detalles.",
+                        "PENDIENTE"
+                    ])
+            except Exception:
+                pass
+
 
         # Agregar Alertas de IA
         alertas_ia = informe_dict.get("alertas_inbox", [])
