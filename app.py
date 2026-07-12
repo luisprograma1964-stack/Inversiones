@@ -890,6 +890,7 @@ with tab1:
                 mask = pd.to_numeric(df_disp["ULTIMA_ACTUALIZACION"], errors='coerce').notna()
                 if mask.any():
                     df_disp.loc[mask, "ULTIMA_ACTUALIZACION"] = pd.to_datetime(df_disp.loc[mask, "ULTIMA_ACTUALIZACION"].astype(float), unit='D', origin='1899-12-30').dt.strftime('%Y-%m-%d %H:%M:%S')
+                df_disp["ULTIMA_ACTUALIZACION"] = df_disp["ULTIMA_ACTUALIZACION"].astype(str)
             st.dataframe(df_disp, use_container_width=True)
 
     # ==========================================
