@@ -27,6 +27,8 @@ import valorador_cartera
 import decisor_con_ia
 import pre_mantenimiento
 import captura_cedears
+import homologador_datos
+import supervisor_del_sistema
 from TEST.test_ia import descubrir_modelos
 
 def ejecutar_pipeline():
@@ -228,6 +230,36 @@ def ejecutar_pipeline():
             logger.warning("[!] El Auto-Trader reportó un error, pero el pipeline continuará.")
         duracion_p5 = (time.time() - t5) / 60
         logger.info(f"[OK] PASO 5 COMPLETADO EN {duracion_p5:.2f} min")
+
+        # ==========================================
+        # PASO 6: AUDITORÍA CRUZADA (HOMOLOGADOR)
+        # ==========================================
+        logger.info("\n[*] PASO 6: Iniciando Control de Calidad Anti-Alucinaciones (Homologador)...")
+        import homologador_datos
+        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Auditando decisiones de IA...", "homologador_datos")
+        try:
+            resultado_homologador = homologador_datos.ejecutar_homologacion()
+            if not resultado_homologador:
+                logger.warning("[!] El Homologador reportó inconsistencias.")
+            procesamiento.actualizar_estado_proceso(ws_status, "OK", "Auditoría completada", "homologador_datos")
+        except Exception as e:
+            logger.error(f"[FAIL] Fallo en Homologador: {e}")
+            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", f"Fallo en Homologador: {str(e)[:50]}", "homologador_datos")
+
+        # ==========================================
+        # PASO 7: SUPERVISOR ESTRATÉGICO
+        # ==========================================
+        logger.info("\n[*] PASO 7: Iniciando Supervisor del Sistema...")
+        import supervisor_del_sistema
+        procesamiento.actualizar_estado_proceso(ws_status, "PROCESANDO", "Generando Reporte Ejecutivo...", "supervisor_del_sistema")
+        try:
+            reporte = supervisor_del_sistema.ejecutar_supervisor()
+            if reporte:
+                logger.info("[OK] Reporte Ejecutivo generado.")
+            procesamiento.actualizar_estado_proceso(ws_status, "OK", "Reporte generado", "supervisor_del_sistema")
+        except Exception as e:
+            logger.error(f"[FAIL] Fallo en Supervisor: {e}")
+            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", f"Fallo en Supervisor: {str(e)[:50]}", "supervisor_del_sistema")
 
     except Exception as e:
         return cancelar_pipeline(ws_log, ws_status, f"Error inesperado en orquestador: {e}", inicio_global)

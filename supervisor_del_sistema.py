@@ -132,7 +132,16 @@ def ejecutar_supervisor():
             nuevos_cedears = list(subyacentes_comafi - tickers_maestro)
 
         # 1.3 Resumen de cobertura de noticias para detectar "silencios"
-        tickers_con_noticias = df_noticias['TICKER_ID'].unique().tolist() if (not df_noticias.empty and 'TICKER_ID' in df_noticias.columns) else []
+        tickers_con_noticias = []
+        fecha_max_noticias = None
+        if not df_noticias.empty and 'TICKER_ID' in df_noticias.columns:
+            tickers_con_noticias = df_noticias['TICKER_ID'].unique().tolist()
+            if 'FECHA' in df_noticias.columns:
+                try:
+                    df_noticias['FECHA_DT'] = pd.to_datetime(df_noticias['FECHA'], errors='coerce')
+                    fecha_max_noticias = df_noticias['FECHA_DT'].max()
+                except:
+                    pass
 
         # 1.4 Cálculo de Equity Consolidado (ARS/USD) por Propietario
         dolar_mep = 1.0
@@ -361,6 +370,19 @@ def ejecutar_supervisor():
                         f"Alerta CCL: Los activos {tickers_str} cotizan con un sobreprecio >2.5% respecto a la media del mercado. Evaluar suspender compras locales.",
                         "PENDIENTE"
                     ])
+
+        # Alerta de Apagón de Noticias (Noticias obsoletas > 48hs)
+        if fecha_max_noticias is not None and not pd.isna(fecha_max_noticias):
+            antiguedad_horas = (datetime.now() - fecha_max_noticias).total_seconds() / 3600
+            if antiguedad_horas > 48:
+                alertas_inbox_total.append([
+                    f"AL-NEWS-{int(time.time())}",
+                    ahora_timestamp,
+                    "ALERTA_CRITICA",
+                    "APAGON_NOTICIAS",
+                    f"¡ALERTA DE APAGÓN! La noticia más reciente en el sistema tiene {int(antiguedad_horas)} horas de antigüedad. El scraper podría estar fallando o bloqueado.",
+                    "PENDIENTE"
+                ])
 
         # Agregar Alertas de IA
         alertas_ia = informe_dict.get("alertas_inbox", [])

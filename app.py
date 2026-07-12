@@ -2167,8 +2167,10 @@ with tab1:
                 verificar_procesos_fondo() # CRÍTICO: Chequear si el proceso terminó sin tener que recargar toda la página
                 col_ref1, col_ref2 = st.columns([8, 2])
                 with col_ref2:
-                    if st.button(":material/refresh: Refrescar Semáforo y Local", key="btn_refresh_logs_tab", help="Refresca en caliente la tabla del semáforo y la bitácora local."):
+                    if st.button(":material/refresh: Forzar Refresco de Datos", key="btn_refresh_logs_tab", help="Anula la memoria caché y trae los datos frescos de Google Sheets."):
                         cargar_datos_semaforo.clear()
+                        cargar_logs_recientes.clear()
+                        st.rerun()
                 
                 # 1. Planilla del Semáforo (ESTADO_PROCESOS)
                 st.subheader(":material/traffic: Tabla Semáforo (Estado de Procesos)")
@@ -2191,11 +2193,19 @@ with tab1:
                 # 2. Log de Ejecución Actual (Plegable en expander)
                 log_content = ""
                 if LOG_FILE_PATH.exists():
-                    try:
-                        with open(LOG_FILE_PATH, "r", encoding="utf-8", errors="replace") as f:
-                            log_content = f.read()
-                    except Exception as ex:
-                        log_content = f"Error al abrir archivo de bitácora: {ex}"
+                    # Solo mostrar logs manuales si se ejecutaron en las últimas 24 horas
+                    import os
+                    from datetime import timedelta
+                    file_time = datetime.fromtimestamp(os.path.getmtime(LOG_FILE_PATH))
+                    if datetime.now() - file_time < timedelta(hours=24):
+                        try:
+                            with open(LOG_FILE_PATH, "r", encoding="utf-8", errors="replace") as f:
+                                log_content = f.read()
+                        except Exception as ex:
+                            log_content = f"Error al abrir archivo de bitácora: {ex}"
+                    else:
+                        # Log obsoleto (pertenece a una sesión anterior)
+                        pass
                 
                 if log_content != "":
                     with st.expander(":material/edit_note: Bitácora de la Última Corrida (Consola)", expanded=True):

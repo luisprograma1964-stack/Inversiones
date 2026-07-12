@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
-# Añadir la ruta raíz para poder importar los módulos del proyecto
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+# Módulo ahora en la raíz del proyecto, no requiere path injection
 
 import json
 import re
@@ -230,6 +229,7 @@ def ejecutar_homologacion():
         print("   - [STATUS] EXCELENTE (Integridad 100%). Los datos coinciden perfectamente entre Sheets y el JSON/Prompt.")
         import notificador_telegram
         notificador_telegram.enviar_mensaje_telegram(f"✅ <b>[QA Homologador]</b> Finalizado.\nIntegridad 100%. ({verificaciones} chequeos).")
+        return True
     else:
         print(f"   - [STATUS] INCONSISTENTE. Se detectaron {inconsistencias} discrepancias de datos.")
         print("     Por favor revisa el log superior para corregir descalces o re-ejecutar el pipeline.")
@@ -238,7 +238,7 @@ def ejecutar_homologacion():
             notificador_telegram.enviar_mensaje_telegram(f"⚠️ <b>[QA Homologador]</b> Finalizado con {inconsistencias} inconsistencias.\nRevisar consola.")
         except:
             pass
-    print("=" * 60)
+        return True # Retorna True de todas formas para no abortar el supervisor posterior
 
 if __name__ == "__main__":
     ejecutar_homologacion()

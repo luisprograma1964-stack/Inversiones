@@ -488,15 +488,15 @@ def ejecutar_captura_noticias():
 
         # 5. Guardado en Google Sheets
         if aprobadas_batch:
-            ws_noticias.append_rows(aprobadas_batch, value_input_option='USER_ENTERED')
+            ws_noticias.append_rows(aprobadas_batch, value_input_option='RAW')
             logger.info(f"    [+] {len(aprobadas_batch)} noticias guardadas en sistema.")
             
         if descartadas_batch:
-            ws_descartadas.append_rows(descartadas_batch, value_input_option='USER_ENTERED')
+            ws_descartadas.append_rows(descartadas_batch, value_input_option='RAW')
             logger.info(f"    [-] {len(descartadas_batch)} noticias enviadas a descartes.")
             
         if sugerencias_batch:
-            ws_sugerencias.append_rows(sugerencias_batch, value_input_option='USER_ENTERED')
+            ws_sugerencias.append_rows(sugerencias_batch, value_input_option='RAW')
             logger.info(f"    [!] {len(sugerencias_batch)} sugerencias de sinónimos detectadas.")
             
             import notificador_telegram
