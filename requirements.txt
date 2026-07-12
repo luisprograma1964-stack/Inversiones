@@ -6,7 +6,6 @@ yfinance
 requests
 python-dotenv
 beautifulsoup4
-telebot
 pyTelegramBotAPI
 lxml
 plotly
