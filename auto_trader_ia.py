@@ -168,14 +168,14 @@ def ejecutar_auto_trader():
                                 'ESPECIE': 'CEDEAR/ACCION',
                                 'OPERACIÓN': 'Compra',
                                 'OPERACION': 'Compra',
-                                'CANTIDAD': str(qty).replace('.', ','),
-                                'PRECIO_UNITARIO': str(px).replace('.', ','),
+                                'CANTIDAD': qty,
+                                'PRECIO_UNITARIO': px,
                                 'MONEDA': 'ARS',
-                                'COMISIÓN_TOTAL': str(comision).replace('.', ','),
-                                'COMISION_TOTAL': str(comision).replace('.', ','),
+                                'COMISIÓN_TOTAL': comision,
+                                'COMISION_TOTAL': comision,
                                 'OBSERVACIONES': 'Compra dictaminada por IA',
-                                'TOTAL_NETO': str(neto).replace('.', ','),
-                                'PRECIO_MERCADO_REF': str(px).replace('.', ','),
+                                'TOTAL_NETO': neto,
+                                'PRECIO_MERCADO_REF': px,
                                 'FECHA_ACTUALIZACION': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             })
                             
@@ -183,7 +183,7 @@ def ejecutar_auto_trader():
                                 'FECHA': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                 'PROPIETARIO': cartera_id,
                                 'MOVIMIENTO': 'EGRESO',
-                                'MONTO': str(neto).replace('.', ','),
+                                'MONTO': neto,
                                 'MONEDA': 'ARS',
                                 'CONCEPTO': f'Operación Compra - {qty}x {tk}',
                                 'FECHA_ACTUALIZACION': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
