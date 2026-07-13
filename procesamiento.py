@@ -464,12 +464,14 @@ def limpiar_historial_veredictos(sh, dias_a_mantener=None):
         df.columns = [c.strip().upper() for c in df.columns]
         total_antes = len(df)
 
-        if 'FECHA' not in df.columns:
-            registrar_log(ws_log, "ERROR", "Columna FECHA no encontrada en HISTORIAL_VEREDICTOS.", "limpieza_historial_veredictos")
+        if 'FECHA_HORA' not in df.columns:
+            msg_err = "Columna FECHA_HORA no encontrada en HISTORIAL_VEREDICTOS."
+            registrar_log(ws_log, "ERROR", msg_err, "limpieza_historial_veredictos")
+            actualizar_estado_proceso(ws_status, "ERROR", msg_err, "limpieza_historial_veredictos", tiempo_ejecucion="0.00 min")
             return
 
         # Convertir a datetime y filtrar por antigüedad
-        df['FECHA_DT'] = pd.to_datetime(df['FECHA'], errors='coerce')
+        df['FECHA_DT'] = pd.to_datetime(df['FECHA_HORA'].astype(str), errors='coerce')
         limite = datetime.now() - pd.Timedelta(days=dias_a_mantener)
         
         df_limpio = df[df['FECHA_DT'] >= limite].copy()
@@ -650,8 +652,8 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
         
         import numpy as np
-        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan)
-        df_limpio = df_limpio.where(pd.notnull(df_limpio), "")
+        # Convertir todo a string, o llenar NaNs con string vacío para evitar errores JSON
+        df_limpio = df_limpio.fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -826,8 +828,8 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
         df_limpio = df_limpio.drop(columns=['FECHA_DT'])
         
         import numpy as np
-        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan)
-        df_limpio = df_limpio.where(pd.notnull(df_limpio), "")
+        # Llenado seguro para evitar "Out of range float values are not JSON compliant"
+        df_limpio = df_limpio.fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -837,17 +839,27 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
             actualizar_estado_proceso(ws_status, "OK", f"Sin cambios significativos ({eliminados} filas)", "limpieza_noticias_sistema", tiempo_ejecucion=duracion)
             return
 
-        # Sobrescribir la hoja
-        ws_noticias.clear()
-        ws_noticias.append_row(df_limpio.columns.values.tolist())
-        
-        if not df_limpio.empty:
-            num_chunks = (len(df_limpio) + config.CHUNK_SIZE_SHEETS - 1) // config.CHUNK_SIZE_SHEETS
-            for i in range(num_chunks):
-                start_idx = i * config.CHUNK_SIZE_SHEETS
-                end_idx = min((i + 1) * config.CHUNK_SIZE_SHEETS, len(df_limpio))
-                ws_noticias.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
-                time.sleep(2) # PREVENIR ERROR 429 QUOTA EXCEEDED
+        # Escritura resiliente ante cuota 429
+        for intento_escritura in range(5):
+            try:
+                # Sobrescribir la hoja
+                ws_noticias.clear()
+                ws_noticias.append_row(df_limpio.columns.values.tolist())
+                
+                if not df_limpio.empty:
+                    num_chunks = (len(df_limpio) + config.CHUNK_SIZE_SHEETS - 1) // config.CHUNK_SIZE_SHEETS
+                    for i in range(num_chunks):
+                        start_idx = i * config.CHUNK_SIZE_SHEETS
+                        end_idx = min((i + 1) * config.CHUNK_SIZE_SHEETS, len(df_limpio))
+                        ws_noticias.append_rows(df_limpio.iloc[start_idx:end_idx].values.tolist())
+                        time.sleep(3) # PREVENIR ERROR 429 QUOTA EXCEEDED
+                break # Éxito en escritura
+            except Exception as e_write:
+                if "429" in str(e_write) and intento_escritura < 4:
+                    logger.warning(f"    [!] Cuota 429 al escribir NOTICIAS_SISTEMA. Reintentando en 15s (Intento {intento_escritura+1}/5)...")
+                    time.sleep(15)
+                else:
+                    raise e_write
 
         msg_fin = f"Limpieza completada. Se eliminaron {eliminados} noticias aprobadas viejas."
         logger.info(f"[OK] {msg_fin}")

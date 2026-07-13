@@ -3,6 +3,7 @@ Sub-módulo de captura de noticias vía Telegram.
 Extrae mensajes recientes de canales financieros específicos.
 """
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 from datetime import datetime, timezone
 import asyncio
 import os
@@ -22,7 +23,12 @@ async def capturar_mensajes(canales):
         os.makedirs('creds')
 
     # Creamos el cliente de Telegram
-    client = TelegramClient('creds/anon', config.TELEGRAM_API_ID, config.TELEGRAM_API_HASH)
+    if config.TELEGRAM_STRING_SESSION:
+        # Usamos sesión de texto (Humano) para sortear restricciones de bots en la nube
+        client = TelegramClient(StringSession(config.TELEGRAM_STRING_SESSION), config.TELEGRAM_API_ID, config.TELEGRAM_API_HASH)
+    else:
+        # Fallback a archivo local o bot
+        client = TelegramClient('creds/anon', config.TELEGRAM_API_ID, config.TELEGRAM_API_HASH)
     
     try:
         # Obtener token dinámicamente desde la hoja de Sheets
@@ -38,8 +44,10 @@ async def capturar_mensajes(canales):
             except Exception:
                 pass
                 
-        if token and "ERROR" not in token:
-            await client.start(bot_token=token)
+        if config.TELEGRAM_STRING_SESSION:
+            await client.start() # Inicia sesión directamente con el string
+        elif token and "ERROR" not in token:
+            await client.start(bot_token=token) # Inicia como bot
         else:
             await client.start() # Fallback, requerirá interacción manual la primera vez
         for canal in canales:

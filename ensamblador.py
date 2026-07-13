@@ -256,7 +256,7 @@ def ejecutar_pipeline():
             reporte = supervisor_del_sistema.ejecutar_supervisor()
             if reporte:
                 logger.info("[OK] Reporte Ejecutivo generado.")
-            procesamiento.actualizar_estado_proceso(ws_status, "OK", "Reporte generado", "supervisor_del_sistema")
+            # La actualización de estado final (con tiempo) la hace el propio supervisor internamente
         except Exception as e:
             logger.error(f"[FAIL] Fallo en Supervisor: {e}")
             procesamiento.actualizar_estado_proceso(ws_status, "ERROR", f"Fallo en Supervisor: {str(e)[:50]}", "supervisor_del_sistema")

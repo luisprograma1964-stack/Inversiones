@@ -82,7 +82,7 @@ def ejecutar_decisor():
         # 1. MAPEO DE USUARIOS
         usuarios_raw = sh.worksheet(config.WS_CARTERAS).get_all_records()
         # Extraemos la lista única de perfiles de riesgo configurados
-        perfiles_set = {str(u['Perfil_Riesgo']).strip().capitalize() for u in usuarios_raw if u.get('Perfil_Riesgo')}
+        perfiles_set = {str(u.get('PERFIL_RIESGO', u.get('Perfil_Riesgo', ''))).strip().capitalize() for u in usuarios_raw if u.get('PERFIL_RIESGO') or u.get('Perfil_Riesgo')}
         perfiles_lista = list(perfiles_set)
         # Mapeamos el perfil a sí mismo para que la IA guarde el nombre del perfil (ej: "Conservador") en la matriz
         mapa_usuarios = {p: p for p in perfiles_lista}
@@ -407,8 +407,27 @@ def ejecutar_decisor():
                         df_nuevas = pd.DataFrame(nuevos_datos)
                         df_matriz = pd.concat([df_matriz, df_nuevas], ignore_index=True)
                         
-                        # 2. Acumular Reporte (Copia exacta de los datos de la matriz para historial)
-                        reporte_acumulado.extend(filas_grabar)
+                        # 2. Acumular Reporte (Mapeado a las 6 columnas de HISTORIAL_VEREDICTOS)
+                        # Columnas: FECHA_HORA, TICKER, PRECIO_ARS, SENTIMIENTO_IA, VEREDICTO_IA, RECOMENDACION_DETALLE
+                        for f in filas_grabar:
+                            # f[0]: ahora_str, f[1]: ticker, f[2]: usuario_final, f[3]: sentimiento, f[4]: veredicto_final, f[5]: precio_ars
+                            # Determinamos VEREDICTO corto basado en sentimiento para auto_trader
+                            v_corto = "COMPRAR" if "BULL" in f[3].upper() or "COMPR" in f[3].upper() else ("VENDER" if "BEAR" in f[3].upper() or "VEND" in f[3].upper() else "MANTENER")
+                            reporte_acumulado.append([
+                                f[0],         # FECHA_HORA
+                                f[1],         # TICKER
+                                f[5],         # PRECIO_ARS
+                                f[3],         # SENTIMIENTO_IA
+                                v_corto,      # VEREDICTO_IA (corto para compatibilidad)
+                                f[4]          # RECOMENDACION_DETALLE (bloque de texto)
+                            ])
+                        
+                        # Fix para la matriz: Guardar el veredicto corto en VEREDICTO_IA para el auto_trader
+                        df_matriz.loc[df_matriz.index[-len(filas_grabar):], 'VEREDICTO_IA'] = [
+                            "COMPRAR" if "BULL" in f[3].upper() or "COMPR" in f[3].upper() else ("VENDER" if "BEAR" in f[3].upper() or "VEND" in f[3].upper() else "MANTENER")
+                            for f in filas_grabar
+                        ]
+
                         df_tecnico.at[index, 'ESTADO'] = "PROCESADO"
                         matriz_modificada = True
                         logger.info(f"ACEPTADO: {len(perfiles_hallados)}/{len(perfiles_lista)} perfiles generados.")

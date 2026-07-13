@@ -519,7 +519,7 @@ def ejecutar_captura_noticias():
                     msg_boletin += f"🔗 <a href='{url}'>Leer más</a>\n"
                 msg_boletin += "\n"
                 
-            notificador_telegram.enviar_mensaje_telegram(msg_boletin, destinatario="VICKY")
+            notificador_telegram.enviar_mensaje_telegram(msg_boletin)
 
         # 6. Finalización y Logs
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"

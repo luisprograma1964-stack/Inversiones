@@ -4,6 +4,7 @@ import pandas as pd
 import logging
 from datetime import datetime
 import math
+import time
 
 # Configurar logging (terminal)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -24,6 +25,7 @@ def limpiar_numero(val):
         return 0.0
 
 def ejecutar_auto_trader():
+    t_inicio = time.time()
     logger.info("--- INICIANDO AUTO-TRADER IA ---")
     sh = auth_google.conectar()
     if not sh:
@@ -256,11 +258,12 @@ def ejecutar_auto_trader():
             import valorador_cartera
             valorador_cartera.ejecutar_valoracion()
             
-        procesamiento.actualizar_estado_proceso(ws_status, "OK", f"AutoTrader ejecutado.", nombre_proceso="auto_trader_ia")
+        duracion = f"{(time.time() - t_inicio) / 60:.2f} min"
+        procesamiento.actualizar_estado_proceso(ws_status, "OK", f"AutoTrader ejecutado.", nombre_proceso="auto_trader_ia", tiempo_ejecucion=duracion)
         
         
         # Enviar resumen a Telegram
-        resumen_telegram.append(f"\n📊 *Total operaciones:* {total_compras} compras, {total_ventas} ventas.")
+        resumen_telegram.append(f"\n📊 *Total operaciones:* {total_compras} compras, {total_ventas} ventas. (Tiempo: {duracion})")
         # notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
         
         return True

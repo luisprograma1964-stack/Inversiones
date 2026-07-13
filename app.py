@@ -937,9 +937,15 @@ with tab1:
                 st.warning(f":material/warning: No hay registros históricos para el ticker `{ticker_final}`. Prueba desmarcando Byma o ejecuta el bridge.")
             else:
                 # Procesar datos
-                # Asegurar fechas datetime
+                # Asegurar fechas datetime (Soportando formato Excel y String)
                 df_hist_act = df_hist_act.copy()
-                df_hist_act["FECHA_DT"] = pd.to_datetime(df_hist_act["FECHA"].astype(str), errors='coerce')
+                fechas_str = df_hist_act["FECHA"].astype(str)
+                dt_col = pd.to_datetime(fechas_str, errors='coerce')
+                mask_nat = dt_col.isna()
+                if mask_nat.any():
+                    num_vals = pd.to_numeric(fechas_str[mask_nat], errors='coerce')
+                    dt_col.loc[mask_nat] = pd.to_datetime(num_vals, origin='1899-12-30', unit='D', errors='coerce')
+                df_hist_act["FECHA_DT"] = dt_col
                 df_hist_act = df_hist_act.dropna(subset=["FECHA_DT"])
                 df_hist_act = df_hist_act.sort_values(by="FECHA_DT").reset_index(drop=True)
                 
