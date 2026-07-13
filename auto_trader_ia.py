@@ -203,6 +203,12 @@ def ejecutar_auto_trader():
                 
             resumen_telegram.extend(resumen_fondo)
             
+            # Actualizar dataframe de CAJA_LIQUIDEZ en memoria
+            idx = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'ARS')].index
+            if not idx.empty:
+                df_caja.loc[idx, 'SALDO'] = saldo_caja
+                df_caja.loc[idx, 'ULTIMA_ACTUALIZACION'] = hoy
+            
         # 4. GUARDAR EN SHEETS
         if nuevas_transacciones:
             ws_trans = sh.worksheet("TRANSACCIONES")
@@ -237,7 +243,7 @@ def ejecutar_auto_trader():
             ws_trans.update([df_final_trans.columns.values.tolist()] + df_final_trans.values.tolist())
             
         if nuevos_movimientos_caja:
-            ws_caja = sh.worksheet(config.WS_CAJA_LIQUIDEZ)
+            ws_caja = sh.worksheet("MOVIMIENTOS_CAJA")
             caja_data = ws_caja.get_all_records()
             df_caja_old = pd.DataFrame(caja_data)
             df_nuevos_caja = pd.DataFrame(nuevos_movimientos_caja)
@@ -257,6 +263,12 @@ def ejecutar_auto_trader():
                 
             ws_caja.clear()
             ws_caja.update([df_final_caja.columns.values.tolist()] + df_final_caja.values.tolist())
+            
+            # Grabar la "foto" de la billetera actualizada en CAJA_LIQUIDEZ
+            ws_caja_liq = sh.worksheet("CAJA_LIQUIDEZ")
+            df_caja = df_caja.fillna("")
+            ws_caja_liq.clear()
+            ws_caja_liq.update([df_caja.columns.values.tolist()] + df_caja.values.tolist())
             
             # Recalcular valoraciones automáticamente tras asentar los movimientos
             import valorador_cartera
