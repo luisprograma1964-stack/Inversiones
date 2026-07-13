@@ -268,7 +268,8 @@ def ejecutar_auto_trader():
         
         # Enviar resumen a Telegram
         resumen_telegram.append(f"\n📊 *Total operaciones:* {total_compras} compras, {total_ventas} ventas. (Tiempo: {duracion})")
-        # notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
+        import notificador_telegram
+        notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
         
         return True
         
