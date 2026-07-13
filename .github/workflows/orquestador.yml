@@ -3,7 +3,7 @@ name: Orquestador Diario de Inversiones
 on:
   schedule:
     # 11:00 UTC = 08:00 AM Argentina (UTC-3)
-    - cron: '0 11 * * 1-5' # De Lunes a Viernes a las 8 AM AR
+    - cron: '0 13 * * 1-5' # De Lunes a Viernes a las 10 AM AR (Temporal)
   workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
     - name: Configurar Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11' # O la versión que utilices
+        python-version: '3.12'
 
     - name: Instalar dependencias
       run: |

@@ -24,12 +24,20 @@ def conectar():
                 if "gcp_service_account" in st.secrets:
                     secret_val = st.secrets["gcp_service_account"]
                     if isinstance(secret_val, str):
-                        secret_val = json.loads(secret_val)
+                        try:
+                            secret_val = json.loads(secret_val)
+                        except json.JSONDecodeError as e:
+                            logger.error(f"Error de sintaxis en el JSON de Secrets: {e}")
+                            raise RuntimeError(f"El secreto gcp_service_account no es un JSON válido. Revisa las comillas y comas. Detalle: {e}")
                     gc = gspread.service_account_from_dict(secret_val)
                     sh = gc.open(config.SHEET_NAME)
                     return sh
-            except Exception:
+            except ImportError:
                 pass
+            except RuntimeError as re:
+                raise re
+            except Exception as e:
+                logger.warning(f"No se pudo usar Streamlit Secrets: {e}")
             
             # Intentar con variable de entorno (GitHub Actions)
             import os
