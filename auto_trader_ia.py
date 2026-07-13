@@ -237,7 +237,7 @@ def ejecutar_auto_trader():
             ws_trans.update([df_final_trans.columns.values.tolist()] + df_final_trans.values.tolist())
             
         if nuevos_movimientos_caja:
-            ws_caja = sh.worksheet("MOVIMIENTOS_CAJA")
+            ws_caja = sh.worksheet(config.WS_CAJA_LIQUIDEZ)
             caja_data = ws_caja.get_all_records()
             df_caja_old = pd.DataFrame(caja_data)
             df_nuevos_caja = pd.DataFrame(nuevos_movimientos_caja)
