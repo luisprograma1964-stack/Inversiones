@@ -151,7 +151,8 @@ def limpiar_cache_hoja(sheet_name):
 def limpiar_cache_dinamico(solo_volatiles=True):
     volatiles = [
         "TRANSACCIONES", "CAJA_LIQUIDEZ", "ESTADO_PROCESOS", "LOG_SISTEMA",
-        "HISTORIAL_VEREDICTOS", "SUGERENCIAS_SINONIMOS", "VARIABLES_MERCADO"
+        "HISTORIAL_VEREDICTOS", "SUGERENCIAS_SINONIMOS", "VARIABLES_MERCADO",
+        "HISTORICO_VALORES", "NOTICIAS_SISTEMA", "REPORTE_SUPERVISOR"
     ]
     for k in list(st.session_state.keys()):
         if str(k).startswith("cache_sheet_"):
