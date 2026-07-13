@@ -75,7 +75,7 @@ def ejecutar_decisor():
         # No intentamos registrar en Sheets porque la conexión falló
         return False
 
-    procesamiento.limpiar_reporte_ia(sh)
+    procesamiento.limpiar_historial_veredictos(sh)
     procesamiento.actualizar_estado_proceso(sh.worksheet(config.WS_ESTADO_PROCESOS), "PROCESANDO", "Analizando activos con IA...")
 
     try:
