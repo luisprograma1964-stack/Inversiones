@@ -390,6 +390,8 @@ def ejecutar_supervisor():
                             f"ALERTA CRITICA: Se detectaron recomendaciones en la Matriz con más de 2 horas de antigüedad ({int(antiguedad_recs)}hs). El motor de IA (decisor_con_ia) no se ejecutó inmediatamente después del análisis técnico o falló. Las decisiones en el dashboard son obsoletas y peligrosas.",
                             "PENDIENTE"
                         ])
+            except Exception as e:
+                logger.warning(f"Error procesando alerta de recomendaciones obsoletas: {e}")
         # Alerta de Procesos en Error (Motor Caído)
         if not df_procesos.empty and 'ESTADO' in df_procesos.columns:
             procesos_caidos = df_procesos[df_procesos['ESTADO'].astype(str).str.strip().str.upper() == 'ERROR']
