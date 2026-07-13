@@ -426,9 +426,6 @@ def limpiar_historico_valores(sh, dias_a_mantener=None):
         registrar_log(ws_log, "ERROR", f"Error durante la limpieza de HISTORICO_VALORES: {e}", "limpieza_historico")
         actualizar_estado_proceso(ws_status, "ERROR", str(e)[:50], "limpieza_historico", tiempo_ejecucion="0.00 min")
 
-def limpiar_reporte_ia(sh, dias_a_mantener=None):
-    """
-    Limpia la hoja REPORTE_IA, manteniendo solo los registros de los últimos X días.
 def limpiar_historial_veredictos(sh, dias_a_mantener=None):
     """
     Limpia la hoja HISTORIAL_VEREDICTOS, manteniendo solo los registros de los últimos X días.

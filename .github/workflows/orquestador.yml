@@ -3,7 +3,7 @@ name: Orquestador Diario de Inversiones
 on:
   schedule:
     # 11:00 UTC = 08:00 AM Argentina (UTC-3)
-    - cron: '0 13 * * 1-5' # De Lunes a Viernes a las 10 AM AR (Temporal)
+    - cron: '0 11 * * 1-5' # De Lunes a Viernes a las 8 AM AR
   workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
 
 jobs:
