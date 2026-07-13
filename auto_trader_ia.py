@@ -231,6 +231,8 @@ def ejecutar_auto_trader():
             else:
                 df_final_trans = pd.concat([df_trans, df_nuevas_trans], ignore_index=True)
                 
+            df_final_trans = df_final_trans.fillna("")
+                
             ws_trans.clear()
             ws_trans.update([df_final_trans.columns.values.tolist()] + df_final_trans.values.tolist())
             
@@ -250,6 +252,8 @@ def ejecutar_auto_trader():
                 df_final_caja = df_nuevos_caja
             else:
                 df_final_caja = pd.concat([df_caja_old, df_nuevos_caja], ignore_index=True)
+                
+            df_final_caja = df_final_caja.fillna("")
                 
             ws_caja.clear()
             ws_caja.update([df_final_caja.columns.values.tolist()] + df_final_caja.values.tolist())
