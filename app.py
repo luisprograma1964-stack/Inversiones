@@ -1477,6 +1477,21 @@ with tab1:
         if not df_maestro.empty: df_maestro.columns = [c.upper() for c in df_maestro.columns]
         if not df_val.empty: df_val.columns = [c.upper() for c in df_val.columns]
 
+        # Restaurar texto largo (SCORE, CONVICCION, etc) desde HISTORIAL_VEREDICTOS para la UI
+        df_historial = cargar_datos_hoja("HISTORIAL_VEREDICTOS")
+        if not df_historial.empty:
+            df_historial.columns = [c.upper() for c in df_historial.columns]
+            if 'TICKER' in df_historial.columns and 'RECOMENDACION_DETALLE' in df_historial.columns:
+                df_matriz['TICKER_JOIN'] = df_matriz['TICKER'].astype(str).str.strip().str.upper()
+                df_historial['TICKER_JOIN'] = df_historial['TICKER'].astype(str).str.strip().str.upper()
+                ultimos_historial = df_historial.drop_duplicates(subset=['TICKER_JOIN'], keep='last')
+                df_matriz = df_matriz.merge(ultimos_historial[['TICKER_JOIN', 'RECOMENDACION_DETALLE']], on='TICKER_JOIN', how='left')
+                df_matriz['VEREDICTO_IA'] = df_matriz.apply(
+                    lambda row: row['RECOMENDACION_DETALLE'] if pd.notna(row.get('RECOMENDACION_DETALLE')) and str(row.get('RECOMENDACION_DETALLE')).strip() != "" else row.get('VEREDICTO_IA', ''),
+                    axis=1
+                )
+                df_matriz = df_matriz.drop(columns=['TICKER_JOIN'])
+
         # Crear diccionario de descripciones de activos
         mapeo_descripciones = {}
         if not df_maestro.empty and 'TICKER_ID' in df_maestro.columns:
@@ -1667,7 +1682,7 @@ with tab1:
                             st.error("🚨 **NIVEL 1: ALERTAS CRÍTICAS DE INTERVENCIÓN MANUAL**")
                             st.write("⚠️ **ACCIÓN REQUERIDA:** Copiá los siguientes mensajes y envíaselos a Antigravity en el chat para investigarlos juntos. Una vez resueltos, cambiales el estado en la grilla de abajo.")
                             for _, row in criticas.iterrows():
-                                st.warning(f"**[{row['TIPO']}]** Activo: {row.get('ACTIVO', '')} -> {row['MENSAJE_ALERTA']}", icon="⚠️")
+                                st.warning(f"**[{row['TIPO']}]** {row['MENSAJE_ALERTA']}", icon="⚠️")
                             st.markdown("<br>", unsafe_allow_html=True)
                             
                         # 2. Mejora Constante y Nuevos Activos

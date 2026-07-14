@@ -203,7 +203,7 @@ def ejecutar_supervisor():
            - Revisa 'configuracion_usuario' (Mix_Target), 'patrimonio_consolidado_por_propietario' y 'valoracion_y_tenencias_cartera'.
            - Genera órdenes concretas y directas de rebalanceo segmentadas por propietario.
         2. RADAR DE OPORTUNIDADES (EXPANSIÓN): 
-           - Identifica activos que el usuario no tiene actualmente pero que muestran alta convicción en 'estado_actual_matriz' (Score >= 8).
+           - Analiza los activos listados en 'auditoria_cedears_comafi.nuevos_cedears_detectados' y sugiere cuáles de esos nuevos CEDEARs el usuario debería considerar agregar a su radar (Maestro de Activos) para comenzar a analizarlos.
         3. MEJORADOR DE DATOS: 
            - Si un activo importante no trae noticias en absoluto, sugiere la acción: 'Cambia el filtro de X por Y en el Maestro'.
         4. ACTIVACIÓN DE ACTIVOS INACTIVOS: 

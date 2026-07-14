@@ -45,26 +45,65 @@ def ejecutar_auto_trader():
         df_caja = pd.DataFrame(sh.worksheet("CAJA_LIQUIDEZ").get_all_records())
         
         try:
+            df_maestro = pd.DataFrame(sh.worksheet(config.WS_MAESTRO_ACTIVOS).get_all_records())
+        except:
+            df_maestro = pd.DataFrame()
+            
+        try:
+            df_historial = pd.DataFrame(sh.worksheet("HISTORIAL_VEREDICTOS").get_all_records())
+            df_historial.columns = [c.strip().upper() for c in df_historial.columns]
+        except:
+            df_historial = pd.DataFrame()
+        
+        try:
             df_val = pd.DataFrame(sh.worksheet("VALORACION_PORTAFOLIO").get_all_records())
         except:
             df_val = pd.DataFrame()
             
+        # Calcular CCL Promedio para evaluar Brecha
+        if 'CCL_IMPLICITO' in df_tecnico.columns:
+            # Reemplazar vacíos con 0 y forzar a numérico
+            ccls = pd.to_numeric(df_tecnico['CCL_IMPLICITO'], errors='coerce').fillna(0)
+            ccls_validos = ccls[ccls > 0]
+            ccl_promedio = ccls_validos.mean() if not ccls_validos.empty else 1500.0
+        else:
+            ccl_promedio = 1500.0
+            
         # 2. Filtrar Carteras de Simulacion
-        fondos_ia = df_carteras[df_carteras['TIPO_CARTERA'].astype(str).str.upper() == 'SIMULACION'].to_dict('records')
+        fondos_ia = df_carteras[(df_carteras['TIPO_CARTERA'].astype(str).str.upper() == 'SIMULACION') & (df_carteras['CARTERA_ID'].astype(str).str.upper().str.startswith('FONDO_IA_'))].to_dict('records')
         
         if not fondos_ia:
             resumen_telegram.append("⚠️ No se encontraron carteras de simulación activas.")
             notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
             return True
             
-        # Extraer precios actuales
-        precios_actuales = {}
+        # Extraer precios e informacion actual
+        info_activos = {}
         if not df_tecnico.empty:
             for _, row in df_tecnico.iterrows():
                 tk = str(row.get('TICKER_ID', '')).strip().upper()
                 px = limpiar_numero(row.get('PRECIO_ACTUAL', 0))
+                ccl = limpiar_numero(row.get('CCL_IMPLICITO', 1500))
+                if ccl == 0: ccl = 1500
                 if tk and px > 0:
-                    precios_actuales[tk] = px
+                    moneda = 'ARS'
+                    if not df_maestro.empty:
+                        m_row = df_maestro[df_maestro['TICKER_ID'].astype(str).str.upper() == tk]
+                        if not m_row.empty:
+                            moneda = str(m_row.iloc[0].get('MONEDA_COTIZACION', 'ARS')).strip().upper()
+                    
+                    razon = ""
+                    if not df_historial.empty and 'TICKER' in df_historial.columns:
+                        h_row = df_historial[df_historial['TICKER'].astype(str).str.upper() == tk]
+                        if not h_row.empty:
+                            razon = str(h_row.iloc[-1].get('RECOMENDACION_DETALLE', '')).strip()
+                            if not razon:
+                                razon = str(h_row.iloc[-1].get('SENTIMIENTO_IA', '')).strip()
+                            razon = razon.replace('<', '').replace('>', '').replace('&', 'and')
+                            if len(razon) > 100:
+                                razon = razon[:97] + "..."
+                                
+                    info_activos[tk] = {'precio': px, 'ccl': ccl, 'moneda': moneda, 'razon': razon}
                     
         nuevas_transacciones = []
         nuevos_movimientos_caja = []
@@ -82,9 +121,12 @@ def ejecutar_auto_trader():
             
             resumen_fondo = [f"\n💼 *{cartera_id}* ({perfil})"]
             
-            # Obtener saldo de caja (ars)
-            df_mi_caja = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'ARS')]
-            saldo_caja = df_mi_caja['SALDO'].apply(limpiar_numero).sum() if not df_mi_caja.empty else 0.0
+            # Obtener saldo de caja (ars y usd)
+            df_mi_caja_ars = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'ARS')]
+            saldo_caja_ars = df_mi_caja_ars['SALDO'].apply(limpiar_numero).sum() if not df_mi_caja_ars.empty else 0.0
+            
+            df_mi_caja_usd = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'USD')]
+            saldo_caja_usd = df_mi_caja_usd['SALDO'].apply(limpiar_numero).sum() if not df_mi_caja_usd.empty else 0.0
             
             # Obtener valuacion activos para sacar Patrimonio Total
             mi_val = 0.0
@@ -100,7 +142,7 @@ def ejecutar_auto_trader():
                             mis_activos[tk] = qty
                             mi_val += val
                             
-            patrimonio_total = saldo_caja + mi_val
+            patrimonio_total = saldo_caja_ars + (saldo_caja_usd * 1500) + mi_val
             caja_minima = patrimonio_total * liq_target
             
             # Filtrar matriz para este perfil
@@ -115,9 +157,25 @@ def ejecutar_auto_trader():
                 tk = str(tk).strip().upper()
                 if tk in mis_activos and mis_activos[tk] > 0:
                     qty = mis_activos[tk]
-                    px = precios_actuales.get(tk, 0)
-                    if px > 0:
-                        bruto = qty * px
+                    info = info_activos.get(tk, {})
+                    if info:
+                        px_usd_underlying = info['precio']
+                        ccl = info['ccl']
+                        razon = info['razon']
+                        
+                        ratios = {"AAPL": 10, "TSLA": 15, "SPY": 20, "QQQ": 20, "MSFT": 30, "AMZN": 144, "GOOGL": 58, "META": 24, "AMD": 10, "NVDA": 24, "KO": 5, "MCD": 12, "DIS": 12, "MELI": 60}
+                        ratio = ratios.get(tk, 10) if px_usd_underlying < 5000 else 1
+                        
+                        # Decidir moneda de venta (vendemos en ARS por defecto para liquidez local, a menos que el usuario quiera USD)
+                        # Vamos a vender en la moneda de cotización original (USD) si es extranjero
+                        if px_usd_underlying < 5000:
+                            mon = 'USD'
+                            px_venta = px_usd_underlying / ratio
+                        else:
+                            mon = 'ARS'
+                            px_venta = (px_usd_underlying * ccl) / ratio if px_usd_underlying < 5000 else px_usd_underlying
+                        
+                        bruto = qty * px_venta
                         comision = bruto * comision_pct
                         neto = bruto - comision
                         
@@ -129,85 +187,172 @@ def ejecutar_auto_trader():
                             'ESPECIE': 'CEDEAR/ACCION',
                             'OPERACIÓN': 'VENTA',
                             'CANTIDAD': qty,
-                            'PRECIO_UNITARIO': px,
-                            'MONEDA': 'ARS',
-                            'COMISIÓN_TOTAL': comision,
-                            'OBSERVACIONES': 'Venta dictaminada por IA',
+                            'PRECIO_UNITARIO': round(px_venta, 2),
+                            'MONEDA': mon,
+                            'COMISIÓN_TOTAL': round(comision, 2),
+                            'OBSERVACIONES': f'Venta IA: {razon[:50]}...',
                             'TOTAL_NETO': neto,
-                            'PRECIO_MERCADO_REF': px
+                            'PRECIO_MERCADO_REF': px_usd_underlying
                         })
-                        saldo_caja += neto
+                        
+                        if mon == 'USD':
+                            saldo_caja_usd += neto
+                        else:
+                            saldo_caja_ars += neto
+                            
                         total_ventas += 1
                         op_ejecutadas += 1
-                        resumen_fondo.append(f"  🔴 VENDIÓ {qty} {tk} a ${px}")
+                        resumen_fondo.append(f"  🔴 VENDIÓ {qty} {tk} a ${px_venta:,.2f} {mon}. Motivo: {razon}")
                         
             # --- EJECUTAR COMPRAS ---
-            efectivo_libre = saldo_caja - caja_minima
-            if efectivo_libre > 0 and compras:
-                compras_validas = [tk for tk in compras if precios_actuales.get(str(tk).strip().upper(), 0) > 0]
-                if compras_validas:
-                    cash_per_asset = efectivo_libre / len(compras_validas)
+            efectivo_libre_ars = saldo_caja_ars - caja_minima
+            efectivo_libre_usd = saldo_caja_usd
+            
+            import re
+            compras_validas = []
+            for tk in compras:
+                if tk in info_activos:
+                    if tk == 'USDARS':
+                        resumen_fondo.append(f"  ⏭️ OMITIDO: La IA recomendó dolarizar ({tk}), pero la compra de divisas está inhabilitada por seguridad.")
+                        continue
+                        
+                    razon_text = info_activos[tk]['razon']
+                    score_match = re.search(r"SCORE:\s*(\d+)", razon_text)
+                    if score_match:
+                        score_val = int(score_match.group(1))
+                        if score_val < 6:
+                            resumen_fondo.append(f"  ⏭️ OMITIDO: {tk} descartado por bajo puntaje de convicción ({score_val}/10).")
+                            continue
+                            
+                    compras_validas.append(tk)
                     
-                    for tk in compras_validas:
-                        tk = str(tk).strip().upper()
-                        px = precios_actuales[tk]
-                        
-                        px_con_comision = px * (1 + comision_pct)
-                        qty = math.floor(cash_per_asset / px_con_comision)
-                        
-                        if qty > 0:
-                            bruto = qty * px
-                            comision = bruto * comision_pct
-                            neto = bruto + comision 
-                            
-                            nuevas_transacciones.append({
-                                'FECHA': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                'PROPIETARIO': cartera_id,
-                                'BROKER_CUENTA': 'AUTO_TRADER_IA',
-                                'ACTIVO': tk,
-                                'ESPECIE': 'CEDEAR/ACCION',
-                                'OPERACIÓN': 'Compra',
-                                'OPERACION': 'Compra',
-                                'CANTIDAD': qty,
-                                'PRECIO_UNITARIO': px,
-                                'MONEDA': 'ARS',
-                                'COMISIÓN_TOTAL': comision,
-                                'COMISION_TOTAL': comision,
-                                'OBSERVACIONES': 'Compra dictaminada por IA',
-                                'TOTAL_NETO': neto,
-                                'PRECIO_MERCADO_REF': px,
-                                'FECHA_ACTUALIZACION': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            })
-                            
-                            nuevos_movimientos_caja.append({
-                                'FECHA': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                'PROPIETARIO': cartera_id,
-                                'MOVIMIENTO': 'EGRESO',
-                                'MONTO': neto,
-                                'MONEDA': 'ARS',
-                                'CONCEPTO': f'Operación Compra - {qty}x {tk}',
-                                'FECHA_ACTUALIZACION': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            })
-                            
-                            saldo_caja -= neto
-                            total_compras += 1
-                            op_ejecutadas += 1
-                            resumen_fondo.append(f"  🟢 COMPRÓ {qty} {tk} a ${px}")
-            elif compras:
-                resumen_fondo.append(f"  ⚠️ OMITIÓ {len(compras)} compras (Caja libre insuficiente: ${max(0, efectivo_libre):,.2f})")
+            if compras_validas:
+                cash_ars_per_asset = max(0, efectivo_libre_ars) / len(compras_validas)
+                cash_usd_per_asset = max(0, efectivo_libre_usd) / len(compras_validas)
                 
-
+                for tk in compras_validas:
+                    info = info_activos[tk]
+                    px = info['precio']
+                    mon = info['moneda']
+                    ccl = info['ccl']
+                    razon = info['razon']
+                    
+                    px_usd_underlying = px
+                    
+                    ratios = {"AAPL": 10, "TSLA": 15, "SPY": 20, "QQQ": 20, "MSFT": 30, "AMZN": 144, "GOOGL": 58, "META": 24, "AMD": 10, "NVDA": 24, "KO": 5, "MCD": 12, "DIS": 12, "MELI": 60}
+                    ratio = ratios.get(tk, 10) if px_usd_underlying < 5000 else 1  # Si es < 5000 asumimos que es USD underlying
+                    
+                    px_cedear_usd = px_usd_underlying / ratio
+                    px_cedear_ars = (px_usd_underlying * ccl) / ratio
+                    
+                    px_con_comision_usd = px_cedear_usd * (1 + comision_pct)
+                    px_con_comision_ars = px_cedear_ars * (1 + comision_pct)
+                    
+                    qty = 0
+                    moneda_pago = 'ARS'
+                    px_pago = px_cedear_ars
+                    
+                    # Decisión Financiera: Comparar brecha de CCL
+                    if px_usd_underlying < 5000:
+                        if ccl > ccl_promedio:
+                            # El CCL del ticker es MAYOR al promedio -> Caro en pesos -> Comprar en USD si hay
+                            qty = math.floor(cash_usd_per_asset / px_con_comision_usd)
+                            if qty > 0:
+                                moneda_pago = 'USD'
+                                px_pago = px_cedear_usd
+                                efectivo_libre_usd -= (qty * px_con_comision_usd)
+                            else:
+                                # Fallback a ARS
+                                qty = math.floor(cash_ars_per_asset / px_con_comision_ars)
+                                if qty > 0:
+                                    moneda_pago = 'ARS'
+                                    px_pago = px_cedear_ars
+                                    efectivo_libre_ars -= (qty * px_con_comision_ars)
+                        else:
+                            # El CCL del ticker es MENOR al promedio -> Barato en pesos -> Comprar en ARS si hay
+                            qty = math.floor(cash_ars_per_asset / px_con_comision_ars)
+                            if qty > 0:
+                                moneda_pago = 'ARS'
+                                px_pago = px_cedear_ars
+                                efectivo_libre_ars -= (qty * px_con_comision_ars)
+                            else:
+                                # Fallback a USD
+                                qty = math.floor(cash_usd_per_asset / px_con_comision_usd)
+                                if qty > 0:
+                                    moneda_pago = 'USD'
+                                    px_pago = px_cedear_usd
+                                    efectivo_libre_usd -= (qty * px_con_comision_usd)
+                    else:
+                        # Activo puramente local (precio > 5000)
+                        qty = math.floor(cash_ars_per_asset / px_con_comision_ars)
+                        if qty > 0:
+                            moneda_pago = 'ARS'
+                            px_pago = px_cedear_ars
+                            efectivo_libre_ars -= (qty * px_con_comision_ars)
+                            
+                    if qty > 0:
+                        bruto = round(qty * px_pago, 2)
+                        comision = round(bruto * comision_pct, 2)
+                        neto = round(bruto + comision, 2)
+                        px_pago_rounded = round(px_pago, 2)
+                        
+                        nuevas_transacciones.append({
+                            'FECHA': hoy,
+                            'PROPIETARIO': cartera_id,
+                            'BROKER_CUENTA': 'AUTO_TRADER_IA',
+                            'ACTIVO': tk,
+                            'ESPECIE': 'CEDEAR/ACCION',
+                            'OPERACIÓN': 'COMPRA',
+                            'CANTIDAD': qty,
+                            'PRECIO_UNITARIO': px_pago_rounded,
+                            'MONEDA': moneda_pago,
+                            'COMISIÓN_TOTAL': comision,
+                            'OBSERVACIONES': f'Compra IA: {razon[:50]}...',
+                            'TOTAL_NETO': neto,
+                            'PRECIO_MERCADO_REF': round(px, 2),
+                            'FECHA_ACTUALIZACION': hoy
+                        })
+                        
+                        nuevos_movimientos_caja.append({
+                            'FECHA': hoy,
+                            'PROPIETARIO': cartera_id,
+                            'MOVIMIENTO': 'EGRESO',
+                            'MONTO': neto,
+                            'MONEDA': moneda_pago,
+                            'CONCEPTO': f'Operación Compra - {qty}x {tk}',
+                            'FECHA_ACTUALIZACION': hoy
+                        })
+                        
+                        if moneda_pago == 'USD':
+                            saldo_caja_usd -= neto
+                        else:
+                            saldo_caja_ars -= neto
+                            
+                        total_compras += 1
+                        op_ejecutadas += 1
+                        extra = "" if moneda_pago == mon else " (vía CCL)"
+                        resumen_fondo.append(f"  🟢 COMPRÓ {qty} {tk} a ${px_pago:,.2f} {moneda_pago}{extra}. Motivo: {razon}")
+                    else:
+                        resumen_fondo.append(f"  ⚠️ OMITIÓ comprar {tk}. Sin liquidez libre. Sugerido por: {razon}")
             
             if op_ejecutadas == 0 and not compras:
                 resumen_fondo.append("  💤 Sin señales de operación hoy.")
                 
             resumen_telegram.extend(resumen_fondo)
             
+            # Asegurar que SALDO sea float para evitar TypeError de Pandas
+            df_caja['SALDO'] = df_caja['SALDO'].astype(float)
+            
             # Actualizar dataframe de CAJA_LIQUIDEZ en memoria
-            idx = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'ARS')].index
-            if not idx.empty:
-                df_caja.loc[idx, 'SALDO'] = saldo_caja
-                df_caja.loc[idx, 'ULTIMA_ACTUALIZACION'] = hoy
+            idx_ars = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'ARS')].index
+            if not idx_ars.empty:
+                df_caja.loc[idx_ars, 'SALDO'] = float(saldo_caja_ars)
+                df_caja.loc[idx_ars, 'ULTIMA_ACTUALIZACION'] = hoy
+                
+            idx_usd = df_caja[(df_caja['PROPIETARIO'].astype(str).str.upper() == cartera_id) & (df_caja['MONEDA'] == 'USD')].index
+            if not idx_usd.empty:
+                df_caja.loc[idx_usd, 'SALDO'] = float(saldo_caja_usd)
+                df_caja.loc[idx_usd, 'ULTIMA_ACTUALIZACION'] = hoy
             
         # 4. GUARDAR EN SHEETS
         if nuevas_transacciones:
@@ -286,12 +431,12 @@ def ejecutar_auto_trader():
         return True
         
     except Exception as e:
-        logger.error(f"Error en Auto-Trader: {e}")
+        logger.error(f"Error en Auto-Trader: {e}", exc_info=True)
         try:
-            ws_status = sh.worksheet(config.WS_ESTADO_PROCESOS)
-            procesamiento.actualizar_estado_proceso(ws_status, "ERROR", f"Fallo Auto-Trader: {str(e)[:100]}", nombre_proceso="auto_trader_ia")
-        except: pass
-        notificador_telegram.enviar_mensaje_telegram(f"❌ *Error en Auto-Trader IA:* {e}")
+            import notificador_telegram
+            notificador_telegram.enviar_mensaje_telegram(f"❌ *Error en Auto-Trader IA:* {e}")
+        except:
+            pass
         return False
 
 if __name__ == '__main__':

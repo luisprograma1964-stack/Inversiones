@@ -64,6 +64,8 @@ def ejecutar_valoracion():
         def fmt_sheets(val):
             if pd.isna(val) or str(val).strip() == "": return ""
             try:
+                if isinstance(val, float):
+                    return f"{val:.2f}".replace('.', ',')
                 return str(val).replace('.', ',')
             except:
                 return str(val)
@@ -184,17 +186,21 @@ def ejecutar_valoracion():
                             
                         # Costo Promedio Ponderado de las compras
                         total_gastado = compras['TOTAL_NETO'].sum()
-                        costo_promedio = total_gastado / cant_compras if cant_compras > 0 else 0.0
+                        costo_promedio = round(total_gastado / cant_compras, 2) if cant_compras > 0 else 0.0
                         
-                        # Buscar precio actual en análisis técnico
-                        precio_actual = precios_actuales.get(t, 0.0)
+                        # Buscar precio actual en análisis técnico (viene en USD para activos extranjeros)
+                        precio_actual_bruto = precios_actuales.get(t, 0.0)
                         
-                        # Si es una transacción en ARS y el precio vino en USD, convertimos usando Ratio y CCL
-                        if mon == 'ARS' and precio_actual > 0 and precio_actual < 5000:
-                            # Ratios aproximados comunes (si es mayor a 5000 probablemente ya esté en ARS)
-                            ratios = {"AAPL": 10, "TSLA": 15, "SPY": 20, "QQQ": 20, "MSFT": 30, "AMZN": 144, "GOOGL": 58, "META": 24, "AMD": 10, "NVDA": 24, "KO": 5, "MCD": 12, "DIS": 12, "MELI": 60}
-                            ratio = ratios.get(t, 10)
-                            precio_actual = (precio_actual * ccl_prom) / ratio
+                        ratios = {"AAPL": 10, "TSLA": 15, "SPY": 20, "QQQ": 20, "MSFT": 30, "AMZN": 144, "GOOGL": 58, "META": 24, "AMD": 10, "NVDA": 24, "KO": 5, "MCD": 12, "DIS": 12, "MELI": 60}
+                        ratio = ratios.get(t, 10) if precio_actual_bruto < 5000 else 1
+                        
+                        # El precio del Cedear en USD
+                        precio_cedear_usd = precio_actual_bruto / ratio
+                        
+                        if mon == 'ARS':
+                            precio_actual = (precio_actual_bruto * ccl_prom) / ratio if precio_actual_bruto < 5000 else precio_actual_bruto
+                        else:
+                            precio_actual = precio_cedear_usd
                             
                         if precio_actual == 0.0:
                             # Fallback al último precio registrado de transacciones

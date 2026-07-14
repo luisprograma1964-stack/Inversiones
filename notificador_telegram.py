@@ -27,22 +27,31 @@ def enviar_mensaje_telegram(mensaje, destinatario="DEFAULT"):
             chat_id = str(row.get("TELEGRAM_CHAT_ID", "")).strip()
         
         # Filtro de credenciales válidas
+        # Filtro de credenciales válidas
         if not token or not chat_id or token == "" or chat_id == "" or "ERROR" in token:
             return False
             
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {
-            "chat_id": chat_id,
-            "text": mensaje,
-            "parse_mode": "HTML"
-        }
         
-        # Timeout de 8s para no trancar la ejecución de fondo del pipeline si hay mala red
-        response = requests.post(url, json=payload, timeout=8)
-        return response.status_code == 200
+        # Dividir mensajes largos para no exceder el límite de 4096 caracteres de Telegram
+        max_length = 4000
+        chunks = [mensaje[i:i+max_length] for i in range(0, len(mensaje), max_length)]
+        
+        all_ok = True
+        for chunk in chunks:
+            payload = {
+                "chat_id": chat_id,
+                "text": chunk
+            }
+            # Timeout de 8s para no trancar la ejecución
+            response = requests.post(url, json=payload, timeout=8)
+            if response.status_code != 200:
+                print(f"[-] Error enviando a Telegram. Status {response.status_code}: {response.text}")
+                all_ok = False
+        return all_ok
     except Exception as e:
         # Fallo silencioso por diseño para no romper ejecuciones críticas
-        print(f"[-] Telegram omitido o con error: {e}")
+        print(f"[-] Excepción en Telegram omitida: {e}")
         return False
 
 if __name__ == "__main__":
