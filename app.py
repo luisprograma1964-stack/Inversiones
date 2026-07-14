@@ -3,6 +3,7 @@ import sys
 import os
 import subprocess
 import threading
+import notificador_telegram
 import time
 from pathlib import Path
 import pandas as pd
@@ -612,7 +613,7 @@ def render_semaforo_sidebar():
                     with open(LOG_FILE_PATH, "a", encoding="utf-8") as f:
                         f.write(f"\n[STOP] PROCESO CANCELADO POR EL USUARIO DESDE LA WEB ({datetime.now().strftime('%H:%M:%S')})\n")
                     try:
-                        import notificador_telegram
+                        pass # import notificador_telegram
                         notificador_telegram.enviar_mensaje_telegram(f"❌ <b>ALERTA</b>\n\nEl proceso <code>{estado_global['activo']}</code> fue cancelado manualmente por el usuario desde la Web App.")
                     except Exception:
                         pass
@@ -2582,7 +2583,7 @@ with tab_glosario:
                             ])
                             st.success("✅ Sugerencia enviada con éxito! Muchas gracias.")
                             try:
-                                import notificador_telegram
+                                pass # import notificador_telegram
                                 msg = f"📩 <b>Nuevo Feedback de Usuario</b>\n\n👤 <b>Usuario:</b> {st.session_state['usuario']['nombre']}\n📌 <b>Módulo:</b> {modulo_app}\n⚠️ <b>Prioridad:</b> {prioridad}\n\n💬 <i>{comentario}</i>"
                                 notificador_telegram.enviar_mensaje_telegram(msg)
                             except:

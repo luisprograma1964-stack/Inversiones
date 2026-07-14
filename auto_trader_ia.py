@@ -425,7 +425,6 @@ def ejecutar_auto_trader():
         
         # Enviar resumen a Telegram
         resumen_telegram.append(f"\n📊 *Total operaciones:* {total_compras} compras, {total_ventas} ventas. (Tiempo: {duracion})")
-        import notificador_telegram
         notificador_telegram.enviar_mensaje_telegram("\n".join(resumen_telegram))
         
         return True
@@ -433,8 +432,7 @@ def ejecutar_auto_trader():
     except Exception as e:
         logger.error(f"Error en Auto-Trader: {e}", exc_info=True)
         try:
-            import notificador_telegram
-            notificador_telegram.enviar_mensaje_telegram(f"❌ *Error en Auto-Trader IA:* {e}")
+            notificador_telegram.enviar_mensaje_telegram(f"🚨 *Error en Auto-Trader IA:* {e}")
         except:
             pass
         return False

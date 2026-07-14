@@ -505,7 +505,7 @@ Define la política y ponderaciones que la IA debe contrastar:
             # Chequear si hubo un error de Telegram (Alerta Crítica)
             hay_alerta_critica = any(a[2] == "ALERTA_CRITICA" for a in alertas_inbox_total)
             if hay_alerta_critica:
-                import notificador_telegram
+                pass # import notificador_telegram
                 notificador_telegram.enviar_mensaje_telegram(f"🚨 <b>[Supervisor]</b> Se han detectado ALERTAS CRÍTICAS en el sistema. Revisa la bandeja de entrada en la Web App de inmediato.")
                 
             path_md = "Google Sheets: REPORTE_SUPERVISOR y ALERTAS_SUPERVISOR"
@@ -535,7 +535,7 @@ Define la política y ponderaciones que la IA debe contrastar:
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"
         procesamiento.actualizar_estado_proceso(ws_status, "OK", f"Informe generado ({modelo_exitoso})", nombre_proceso="supervisor_del_sistema", tiempo_ejecucion=duracion)
         print(f"[OK] Supervisor finalizado exitosamente en {duracion}.\n")
-        import notificador_telegram
+        pass # import notificador_telegram
         notificador_telegram.enviar_mensaje_telegram(f"✅ <b>[Supervisor]</b> Finalizado con éxito.\n⏱️ Tiempo: {duracion}")
         
         return informe_completo_md
@@ -544,7 +544,7 @@ Define la política y ponderaciones que la IA debe contrastar:
         msg = f"Error en Supervisor: {e}"
         logger.exception(msg)
         try:
-            import notificador_telegram
+            pass # import notificador_telegram
             notificador_telegram.enviar_mensaje_telegram(f"❌ <b>[Supervisor]</b> Error crítico:\n<code>{str(e)[:150]}</code>")
         except:
             pass

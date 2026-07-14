@@ -3,6 +3,7 @@ Orquestador de Captura y Triage de Noticias.
 Coordina los sub-módulos de captura (RSS, Scraping, etc.) y utiliza
 IA para filtrar y resumir antes de guardar en las tablas finales.
 """
+import notificador_telegram
 import json
 import re
 import time
@@ -493,7 +494,7 @@ def ejecutar_captura_noticias():
             
         # --- BOLETÍN DE NOTICIAS PARA VICKY ---
         if aprobadas_batch:
-            import notificador_telegram
+            pass # import notificador_telegram
             # Ordenar por importancia (Prioridad 1: Activos específicos, 2: Locales (9999_AR), 3: Global (9999_US))
             def score_prioridad(noticia):
                 ticker = str(noticia[2])
@@ -520,6 +521,7 @@ def ejecutar_captura_noticias():
                 msg_boletin += "\n"
                 
             notificador_telegram.enviar_mensaje_telegram(msg_boletin)
+            notificador_telegram.enviar_mensaje_telegram(msg_boletin, destinatario="VICKY")
 
         # 6. Finalización y Logs
         duracion = f"{round((time.time() - t_inicio) / 60, 2)} min"

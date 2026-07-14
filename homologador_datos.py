@@ -227,14 +227,14 @@ def ejecutar_homologacion():
         
     if inconsistencias == 0:
         print("   - [STATUS] EXCELENTE (Integridad 100%). Los datos coinciden perfectamente entre Sheets y el JSON/Prompt.")
-        import notificador_telegram
+        pass # import notificador_telegram
         notificador_telegram.enviar_mensaje_telegram(f"✅ <b>[QA Homologador]</b> Finalizado.\nIntegridad 100%. ({verificaciones} chequeos).")
         return True
     else:
         print(f"   - [STATUS] INCONSISTENTE. Se detectaron {inconsistencias} discrepancias de datos.")
         print("     Por favor revisa el log superior para corregir descalces o re-ejecutar el pipeline.")
         try:
-            import notificador_telegram
+            pass # import notificador_telegram
             notificador_telegram.enviar_mensaje_telegram(f"⚠️ <b>[QA Homologador]</b> Finalizado con {inconsistencias} inconsistencias.\nRevisar consola.")
         except:
             pass
