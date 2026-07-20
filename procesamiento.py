@@ -653,7 +653,7 @@ def limpiar_noticias_descartadas(sh, dias_a_mantener=None):
         
         import numpy as np
         # Convertir todo a string, o llenar NaNs con string vacío para evitar errores JSON
-        df_limpio = df_limpio.fillna("")
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
@@ -829,7 +829,7 @@ def limpiar_noticias_sistema(sh, dias_a_mantener=None):
         
         import numpy as np
         # Llenado seguro para evitar "Out of range float values are not JSON compliant"
-        df_limpio = df_limpio.fillna("")
+        df_limpio = df_limpio.replace([np.inf, -np.inf], np.nan).fillna("")
 
         eliminados = total_antes - len(df_limpio)
         if eliminados < getattr(config, 'UMBRAL_FILAS_BORRAR_MINIMO', 50):
